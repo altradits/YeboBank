@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>YeboBank — Save in Bitcoin. Spend in shillings.</title>
+<meta name="description" content="YeboBank is an open-source Bitcoin savings bank for Kenya. Earn interest in sats, top up and cash out with M-Pesa, and watch your money stop shrinking to inflation." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css" />
+<style>
+:root{
+  /* base */
+  --ivory:#FBF8EF; --cream:#F2EDE0; --surface:#FFFFFF;
+  --border:#E7E0D0; --border-soft:#EFE9DC;
+  /* authority */
+  --ink:#0C2418; --forest:#103A26; --forest-2:#18512F; --forest-mid:#2D7A4C;
+  /* hope / growth */
+  --emerald:#11A65B; --emerald-deep:#0A7B41;
+  /* wealth */
+  --gold:#E0A800; --gold-soft:#F4C84A; --gold-text:#9C7400;
+  --lime:#C8D96A;
+  /* energy */
+  --terra:#E0641E; --terra-text:#B4501A;
+  --red:#C8472E;
+  /* text */
+  --text:#0C2418; --muted:#3C574A; --soft:#56705F;
+  /* geometry */
+  --r-sm:10px; --r:16px; --r-lg:24px; --r-xl:32px;
+  --maxw:1180px;
+  --shadow-1:0 1px 2px rgba(12,36,24,.06), 0 2px 8px rgba(12,36,24,.06);
+  --shadow-2:0 6px 14px rgba(12,36,24,.10), 0 12px 30px rgba(12,36,24,.10);
+  --shadow-3:0 14px 28px rgba(12,36,24,.14), 0 24px 60px rgba(12,36,24,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'IBM Plex Sans',sans-serif;background:var(--ivory);color:var(--text);
+  -webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden;
+}
+.gk{font-family:'Space Grotesk',sans-serif}
+.mn{font-family:'JetBrains Mono',monospace}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+section{position:relative}
+
+/* ===== reveal animation ===== */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}.reveal.d4{transition-delay:.32s}
+
+/* ===== buttons (material) ===== */
+.btn{position:relative;overflow:hidden;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;
+  border:none;cursor:pointer;border-radius:999px;padding:14px 26px;display:inline-flex;align-items:center;gap:9px;
+  transition:transform .2s,box-shadow .25s,background .25s;will-change:transform}
+.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn-primary{background:var(--forest);color:#fff;box-shadow:var(--shadow-2)}
+.btn-primary:hover{background:var(--forest-2);transform:translateY(-2px);box-shadow:var(--shadow-3)}
+.btn-gold{background:linear-gradient(135deg,var(--gold-soft) 8%,var(--gold) 83%);color:#3a2c00;box-shadow:0 8px 22px rgba(224,168,0,.38)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(224,168,0,.46)}
+.btn-lime{background:var(--lime);color:#16301f;box-shadow:0 8px 22px rgba(200,217,106,.35)}
+.btn-lime:hover{transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--text);border:1.5px solid rgba(12,36,24,.22)}
+.btn-ghost:hover{border-color:var(--forest);background:rgba(16,58,38,.04)}
+.btn-ghost.on-dark{color:#fff;border-color:rgba(255,255,255,.35)}
+.btn-ghost.on-dark:hover{border-color:var(--lime);color:var(--lime);background:rgba(255,255,255,.04)}
+.ripple{position:absolute;border-radius:50%;transform:scale(0);background:rgba(255,255,255,.45);animation:rip .6s linear;pointer-events:none}
+.btn-gold .ripple{background:rgba(255,255,255,.6)}
+@keyframes rip{to{transform:scale(2.6);opacity:0}}
+.txtlink{font-family:'Space Grotesk',sans-serif;font-weight:600;display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.txtlink i{color:var(--terra);transition:transform .25s}
+.txtlink:hover i{transform:translateX(5px)}
+
+/* ===== top ticker bar ===== */
+.ticker{background:var(--ink);color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px}
+.ticker .wrap{display:flex;align-items:center;gap:22px;padding:9px 28px;flex-wrap:wrap}
+.ticker .live{display:flex;align-items:center;gap:8px;color:var(--lime);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.ticker .pulse{width:7px;height:7px;border-radius:50%;background:var(--emerald);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+.ticker .item{display:flex;align-items:center;gap:8px}
+.ticker .k{color:rgba(255,255,255,.5)}
+.ticker .v{font-weight:700;transition:color .25s}
+.ticker .chg{font-size:11px;padding:1px 7px;border-radius:20px}
+.ticker .src{margin-left:auto;color:rgba(255,255,255,.4);font-size:11px}
+.flash-up{color:var(--lime)!important}.flash-dn{color:#ff9b7a!important}
+.up{color:var(--lime)}.dn{color:#ff9b7a}
+
+/* ===== nav ===== */
+.nav{position:sticky;top:0;z-index:60;background:rgba(251,248,239,.82);backdrop-filter:saturate(150%) blur(12px);border-bottom:1px solid var(--border-soft)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;padding:16px 28px}
+.brand{display:flex;align-items:center;gap:11px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em}
+.brand .mk{width:34px;height:34px;border-radius:11px;background:var(--forest);color:var(--lime);display:grid;place-items:center;font-weight:700;font-size:17px;box-shadow:var(--shadow-1)}
+.navlinks{display:flex;gap:30px;font-size:15px;font-weight:500;color:var(--muted)}
+.navlinks a:hover{color:var(--text)}
+.navactions{display:flex;gap:12px;align-items:center}
+.navactions .login{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px}
+@media(max-width:880px){.navlinks{display:none}}
+
+/* ===== hero ===== */
+.hero{padding:78px 0 70px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle,rgba(224,168,0,.16),transparent 66%);top:-160px;right:-120px;z-index:0}
+.hero::after{content:"";position:absolute;width:460px;height:460px;border-radius:50%;
+  background:radial-gradient(circle,rgba(17,166,91,.14),transparent 68%);bottom:-220px;left:-140px;z-index:0}
+.hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.12fr .88fr;gap:56px;align-items:center}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.06em;color:var(--terra-text);text-transform:uppercase;display:inline-flex;align-items:center;gap:9px}
+.eyebrow b{width:26px;height:2px;background:var(--terra);display:inline-block}
+h1.hero-h{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(40px,6vw,68px);line-height:.98;letter-spacing:-.035em;margin-top:22px}
+h1.hero-h .word{display:inline-block;opacity:0;transform:translateY(16px);transition:opacity .55s,transform .55s}
+h1.hero-h.go .word{opacity:1;transform:none}
+h1.hero-h .gold{color:var(--gold-text)}
+h1.hero-h .grn{color:var(--emerald-deep)}
+.hero-sub{font-size:19px;line-height:1.6;color:var(--muted);max-width:40ch;margin-top:24px}
+.hero-sub .sw{color:var(--text);font-weight:600}
+.hero-cta{display:flex;gap:16px;align-items:center;margin-top:34px;flex-wrap:wrap}
+.hero-micro{display:flex;gap:18px;align-items:center;margin-top:28px;font-size:14px;font-weight:500;color:var(--soft);flex-wrap:wrap}
+.hero-micro .dot{width:4px;height:4px;border-radius:50%;background:#b6ad97}
+.hero-micro i{color:var(--emerald-deep);margin-right:5px}
+
+/* balance card */
+.balance{background:var(--forest);color:#fff;border-radius:var(--r-xl);padding:30px;box-shadow:var(--shadow-3);position:relative;overflow:hidden}
+.balance::after{content:"";position:absolute;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(224,168,0,.32),transparent 70%);top:-90px;right:-70px}
+.balance .head{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.balance .lbl{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.05em;color:rgba(255,255,255,.62)}
+.balance .badge{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(200,217,106,.18);color:var(--lime);padding:5px 11px;border-radius:20px;display:flex;gap:6px;align-items:center}
+.balance .amt{font-family:'JetBrains Mono',monospace;font-size:clamp(30px,5vw,40px);font-weight:700;margin-top:12px;letter-spacing:-.02em;position:relative;z-index:1}
+.balance .conv{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--gold-soft);margin-top:6px;position:relative;z-index:1}
+.balance .tog{display:inline-flex;background:rgba(255,255,255,.1);border-radius:999px;padding:4px;margin-top:20px;gap:3px;position:relative;z-index:1}
+.balance .tog button{font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(255,255,255,.65);background:none;border:none;cursor:pointer;padding:8px 18px;border-radius:999px;transition:.2s}
+.balance .tog button.on{background:var(--gold);color:#3a2c00;font-weight:700}
+.balance .qa{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px;position:relative;z-index:1}
+.balance .q{background:rgba(255,255,255,.1);border-radius:14px;padding:14px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:10px;transition:background .2s,transform .2s}
+.balance .q:hover{background:rgba(255,255,255,.18);transform:translateY(-2px)}
+.balance .q i{color:var(--lime);font-size:18px}
+@media(max-width:880px){.hero .wrap{grid-template-columns:1fr;gap:44px}.hero{padding:50px 0}}
+
+/* ===== generic section header ===== */
+.sec{padding:96px 0}
+.sec-dark{background:var(--forest);color:#fff}
+.sec-ink{background:var(--ink);color:#fff}
+.sec-cream{background:var(--cream)}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;color:var(--terra-text);display:flex;align-items:center;gap:9px}
+.sec-dark .kicker,.sec-ink .kicker{color:var(--lime)}
+.h2{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(30px,4.4vw,46px);line-height:1.04;letter-spacing:-.03em;margin-top:14px;max-width:18ch}
+.lead{font-size:18px;line-height:1.65;color:var(--muted);max-width:46ch;margin-top:20px}
+.sec-dark .lead,.sec-ink .lead{color:rgba(255,255,255,.78)}
+.sec-dark .h2 .accent{color:var(--gold-soft)}
+.h2 .accent{color:var(--terra-text)}.h2 .grow{color:var(--emerald-deep)}
+
+/* ===== inflation (problem) ===== */
+.infl{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.bars{display:flex;gap:34px;align-items:flex-end;height:300px;padding:24px;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-2)}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bar{width:100%;border-radius:12px 12px 0 0;position:relative;transition:height 1.4s cubic-bezier(.2,.8,.2,1);display:flex;align-items:flex-start;justify-content:center}
+.bar .tag{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;margin-top:10px}
+.bar-shrink{background:linear-gradient(180deg,#e08a6e,var(--red));height:30%}
+.bars.in .bar-shrink{height:34%}
+.bar-grow{background:linear-gradient(180deg,var(--gold-soft),var(--emerald));height:30%}
+.bars.in .bar-grow{height:92%}
+.bar-label{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;margin-top:14px;text-align:center;color:var(--muted)}
+.bar-label b{display:block;color:var(--text);font-size:15px}
+@media(max-width:880px){.infl{grid-template-columns:1fr;gap:40px}}
+
+/* ===== feature split (alternating) ===== */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.split.flip .split-visual{order:2}
+.split-list{margin-top:26px;display:flex;flex-direction:column;gap:2px}
+.split-li{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--border-soft)}
+.sec-dark .split-li{border-color:rgba(255,255,255,.12)}
+.split-li:last-child{border-bottom:none}
+.split-li i{flex:none;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;background:rgba(17,166,91,.12);color:var(--emerald-deep)}
+.split-li .ti-tt{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px}
+.split-li .ti-dd{font-size:14px;color:var(--muted);margin-top:2px}
+.sec-dark .split-li .ti-dd{color:rgba(255,255,255,.7)}
+@media(max-width:880px){.split{grid-template-columns:1fr;gap:40px}.split.flip .split-visual{order:0}}
+
+/* phone mock */
+.phone{justify-self:center;width:268px;background:var(--ink);border-radius:40px;padding:13px;box-shadow:var(--shadow-3)}
+.phone .scr{background:var(--ivory);border-radius:30px;padding:20px 18px;min-height:430px}
+.phone .ph-top{display:flex;align-items:center;justify-content:space-between;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px}
+.phone .ph-top span{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--soft)}
+.mp-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;margin-top:16px;box-shadow:var(--shadow-1)}
+.mp-row{display:flex;justify-content:space-between;font-size:14px;padding:8px 0}
+.mp-row span{color:var(--soft)}.mp-row b{font-family:'JetBrains Mono',monospace;font-weight:500}
+.mp-row b.grn{color:var(--emerald-deep)}
+.mp-btn{background:var(--emerald);color:#fff;text-align:center;border-radius:13px;padding:13px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;margin-top:14px}
+.mp-ok{display:flex;align-items:center;gap:11px;background:rgba(17,166,91,.1);border-radius:14px;padding:13px;margin-top:14px}
+.mp-ok i{color:var(--emerald-deep);font-size:24px}
+.mp-ok .t{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px}
+.mp-ok .s{font-size:12px;color:var(--soft)}
+
+/* chama nodes */
+.nodes{position:relative;height:360px;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-2);overflow:hidden}
+.node{position:absolute;border-radius:50%;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--forest);background:#fff;border:2px solid var(--emerald);box-shadow:var(--shadow-1);opacity:0;transform:scale(.4);transition:opacity .5s,transform .5s cubic-bezier(.2,1.4,.4,1)}
+.nodes.in .node{opacity:1;transform:none}
+.node.hub{background:var(--forest);color:var(--lime);border-color:var(--gold);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px}
+.node-line{stroke:var(--emerald);stroke-width:1.6;opacity:0;transition:opacity .6s}
+.nodes.in .node-line{opacity:.4}
+
+/* agents map */
+.map{position:relative;height:360px;background:var(--forest);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-2)}
+.map .pin{position:absolute;display:flex;flex-direction:column;align-items:center;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s}
+.map.in .pin{opacity:1;transform:none}
+.map .pin i{font-size:26px;color:var(--gold-soft);filter:drop-shadow(0 4px 8px rgba(0,0,0,.4))}
+.map .pin .lab{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.85);margin-top:2px;background:rgba(12,36,24,.6);padding:2px 7px;border-radius:10px;white-space:nowrap}
+.map .ring{position:absolute;border:1.5px solid rgba(200,217,106,.18);border-radius:50%}
+
+/* lightning address chip */
+.la-chip{display:inline-flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:10px 12px 10px 18px;box-shadow:var(--shadow-2);margin-top:26px}
+.la-chip .addr{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:16px}
+.la-chip .cpy{width:38px;height:38px;border-radius:50%;background:var(--forest);color:#fff;display:grid;place-items:center;cursor:pointer;transition:.2s}
+.la-chip .cpy:hover{background:var(--emerald)}
+.bolt-anim{display:inline-block;color:var(--gold);animation:bolt 2.4s infinite}
+@keyframes bolt{0%,92%,100%{transform:scale(1);opacity:1}94%{transform:scale(1.25);opacity:.7}}
+
+/* trust cards */
+.trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:48px}
+.tcard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);padding:24px;transition:transform .25s,background .25s}
+.tcard:hover{transform:translateY(-4px);background:rgba(255,255,255,.09)}
+.tcard i{font-size:26px;color:var(--lime)}
+.tcard h3{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:17px;margin-top:16px}
+.tcard p{font-size:13.5px;color:rgba(255,255,255,.72);margin-top:8px;line-height:1.55}
+@media(max-width:880px){.trust-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.trust-grid{grid-template-columns:1fr}}
+
+/* ===== converter ===== */
+.conv-wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:center}
+.calc{background:var(--surface);border-radius:var(--r-lg);padding:30px;box-shadow:var(--shadow-3);border:1px solid var(--border-soft)}
+.calc .field{position:relative}
+.calc input{width:100%;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:34px;border:none;background:var(--cream);border-radius:var(--r);padding:20px 110px 20px 20px;color:var(--text);letter-spacing:-.01em}
+.calc input:focus{outline:3px solid rgba(17,166,91,.35)}
+.calc .unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;gap:3px;background:var(--ivory);border-radius:999px;padding:4px}
+.calc .unit button{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--soft);padding:6px 11px;border-radius:999px;transition:.2s}
+.calc .unit button.on{background:var(--forest);color:#fff}
+.calc .out{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.calc .ocard{background:var(--cream);border-radius:var(--r);padding:18px}
+.calc .ocard .ok{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--soft);text-transform:uppercase;letter-spacing:.05em}
+.calc .ocard .ov{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:22px;margin-top:8px;letter-spacing:-.01em}
+.calc .ocard.gold .ov{color:var(--gold-text)}
+.calc .ocard.grn .ov{color:var(--emerald-deep)}
+.calc .rate-note{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--soft);margin-top:18px;display:flex;align-items:center;gap:8px}
+@media(max-width:880px){.conv-wrap{grid-template-columns:1fr;gap:40px}}
+
+/* ===== final CTA ===== */
+.cta{background:var(--ink);color:#fff;text-align:center;padding:110px 0}
+.cta::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(224,168,0,.18),transparent 55%);z-index:0}
+.cta .wrap{position:relative;z-index:2}
+.cta .sw-lead{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--lime);margin-bottom:18px}
+.cta h2{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(34px,5vw,56px);line-height:1.02;letter-spacing:-.03em}
+.cta h2 .gold{color:var(--gold-soft)}
+.cta .cta-actions{display:flex;gap:16px;justify-content:center;margin-top:38px;flex-wrap:wrap}
+
+/* ===== footer ===== */
+.foot{background:var(--forest);color:rgba(255,255,255,.78);padding:60px 0 40px}
+.foot .top{display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap}
+.foot .cols{display:flex;gap:64px;flex-wrap:wrap}
+.foot .col h4{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:14px}
+.foot .col a{display:block;font-size:14px;padding:5px 0;color:rgba(255,255,255,.72)}
+.foot .col a:hover{color:var(--lime)}
+.foot .bottom{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.12);margin-top:48px;padding-top:24px;font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,.5)}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+  h1.hero-h .word{opacity:1;transform:none}
+}
+</style>
+</head>
+<body data-btc-usd="98000" data-usd-kes="129">
+
+<!-- ===== LIVE TICKER ===== -->
+<div class="ticker">
+  <div class="wrap">
+    <div class="live"><span class="pulse"></span> Live</div>
+    <div class="item"><span class="k">BTC/USD</span><span class="v" id="tk-usd">—</span><span class="chg" id="tk-usd-chg"></span></div>
+    <div class="item"><span class="k">BTC/KES</span><span class="v" id="tk-kes">—</span><span class="chg" id="tk-kes-chg"></span></div>
+    <div class="item"><span class="k">1 KES</span><span class="v" id="tk-spk">—</span><span class="k">sats</span></div>
+    <span class="src" id="tk-src">connecting…</span>
+  </div>
+</div>
+
+<!-- ===== NAV ===== -->
+<nav class="nav">
+  <div class="wrap">
+    <div class="brand"><span class="mk">Y</span> YeboBank</div>
+    <div class="navlinks">
+      <a href="#save">Savings</a>
+      <a href="#mpesa">M-Pesa</a>
+      <a href="#chama">Chamas</a>
+      <a href="#agents">Agents</a>
+      <a href="#convert">Convert</a>
+    </div>
+    <div class="navactions">
+      <a class="login" href="#">Log in</a>
+      <button class="btn btn-primary" data-ripple>Open account</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HERO (idea: your money, in Bitcoin, spent in shillings) ===== -->
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow reveal"><b></b> An open-source Bitcoin savings bank · Kenya</div>
+      <h1 class="hero-h" id="heroH"></h1>
+      <p class="hero-sub reveal d1">A real savings account that earns interest in sats — funded and withdrawn through the M-Pesa you already trust. <span class="sw">Hela yako haipungui:</span> your money stops shrinking.</p>
+      <div class="hero-cta reveal d2">
+        <button class="btn btn-gold" data-ripple>Open account <i class="ti ti-arrow-right"></i></button>
+        <span class="txtlink">See how it works <i class="ti ti-arrow-right"></i></span>
+      </div>
+      <div class="hero-micro reveal d3">
+        <span><i class="ti ti-phone"></i>Opens with a phone number</span><span class="dot"></span>
+        <span><i class="ti ti-brand-open-source"></i>Fully open source</span><span class="dot"></span>
+        <span><i class="ti ti-shield-check"></i>Finance layer pathway</span>
+      </div>
+    </div>
+
+    <div class="balance reveal d2">
+      <div class="head">
+        <span class="lbl">Akiba yako · your balance</span>
+        <span class="badge"><i class="ti ti-trending-up"></i> +4,230 / mo</span>
+      </div>
+      <div class="amt" id="heroBal">0 sats</div>
+      <div class="conv" id="heroConv">≈ KES 0.00</div>
+      <div class="tog" role="tablist" aria-label="Balance unit">
+        <button data-v="sats" class="on">Sats</button>
+        <button data-v="kes">KES</button>
+        <button data-v="btc">BTC</button>
+      </div>
+      <div class="qa">
+        <div class="q"><i class="ti ti-arrow-down"></i> Add money</div>
+        <div class="q"><i class="ti ti-lock"></i> Lock savings</div>
+        <div class="q"><i class="ti ti-send"></i> Send</div>
+        <div class="q"><i class="ti ti-users"></i> My chama</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== INFLATION (idea: the shilling shrinks, your savings shouldn't) ===== -->
+<section class="sec">
+  <div class="wrap infl">
+    <div class="reveal">
+      <div class="kicker"><i class="ti ti-flame"></i> The problem</div>
+      <h2 class="h2">The shilling <span class="accent">shrinks.</span><br>Your savings <span class="grow">shouldn't.</span></h2>
+      <p class="lead">Money sitting in mobile money loses around 7% of its value every year to inflation. Park the same amount in YeboBank and it earns interest in Bitcoin — designed to hold value across decades, not melt away.</p>
+    </div>
+    <div class="bars reveal d1" id="inflBars">
+      <div class="bar-col">
+        <div class="bar bar-shrink"></div>
+        <div class="bar-label"><b>KES in M-Pesa</b>−7% a year</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar bar-grow"></div>
+        <div class="bar-label"><b>Sats in YeboBank</b>earning + holding value</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INTEREST / SAVINGS (idea: your money earns while you sleep) ===== -->
+<section class="sec sec-dark" id="save">
+  <div class="wrap split">
+    <div class="split-visual reveal">
+      <div class="balance" style="box-shadow:none">
+        <div class="head"><span class="lbl">Locked savings · 5-year</span><span class="badge"><i class="ti ti-sparkles"></i> Target ~5.2% APY</span></div>
+        <div class="amt mn"><span id="apyCount">0</span> sats</div>
+        <div class="conv" id="apyConv">earned this year</div>
+        <div class="qa" style="grid-template-columns:1fr">
+          <div class="q"><i class="ti ti-info-circle"></i> Interest paid from real treasury yield — never from other savers' deposits.</div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal d1">
+      <div class="kicker"><i class="ti ti-coin"></i> Savings that earn</div>
+      <h2 class="h2">Your money earns <span class="accent">while you sleep.</span></h2>
+      <p class="lead">Lock your sats and earn a share of real returns, distributed transparently every month. We take a flat 2% of the yield — nothing else. If the pool earns nothing, we earn nothing.</p>
+      <div class="split-list">
+        <div class="split-li"><i class="ti ti-lock"></i><div><div class="ti-tt">Lock and grow</div><div class="ti-dd">Set sats aside and watch interest land each month.</div></div></div>
+        <div class="split-li"><i class="ti ti-scale"></i><div><div class="ti-tt">Honest by design</div><div class="ti-dd">Your principal is never touched for fees — ever.</div></div></div>
+        <div class="split-li"><i class="ti ti-arrow-back-up"></i><div><div class="ti-tt">Leave early if you must</div><div class="ti-dd">Your full principal always comes back to you.</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== M-PESA (idea: top up the way you already pay) ===== -->
+<section class="sec" id="mpesa">
+  <div class="wrap split flip">
+    <div class="split-visual reveal">
+      <div class="phone">
+        <div class="scr">
+          <div class="ph-top">M-PESA <span>STK Push</span></div>
+          <div class="mp-card">
+            <div class="mp-row"><span>Pay to</span><b>YeboBank</b></div>
+            <div class="mp-row"><span>Amount</span><b>KES 500.00</b></div>
+            <div class="mp-row"><span>You receive</span><b class="grn" id="mpSats">≈ 3,955 sats</b></div>
+            <div class="mp-btn">Enter PIN to confirm</div>
+          </div>
+          <div class="mp-ok">
+            <i class="ti ti-circle-check"></i>
+            <div><div class="t">Deposit confirmed</div><div class="s">Balance updated instantly</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal d1">
+      <div class="kicker"><i class="ti ti-device-mobile"></i> M-Pesa, built in</div>
+      <h2 class="h2">Top up the way you <span class="accent">already pay.</span></h2>
+      <p class="lead">Deposit and withdraw in shillings through the M-Pesa network 51 million Kenyans already use. No new app habits, no cards — just an STK Push and a PIN you already know.</p>
+      <div class="split-list">
+        <div class="split-li"><i class="ti ti-arrow-down"></i><div><div class="ti-tt">Deposit in seconds</div><div class="ti-dd">A prompt on your phone, your PIN, done.</div></div></div>
+        <div class="split-li"><i class="ti ti-arrow-up"></i><div><div class="ti-tt">Cash out to your line</div><div class="ti-dd">Send shillings straight back to M-Pesa.</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CHAMA (idea: save together, see everything) ===== -->
+<section class="sec sec-cream" id="chama">
+  <div class="wrap split">
+    <div class="split-visual reveal">
+      <div class="nodes" id="chamaNodes">
+        <svg width="100%" height="100%" style="position:absolute;inset:0" aria-hidden="true">
+          <line class="node-line" x1="50%" y1="50%" x2="14%" y2="20%"/>
+          <line class="node-line" x1="50%" y1="50%" x2="82%" y2="16%"/>
+          <line class="node-line" x1="50%" y1="50%" x2="86%" y2="60%"/>
+          <line class="node-line" x1="50%" y1="50%" x2="60%" y2="84%"/>
+          <line class="node-line" x1="50%" y1="50%" x2="18%" y2="72%"/>
+          <line class="node-line" x1="50%" y1="50%" x2="34%" y2="88%"/>
+        </svg>
+        <div class="node hub" style="width:84px;height:84px;left:calc(50% - 42px);top:calc(50% - 42px)">Chama</div>
+        <div class="node" style="width:52px;height:52px;left:10%;top:14%;transition-delay:.1s">+5k</div>
+        <div class="node" style="width:46px;height:46px;left:78%;top:10%;transition-delay:.18s">+3k</div>
+        <div class="node" style="width:58px;height:58px;left:80%;top:54%;transition-delay:.26s">+8k</div>
+        <div class="node" style="width:48px;height:48px;left:55%;top:78%;transition-delay:.34s">+2k</div>
+        <div class="node" style="width:54px;height:54px;left:12%;top:66%;transition-delay:.42s">+4k</div>
+        <div class="node" style="width:42px;height:42px;left:30%;top:82%;transition-delay:.5s">+1k</div>
+      </div>
+    </div>
+    <div class="reveal d1">
+      <div class="kicker"><i class="ti ti-users"></i> Chama group wallets</div>
+      <h2 class="h2">Save together.<br><span class="grow">See everything.</span></h2>
+      <p class="lead">Run your chama with a shared wallet and a transparent ledger every member can read for themselves. The savings tradition you already trust — now it can't be raided, and it doesn't lose value.</p>
+      <div class="split-list">
+        <div class="split-li"><i class="ti ti-eye"></i><div><div class="ti-tt">Open books</div><div class="ti-dd">Every contribution and payout is visible to all members.</div></div></div>
+        <div class="split-li"><i class="ti ti-checkbox"></i><div><div class="ti-tt">Group decisions</div><div class="ti-dd">Payouts move only when the group agrees.</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== AGENTS (idea: cash in and out, down the street) ===== -->
+<section class="sec" id="agents">
+  <div class="wrap split flip">
+    <div class="split-visual reveal">
+      <div class="map" id="agentMap">
+        <div class="ring" style="width:140px;height:140px;left:calc(50% - 70px);top:calc(50% - 70px)"></div>
+        <div class="ring" style="width:240px;height:240px;left:calc(50% - 120px);top:calc(50% - 120px)"></div>
+        <div class="ring" style="width:340px;height:340px;left:calc(50% - 170px);top:calc(50% - 170px)"></div>
+        <div class="pin" style="left:46%;top:44%;transition-delay:.05s"><i class="ti ti-building-store"></i><span class="lab">You</span></div>
+        <div class="pin" style="left:20%;top:24%;transition-delay:.15s"><i class="ti ti-map-pin"></i><span class="lab">Gikomba</span></div>
+        <div class="pin" style="left:72%;top:28%;transition-delay:.25s"><i class="ti ti-map-pin"></i><span class="lab">Kibera</span></div>
+        <div class="pin" style="left:76%;top:66%;transition-delay:.35s"><i class="ti ti-map-pin"></i><span class="lab">Kondele</span></div>
+        <div class="pin" style="left:24%;top:70%;transition-delay:.45s"><i class="ti ti-map-pin"></i><span class="lab">Mombasa Rd</span></div>
+      </div>
+    </div>
+    <div class="reveal d1">
+      <div class="kicker"><i class="ti ti-cash"></i> Agent cash network</div>
+      <h2 class="h2">Cash in and out, <span class="accent">down the street.</span></h2>
+      <p class="lead">No smartphone or bundles? Walk to a neighbourhood agent — a shop you already know — to turn cash into savings and savings back into cash. Agents earn a small commission for serving their community.</p>
+      <div class="split-list">
+        <div class="split-li"><i class="ti ti-walk"></i><div><div class="ti-tt">Always nearby</div><div class="ti-dd">A growing network of <span class="mn">mawakala</span> across Kenya.</div></div></div>
+        <div class="split-li"><i class="ti ti-heart-handshake"></i><div><div class="ti-tt">Community first</div><div class="ti-dd">Local agents, local trust, local livelihoods.</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LIGHTNING (idea: send money anywhere in seconds) ===== -->
+<section class="sec sec-ink">
+  <div class="wrap" style="text-align:center;max-width:760px">
+    <div class="kicker reveal" style="justify-content:center"><i class="ti ti-bolt bolt-anim"></i> Lightning network</div>
+    <h2 class="h2 reveal d1" style="margin:14px auto 0">Send money anywhere, <span class="accent">in seconds.</span></h2>
+    <p class="lead reveal d2" style="margin:20px auto 0">Receive from anyone in the world at your own Lightning address — and send to other YeboBank members instantly, with zero fees. Global money, in your pocket.</p>
+    <div class="reveal d3" style="display:flex;justify-content:center">
+      <div class="la-chip">
+        <i class="ti ti-bolt" style="color:var(--gold)"></i>
+        <span class="addr">altradits@gmail.com</span>
+        <span class="cpy" id="copyLa" title="Copy address" aria-label="Copy Lightning address"><i class="ti ti-copy"></i></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TRUST (idea: every satoshi is on the record) ===== -->
+<section class="sec sec-dark">
+  <div class="wrap" style="text-align:center">
+    <div class="kicker reveal" style="justify-content:center"><i class="ti ti-shield-check"></i> Built to be trusted</div>
+    <h2 class="h2 reveal d1" style="margin:14px auto 0">Every satoshi, <span class="accent">on the record.</span></h2>
+    <p class="lead reveal d2" style="margin:20px auto 0">We're custodial by design — so opening an account takes only a phone number — but everything we do is auditable and open.</p>
+    <div class="trust-grid">
+      <div class="tcard reveal"><i class="ti ti-list-check"></i><h3>Append-only ledger</h3><p>Every movement is timestamped and permanent. Nothing is quietly edited or deleted.</p></div>
+      <div class="tcard reveal d1"><i class="ti ti-brand-open-source"></i><h3>Fully open source</h3><p>Read every line of the code that holds your money. No black boxes.</p></div>
+      <div class="tcard reveal d2"><i class="ti ti-shield-lock"></i><h3>Real security</h3><p>Strong password hashing, a separate transaction PIN, and HTTPS everywhere.</p></div>
+      <div class="tcard reveal d3"><i class="ti ti-building-bank"></i><h3>Regulator-ready</h3><p>Pursuing the Central Bank of Kenya sandbox — playing by the rules, on purpose.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONVERTER (idea: see it in your own money) ===== -->
+<section class="sec" id="convert">
+  <div class="wrap conv-wrap">
+    <div class="reveal">
+      <div class="kicker"><i class="ti ti-refresh"></i> Live converter</div>
+      <h2 class="h2">See it in <span class="grow">your money.</span></h2>
+      <p class="lead">Sats, shillings, Bitcoin — same money, three ways to read it. Type any amount and watch it convert at the live market rate, the same one your deposits use.</p>
+    </div>
+    <div class="calc reveal d1">
+      <div class="field">
+        <input id="calcInput" type="text" inputmode="decimal" value="1,000" aria-label="Amount to convert" />
+        <div class="unit" role="tablist" aria-label="Input unit">
+          <button data-u="kes" class="on">KES</button>
+          <button data-u="sats">Sats</button>
+          <button data-u="btc">BTC</button>
+        </div>
+      </div>
+      <div class="out">
+        <div class="ocard gold"><div class="ok">In sats</div><div class="ov" id="outSats">—</div></div>
+        <div class="ocard grn"><div class="ok">In shillings</div><div class="ov" id="outKes">—</div></div>
+        <div class="ocard"><div class="ok">In Bitcoin</div><div class="ov" id="outBtc">—</div></div>
+        <div class="ocard"><div class="ok">In US dollars</div><div class="ov" id="outUsd">—</div></div>
+      </div>
+      <div class="rate-note"><span class="pulse" style="background:var(--emerald)"></span> <span id="calcRate">Fetching live rate…</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINAL CTA (idea: start now) ===== -->
+<section class="cta">
+  <div class="wrap">
+    <div class="sw-lead reveal">Harambee — let's pull together</div>
+    <h2 class="reveal d1">Start your savings <span class="gold">today.</span></h2>
+    <div class="cta-actions reveal d2">
+      <button class="btn btn-gold" data-ripple>Open account <i class="ti ti-arrow-right"></i></button>
+      <button class="btn btn-ghost on-dark" data-ripple>Read the source</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="brand" style="color:#fff"><span class="mk">Y</span> YeboBank</div>
+        <p style="max-width:30ch;margin-top:14px;font-size:14px">An open-source Bitcoin savings bank built for the hard-working many. Karibu.</p>
+      </div>
+      <div class="cols">
+        <div class="col"><h4>Product</h4><a href="#save">Savings</a><a href="#mpesa">M-Pesa</a><a href="#chama">Chamas</a><a href="#agents">Agents</a><a href="#convert">Converter</a></div>
+        <div class="col"><h4>Company</h4><a href="#">About</a><a href="#">Open source</a><a href="#">Security</a><a href="#">Contact</a></div>
+        <div class="col"><h4>Get started</h4><a href="#">Open account</a><a href="#">Log in</a><a href="#">Become an agent</a></div>
+      </div>
+    </div>
+    <div class="bottom">
+      <span>Built for Kenya · Open source · Finance layer pathway</span>
+      <span>© 2026 YeboBank</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- rate state ---------- */
+  var btcUsd = parseFloat(document.body.dataset.btcUsd) || 98000;
+  var usdKes = parseFloat(document.body.dataset.usdKes) || 129;
+  function btcKes(){ return btcUsd * usdKes; }
+  function satsPerKes(){ return 1e8 / btcKes(); }
+  function kesPerSat(){ return btcKes() / 1e8; }
+  var prevUsd = btcUsd, prevKes = btcKes();
+
+  var fmt = function(n,d){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); };
+
+  /* ---------- ticker render ---------- */
+  function flash(el, dir){
+    if(prefersReduced) return;
+    el.classList.remove('flash-up','flash-dn');
+    void el.offsetWidth;
+    el.classList.add(dir>0?'flash-up':'flash-dn');
+    setTimeout(function(){ el.classList.remove('flash-up','flash-dn'); }, 600);
+  }
+  function chgBadge(el, pct){
+    var s = (pct>=0?'▲ ':'▼ ') + Math.abs(pct).toFixed(2) + '%';
+    el.textContent = s; el.className = 'chg ' + (pct>=0?'up':'dn');
+  }
+  function renderTicker(){
+    var usdEl=document.getElementById('tk-usd'), kesEl=document.getElementById('tk-kes');
+    usdEl.textContent = '$' + fmt(btcUsd,0);
+    kesEl.textContent = 'KES ' + fmt(btcKes(),0);
+    document.getElementById('tk-spk').textContent = satsPerKes().toFixed(2);
+    if(btcUsd!==prevUsd){ flash(usdEl, btcUsd-prevUsd); }
+    if(btcKes()!==prevKes){ flash(kesEl, btcKes()-prevKes); }
+    chgBadge(document.getElementById('tk-usd-chg'), prevUsd? (btcUsd-prevUsd)/prevUsd*100 : 0);
+    chgBadge(document.getElementById('tk-kes-chg'), prevKes? (btcKes()-prevKes)/prevKes*100 : 0);
+    prevUsd = btcUsd; prevKes = btcKes();
+    renderHeroConv(); renderCalc(); renderMpSats(); renderCalcRate();
+  }
+
+  /* ---------- hero balance ---------- */
+  var heroSats = 41000, heroView='sats';
+  function fmtUnit(v, view){
+    if(view==='sats') return fmt(v,0)+' sats';
+    if(view==='kes')  return 'KES '+fmt(v*kesPerSat(),2);
+    return (v/1e8).toFixed(5)+' BTC';
+  }
+  function renderHeroConv(){
+    document.getElementById('heroConv').textContent = '≈ KES '+fmt(heroSats*kesPerSat(),2);
+  }
+  (function(){
+    var balEl=document.getElementById('heroBal');
+    var start=null;
+    function tick(ts){ if(!start)start=ts; var p=Math.min((ts-start)/1500,1); var e=1-Math.pow(1-p,3);
+      balEl.textContent = fmtUnit(Math.round(heroSats*e), heroView); if(p<1) requestAnimationFrame(tick); }
+    if(prefersReduced){ balEl.textContent=fmtUnit(heroSats,heroView); } else { setTimeout(function(){requestAnimationFrame(tick);},450); }
+    document.querySelectorAll('.balance .tog button').forEach(function(b){
+      b.addEventListener('click', function(){
+        document.querySelectorAll('.balance .tog button').forEach(function(x){x.classList.remove('on');});
+        b.classList.add('on'); heroView=b.dataset.v; balEl.textContent=fmtUnit(heroSats,heroView);
+      });
+    });
+  })();
+
+  /* ---------- hero headline word reveal ---------- */
+  (function(){
+    var h=document.getElementById('heroH');
+    var html='Save in <span class="gold">Bitcoin.</span> Spend in <span class="grn">shillings.</span>';
+    var tmp=document.createElement('div'); tmp.innerHTML=html; var out=''; var i=0;
+    function wrap(n){
+      if(n.nodeType===3){ n.textContent.split(/(\s+)/).forEach(function(t){ if(t.trim()===''){out+=t;} else {out+='<span class="word" style="transition-delay:'+(i*0.08)+'s">'+t+'</span>'; i++;} }); }
+      else { var o='<'+n.tagName.toLowerCase()+(n.className?' class="'+n.className+'"':'')+'>'; out+=o; Array.from(n.childNodes).forEach(wrap); out+='</'+n.tagName.toLowerCase()+'>'; }
+    }
+    Array.from(tmp.childNodes).forEach(wrap); h.innerHTML=out;
+    setTimeout(function(){ h.classList.add('go'); }, 150);
+  })();
+
+  /* ---------- APY count-up ---------- */
+  function animateCount(el, target, dur, suffixFmt){
+    var start=null;
+    function tick(ts){ if(!start)start=ts; var p=Math.min((ts-start)/dur,1); var e=1-Math.pow(1-p,3);
+      el.textContent = suffixFmt(Math.round(target*e)); if(p<1) requestAnimationFrame(tick); }
+    requestAnimationFrame(tick);
+  }
+
+  /* ---------- M-Pesa sample sats ---------- */
+  function renderMpSats(){ document.getElementById('mpSats').textContent = '≈ '+fmt(Math.round(500*satsPerKes()),0)+' sats'; }
+
+  /* ---------- converter ---------- */
+  var calcUnit='kes';
+  function parseNum(s){ return parseFloat(String(s).replace(/[^0-9.]/g,''))||0; }
+  function renderCalc(){
+    var raw=parseNum(document.getElementById('calcInput').value);
+    var sats;
+    if(calcUnit==='kes') sats = raw*satsPerKes();
+    else if(calcUnit==='sats') sats = raw;
+    else sats = raw*1e8;
+    var btc = sats/1e8;
+    document.getElementById('outSats').textContent = fmt(Math.round(sats),0)+' sats';
+    document.getElementById('outKes').textContent = 'KES '+fmt(sats*kesPerSat(),2);
+    document.getElementById('outBtc').textContent = btc.toFixed(8)+' BTC';
+    document.getElementById('outUsd').textContent = '$'+fmt(btc*btcUsd,2);
+  }
+  function renderCalcRate(){
+    document.getElementById('calcRate').textContent = '1 BTC = $'+fmt(btcUsd,0)+' · KES '+fmt(btcKes(),0)+'  (live)';
+  }
+  document.getElementById('calcInput').addEventListener('input', renderCalc);
+  document.querySelectorAll('.calc .unit button').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.calc .unit button').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on'); calcUnit=b.dataset.u; renderCalc();
+    });
+  });
+
+  /* ---------- copy lightning address ---------- */
+  document.getElementById('copyLa').addEventListener('click', function(){
+    var t='altradits@gmail.com';
+    if(navigator.clipboard) navigator.clipboard.writeText(t);
+    var i=this.querySelector('i'); i.className='ti ti-check';
+    var self=this; setTimeout(function(){ i.className='ti ti-copy'; }, 1400);
+  });
+
+  /* ---------- material ripple ---------- */
+  document.querySelectorAll('[data-ripple]').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      var r=document.createElement('span'); r.className='ripple';
+      var rect=btn.getBoundingClientRect(); var size=Math.max(rect.width,rect.height);
+      r.style.width=r.style.height=size+'px';
+      r.style.left=(e.clientX-rect.left-size/2)+'px';
+      r.style.top=(e.clientY-rect.top-size/2)+'px';
+      btn.appendChild(r); setTimeout(function(){r.remove();},600);
+    });
+  });
+
+  /* ---------- scroll reveal + section-triggered animations ---------- */
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){
+        en.target.classList.add('in');
+        io.unobserve(en.target);
+      }
+    });
+  }, {threshold:.16});
+  document.querySelectorAll('.reveal,.bars,.nodes,.map').forEach(function(el){ io.observe(el); });
+
+  /* APY count when its card scrolls in */
+  var apyEl=document.getElementById('apyCount');
+  var apyIo=new IntersectionObserver(function(en){
+    en.forEach(function(x){ if(x.isIntersecting){ animateCount(apyEl, 52000, 1600, function(v){return fmt(v,0);}); apyIo.unobserve(x.target); } });
+  },{threshold:.4});
+  apyIo.observe(apyEl);
+
+  /* ---------- live BTC price: fetch then simulate ---------- */
+  function setSrc(t){ document.getElementById('tk-src').textContent = t; }
+  function fetchPrice(){
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,kes')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d && d.bitcoin && d.bitcoin.usd){
+          btcUsd=d.bitcoin.usd;
+          if(d.bitcoin.kes){ usdKes=d.bitcoin.kes/d.bitcoin.usd; }
+          setSrc('CoinGecko · live'); renderTicker();
+        } else { setSrc('simulated feed'); }
+      })
+      .catch(function(){ setSrc('simulated feed'); });
+  }
+  // initial render with seed values, then try live
+  renderTicker(); renderCalc();
+  fetchPrice();
+  setInterval(fetchPrice, 60000); // refresh from API every 60s
+
+  // smooth random-walk between fetches so the ticker always feels alive
+  setInterval(function(){
+    var drift = (Math.random()-0.5) * btcUsd * 0.0012; // ±0.12%
+    btcUsd = Math.max(1000, btcUsd + drift);
+    renderTicker();
+  }, 3000);
+})();
+</script>
+</body>
+</html>
