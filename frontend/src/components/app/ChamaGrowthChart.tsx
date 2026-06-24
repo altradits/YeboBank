@@ -15,6 +15,7 @@ interface ChamaGrowthChartProps {
   series: ChartSeries[];
   defaultSeriesKey?: string;
   currencyMode?: "KES" | "USD" | "sats";
+  showRange?: boolean;
 }
 
 // Format a display-unit value compactly for bar-top labels (includes unit prefix/suffix).
@@ -51,6 +52,7 @@ export default function ChamaGrowthChart({
   series,
   defaultSeriesKey,
   currencyMode = "KES",
+  showRange: showRangeProp = true,
 }: ChamaGrowthChartProps) {
   const rate = useRate();
   const chartId = useId();
@@ -168,7 +170,7 @@ export default function ChamaGrowthChart({
             ))}
           </div>
 
-          {showRange && (
+          {showRangeProp && showRange && (
             <div className="seg" role="group" aria-label="Range">
               {(["6M", "1Y", "All"] as const).map((r) => (
                 <button

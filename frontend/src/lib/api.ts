@@ -12,15 +12,23 @@
 import type {
   User, Wallet, LedgerEntry, SavingsLock, Chama, Agent,
   ChamaMessage, ChamaVote, JoinRequest,
+<<<<<<< HEAD
   MyChamaStake, ChamaGrowthPoint, ChamaPortfolio,
   IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
+=======
+  MyChamaStake, ChamaGrowthPoint, ChamaPortfolio, SavingsGrowthPoint, SavingsDeposit,
+>>>>>>> d4fc9f6 (feat: add timeframes to savings graph)
 } from "@/types";
 import {
   mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent,
   mockAllChamas, mockChamaMessages, mockChamaVotes, mockJoinRequests,
+<<<<<<< HEAD
   mockGrowthData,
   mockIncomeSources, mockInvestorPositions, mockAccessRequests, mockFIProfiles,
   mockWithdrawalRequests, mockNotifications,
+=======
+  mockGrowthData, mockSavingsGrowth, mockSavingsDeposits,
+>>>>>>> d4fc9f6 (feat: add timeframes to savings graph)
 } from "@/lib/mock";
 
 const USE_MOCKS = true; // flip to false once the backend endpoints exist
@@ -104,6 +112,18 @@ export async function sendLightning(invoiceOrAddress: string, sats: number): Pro
 export async function getLocks(): Promise<SavingsLock[]> {
   if (USE_MOCKS) return delay(mockLocks);
   return req<SavingsLock[]>("/savings");
+}
+
+// TODO(backend): GET /savings/growth — from interest_distributions + savings_locks accrual
+export async function getSavingsGrowth(): Promise<SavingsGrowthPoint[]> {
+  if (USE_MOCKS) return delay([...mockSavingsGrowth]);
+  return req<SavingsGrowthPoint[]>("/savings/growth");
+}
+
+// TODO(backend): GET /savings/deposits — from ledger_entries where type='deposit_*'
+export async function getSavingsDeposits(): Promise<SavingsDeposit[]> {
+  if (USE_MOCKS) return delay([...mockSavingsDeposits]);
+  return req<SavingsDeposit[]>("/savings/deposits");
 }
 
 export async function createLock(sats: number, years: number): Promise<SavingsLock> {

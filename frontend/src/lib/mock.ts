@@ -1,10 +1,14 @@
 // Mock data. Everything here is placeholder content so the frontend renders and
 // navigates fully before the backend exists. Replace by implementing src/lib/api.ts.
 
+<<<<<<< HEAD
 import type {
   User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, ChamaGrowthPoint,
   IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
 } from "@/types";
+=======
+import type { User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, ChamaGrowthPoint, SavingsGrowthPoint, SavingsDeposit } from "@/types";
+>>>>>>> d4fc9f6 (feat: add timeframes to savings graph)
 
 export const mockUser: User = {
   id: "u_demo",
@@ -176,6 +180,44 @@ export const mockJoinRequests: JoinRequest[] = [
     approvals: ["@wanjiku", "@akinyi", "@jane"],
     status: "pending",
   },
+];
+
+// Deterministic deposit history spanning ~10 years (Jun 2016 → Jun 2026).
+// Uses a seeded LCG so the series is stable across hot-reloads.
+export const mockSavingsDeposits: SavingsDeposit[] = (() => {
+  let seed = 0x12345678 >>> 0;
+  const rand = (): number => {
+    seed = (Math.imul(1_664_525, seed) + 1_013_904_223) >>> 0;
+    return seed / 0x1_0000_0000;
+  };
+  const result: SavingsDeposit[] = [];
+  let ms = Date.UTC(2016, 5, 25); // Jun 25 2016
+  const end = Date.UTC(2026, 5, 25); // Jun 25 2026
+  while (ms <= end) {
+    result.push({
+      date: new Date(ms).toISOString().slice(0, 10),
+      amountSats: 5_000 + Math.floor(rand() * 45_001),
+    });
+    ms += (2 + Math.floor(rand() * 6)) * 86_400_000;
+  }
+  return result;
+})();
+
+// Cumulative principal locked vs total value (principal + accrued) per month
+// Aligns with mockLocks totals: 400k principal, ~14.4k accrued at Jun 2026
+export const mockSavingsGrowth: SavingsGrowthPoint[] = [
+  { date: "2025-07", principalSats: 100_000, valueSats: 100_100 },
+  { date: "2025-08", principalSats: 150_000, valueSats: 150_300 },
+  { date: "2025-09", principalSats: 200_000, valueSats: 200_700 },
+  { date: "2025-10", principalSats: 250_000, valueSats: 251_400 },
+  { date: "2025-11", principalSats: 300_000, valueSats: 302_300 },
+  { date: "2025-12", principalSats: 300_000, valueSats: 303_400 },
+  { date: "2026-01", principalSats: 300_000, valueSats: 304_600 },
+  { date: "2026-02", principalSats: 350_000, valueSats: 356_000 },
+  { date: "2026-03", principalSats: 350_000, valueSats: 357_800 },
+  { date: "2026-04", principalSats: 350_000, valueSats: 359_700 },
+  { date: "2026-05", principalSats: 400_000, valueSats: 412_000 },
+  { date: "2026-06", principalSats: 400_000, valueSats: 414_430 },
 ];
 
 // My cumulative contribution vs value per month (last 12 months)

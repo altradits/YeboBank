@@ -75,6 +75,17 @@ export interface ChamaGrowthPoint {
   valueSats: number;
 }
 
+export interface SavingsGrowthPoint {
+  date: string; // "YYYY-MM"
+  principalSats: number;
+  valueSats: number;
+}
+
+export interface SavingsDeposit {
+  date: string;        // "YYYY-MM-DD"
+  amountSats: number;
+}
+
 export interface MyChamaStake {
   chamaId: string;
   name: string;

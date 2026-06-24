@@ -5,17 +5,25 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
-import { getLocks } from "@/lib/api";
-import type { SavingsLock } from "@/types";
+import { getLocks, getSavingsDeposits } from "@/lib/api";
+import type { SavingsLock, SavingsDeposit } from "@/types";
+import ChamaGrowthChart from "@/components/app/ChamaGrowthChart";
+import { bucketDeposits, type Preset } from "@/lib/bucket";
 
 export default function SavingsPage() {
   const rate = useRate();
   const [locks, setLocks] = useState<SavingsLock[]>([]);
+  const [deposits, setDeposits] = useState<SavingsDeposit[]>([]);
+  const [preset, setPreset] = useState<Preset>("Monthly");
 
-  useEffect(() => { getLocks().then(setLocks); }, []);
+  useEffect(() => {
+    getLocks().then(setLocks);
+    getSavingsDeposits().then(setDeposits);
+  }, []);
 
   const totalPrincipal = locks.reduce((s, l) => s + l.principalSats, 0);
   const totalAccrued = locks.reduce((s, l) => s + l.accruedSats, 0);
+  const points = bucketDeposits(deposits, preset);
 
   return (
     <>
@@ -34,25 +42,46 @@ export default function SavingsPage() {
           <p className="note" style={{ marginTop: 8 }}>Target ~5.2% APY · paid monthly</p></div>
       </div>
 
-      <div className="stack" style={{ marginTop: 18 }}>
-        {locks.map((l) => {
-          const start = new Date(l.lockedAt).getTime();
-          const end = new Date(l.maturesAt).getTime();
-          const pct = Math.min(100, Math.max(0, ((Date.now() - start) / (end - start)) * 100));
-          return (
-            <div className="card" key={l.id}>
-              <div className="lock-card">
-                <div>
-                  <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 17 }}>{num(l.principalSats)} sats</div>
-                  <div className="note">Matures {new Date(l.maturesAt).toLocaleDateString()} · {l.lockYears}-year lock</div>
-                </div>
-                <span className="badge confirmed">{l.status}</span>
-              </div>
-              <div className="bar-track"><div className="bar-fill" style={{ width: `${pct}%` }} /></div>
-              <p className="note" style={{ marginTop: 8 }}>Earned so far: <b style={{ color: "var(--emerald-deep)" }}>+{num(l.accruedSats)} sats</b></p>
+      <div className="card" style={{ marginTop: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+          <div>
+            <span className="chip-group-label">Recent</span>
+            <div className="seg" role="group" aria-label="Recent timeframes">
+              {(["Daily", "Weekly", "Monthly"] as const).map((p) => (
+                <button key={p} aria-pressed={preset === p} className={preset === p ? "on" : ""}
+                  onClick={() => setPreset(p)}>{p}</button>
+              ))}
             </div>
-          );
-        })}
+          </div>
+          <div>
+            <span className="chip-group-label">Quarters</span>
+            <div className="seg" role="group" aria-label="Calendar quarters">
+              {(["Q1", "Q2", "Q3"] as const).map((p) => (
+                <button key={p} aria-pressed={preset === p} className={preset === p ? "on" : ""}
+                  onClick={() => setPreset(p)}>{p}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <span className="chip-group-label">Years</span>
+            <div className="seg" role="group" aria-label="Year ranges">
+              {(["1Y", "2Y", "3Y", "4Y", "5Y", "6Y", "7Y", "8Y", "9Y", "10Y"] as const).map((p) => (
+                <button key={p} aria-pressed={preset === p} className={preset === p ? "on" : ""}
+                  onClick={() => setPreset(p)}>{p}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <ChamaGrowthChart
+          title="Deposits over time"
+          showRange={false}
+          series={[{
+            key: "deposits",
+            label: "Deposits",
+            color: "var(--forest)",
+            points,
+          }]}
+        />
       </div>
     </>
   );
