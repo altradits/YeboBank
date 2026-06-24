@@ -399,6 +399,7 @@ h1.hero-h .grn{color:var(--emerald-deep)}
 .msg .msg-time{font-family:var(--font-mono);font-size:10px;color:var(--soft)}
 .msg.system-msg .msg-bubble{background:transparent;color:var(--muted);font-size:12px;font-style:italic;padding:4px 8px;text-align:center}
 .msg-bubble.deposit-bubble{background:rgba(17,166,91,.1);color:var(--emerald-deep);font-weight:500}
+.msg-bubble.withdrawal-bubble{background:rgba(200,71,46,.1);color:var(--red);font-weight:500}
 .msg-bubble.transfer-bubble{background:rgba(224,100,30,.1);color:var(--terra-text);font-weight:500}
 
 /* vote card */

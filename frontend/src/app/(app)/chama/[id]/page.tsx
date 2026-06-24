@@ -303,7 +303,8 @@ function MessageBubble({
   }
 
   const bubbleClass =
-    msg.kind === "deposit" ? "msg-bubble deposit-bubble"
+    msg.kind === "deposit"    ? "msg-bubble deposit-bubble"
+    : msg.kind === "withdrawal" ? "msg-bubble withdrawal-bubble"
     : msg.kind === "transfer" ? "msg-bubble transfer-bubble"
     : "msg-bubble";
 
@@ -803,6 +804,17 @@ export default function ChamaDashboard() {
   async function handleWithdraw(sats: number) {
     setWithdrawing(true);
     await withdrawFromChama(id, sats);
+    // Post a withdrawal message — mirrors the deposit flow exactly
+    const msg = await postChamaMessage(id, {
+      kind: "withdrawal",
+      authorHandle: CURRENT_HANDLE,
+      authorName: CURRENT_NAME,
+      body: `${CURRENT_NAME} withdrew ${fmtKES(sats, rate, 0)} (~${num(sats)} sats).`,
+      meta: { amountSats: sats, fromHandle: CURRENT_HANDLE },
+    });
+    setMessages((p) => [...p, msg]);
+    // Decrement the displayed group balance — mirrors how deposit increments it
+    setChama((c) => c ? { ...c, balanceSats: Math.max(0, c.balanceSats - sats) } : c);
     // Refresh stake to reflect new values
     const updated = await getMyStake(id);
     setStake(updated);

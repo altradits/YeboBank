@@ -98,7 +98,7 @@ export interface Agent {
   totalEarnedSats: number;
 }
 
-export type ChamaMessageKind = "text" | "system" | "deposit" | "transfer" | "vote" | "join_request";
+export type ChamaMessageKind = "text" | "system" | "deposit" | "withdrawal" | "transfer" | "vote" | "join_request";
 
 export interface ChamaMessage {
   id: string;
