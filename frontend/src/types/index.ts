@@ -40,6 +40,14 @@ export interface SavingsLock {
   maturesAt: string;
 }
 
+export interface ChamaMember {
+  id: string;
+  name: string;
+  handle: string; // e.g. @wanjiku
+  role: "admin" | "member";
+  balanceSats: number;
+}
+
 export interface Chama {
   id: string;
   name: string;
@@ -48,6 +56,10 @@ export interface Chama {
   contributionSats: number;
   memberCount: number;
   maxMembers: number;
+  // Additive optional fields
+  members?: ChamaMember[];
+  isMember?: boolean;
+  pendingJoin?: boolean;
 }
 
 export interface Agent {
@@ -57,6 +69,39 @@ export interface Agent {
   floatLimitSats: number;
   commissionRate: number;     // e.g. 0.005
   totalEarnedSats: number;
+}
+
+export type ChamaMessageKind = "text" | "system" | "deposit" | "transfer" | "vote" | "join_request";
+
+export interface ChamaMessage {
+  id: string;
+  chamaId: string;
+  kind: ChamaMessageKind;
+  authorHandle: string;
+  authorName: string;
+  body: string;
+  createdAt: string; // ISO timestamp
+  meta?: Record<string, unknown>; // kind-specific: voteId, requestId, sats, toHandle, etc.
+}
+
+export interface ChamaVote {
+  id: string;
+  chamaId: string;
+  question: string;
+  options: string[];
+  tallies: Record<string, string[]>; // option -> voter handles
+  status: "open" | "passed" | "failed";
+  createdAt: string;
+  closedAt?: string;
+}
+
+export interface JoinRequest {
+  id: string;
+  chamaId: string;
+  requesterHandle: string;
+  requesterName: string;
+  approvals: string[];
+  status: "pending" | "approved" | "rejected";
 }
 
 // A single source of exchange-rate truth shared across the UI.

@@ -1,7 +1,7 @@
 // Mock data. Everything here is placeholder content so the frontend renders and
 // navigates fully before the backend exists. Replace by implementing src/lib/api.ts.
 
-import type { User, Wallet, LedgerEntry, SavingsLock, Chama, Agent } from "@/types";
+import type { User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest } from "@/types";
 
 export const mockUser: User = {
   id: "u_demo",
@@ -49,3 +49,114 @@ export const mockAgent: Agent = {
 function iso(offsetMs: number): string {
   return new Date(Date.now() + offsetMs).toISOString();
 }
+
+// ── Chama feature mock data ──────────────────────────────────────────────────
+
+export const mockChamaMembers: Record<string, ChamaMember[]> = {
+  c1: [
+    { id: "m1",  name: "Wanjiku Kamau",   handle: "@wanjiku",  role: "admin",  balanceSats: 45_000 },
+    { id: "m2",  name: "Akinyi Otieno",   handle: "@akinyi",   role: "member", balanceSats: 38_000 },
+    { id: "m3",  name: "Jane Muthoni",    handle: "@jane",     role: "member", balanceSats: 52_000 },
+    { id: "m4",  name: "Grace Njeri",     handle: "@grace",    role: "member", balanceSats: 29_000 },
+    { id: "m5",  name: "Beatrice Waweru", handle: "@beatrice", role: "member", balanceSats: 41_000 },
+    { id: "m6",  name: "Mary Achieng",    handle: "@mary",     role: "member", balanceSats: 35_000 },
+    { id: "m7",  name: "Lucy Chebet",     handle: "@lucy",     role: "member", balanceSats: 48_000 },
+    { id: "m8",  name: "Faith Njoki",     handle: "@faith",    role: "member", balanceSats: 27_000 },
+    { id: "m9",  name: "Esther Wanja",    handle: "@esther",   role: "member", balanceSats: 55_000 },
+    { id: "m10", name: "Rose Mutua",      handle: "@rose",     role: "member", balanceSats: 31_000 },
+    { id: "m11", name: "Ann Karimi",      handle: "@ann",      role: "member", balanceSats: 44_000 },
+    { id: "m12", name: "Carol Ndung'u",   handle: "@carol",    role: "member", balanceSats: 39_000 },
+  ],
+  c2: [
+    { id: "n1", name: "Kamau Njoroge",  handle: "@kamau",   role: "admin",  balanceSats: 22_000 },
+    { id: "n2", name: "Otieno Boda",    handle: "@otieno",  role: "member", balanceSats: 18_000 },
+    { id: "n3", name: "Peter Mwangi",   handle: "@peter",   role: "member", balanceSats: 15_000 },
+    { id: "n4", name: "John Kimani",    handle: "@john",    role: "member", balanceSats: 19_000 },
+    { id: "n5", name: "Samuel Odhiambo",handle: "@samuel",  role: "member", balanceSats: 21_000 },
+    { id: "n6", name: "David Kariuki",  handle: "@davidk",  role: "member", balanceSats: 16_000 },
+    { id: "n7", name: "James Omondi",   handle: "@james",   role: "member", balanceSats: 24_000 },
+    { id: "n8", name: "Brian Mwenda",   handle: "@brian",   role: "member", balanceSats: 13_000 },
+  ],
+  c3: [
+    { id: "f1", name: "Njambi Gitau",   handle: "@njambi",  role: "admin",  balanceSats: 60_000 },
+    { id: "f2", name: "Joseph Thuku",   handle: "@joseph",  role: "member", balanceSats: 44_000 },
+    { id: "f3", name: "Priscilla Wahu", handle: "@priscilla",role:"member", balanceSats: 51_000 },
+    { id: "f4", name: "Daniel Mugo",    handle: "@daniel",  role: "member", balanceSats: 38_000 },
+    { id: "f5", name: "Tabitha Njau",   handle: "@tabitha", role: "member", balanceSats: 47_000 },
+    { id: "f6", name: "Isaac Kamau",    handle: "@isaack",  role: "member", balanceSats: 55_000 },
+  ],
+};
+
+// All chamas visible on the platform (includes non-member chamas)
+export const mockAllChamas: Chama[] = [
+  {
+    id: "c1", name: "Mama Mboga Chama",
+    description: "Market traders saving weekly",
+    balanceSats: 4_250_000, contributionSats: 25_000, memberCount: 12, maxMembers: 30,
+    isMember: true, pendingJoin: false,
+    members: mockChamaMembers.c1,
+  },
+  {
+    id: "c2", name: "Boda Riders SACCO",
+    description: "Daily float for riders",
+    balanceSats: 1_870_000, contributionSats: 10_000, memberCount: 8, maxMembers: 50,
+    isMember: true, pendingJoin: false,
+    members: mockChamaMembers.c2,
+  },
+  {
+    id: "c3", name: "Kiambu Farmers Group",
+    description: "Agri savings & input loans for small-scale farmers",
+    balanceSats: 6_100_000, contributionSats: 50_000, memberCount: 6, maxMembers: 25,
+    isMember: false, pendingJoin: false,
+    members: mockChamaMembers.c3,
+  },
+];
+
+// Messages per chama (mutable — API functions push to these arrays)
+export const mockChamaMessages: Record<string, ChamaMessage[]> = {
+  c1: [
+    { id: "cm1", chamaId: "c1", kind: "system",  authorHandle: "@system", authorName: "System",
+      body: "Mama Mboga Chama was created by Wanjiku Kamau (@wanjiku).",
+      createdAt: iso(-30 * 86400e3) },
+    { id: "cm2", chamaId: "c1", kind: "deposit", authorHandle: "@wanjiku", authorName: "Wanjiku Kamau",
+      body: "Wanjiku Kamau deposited KES 1,000 (~7,900 sats).",
+      createdAt: iso(-25 * 86400e3), meta: { sats: 7900 } },
+    { id: "cm3", chamaId: "c1", kind: "text",    authorHandle: "@akinyi",  authorName: "Akinyi Otieno",
+      body: "Habari yote! Reminder: meeting next Tuesday at Gikomba 8am 🌽",
+      createdAt: iso(-5 * 86400e3) },
+    { id: "cm4", chamaId: "c1", kind: "vote",    authorHandle: "@jane",    authorName: "Jane Muthoni",
+      body: "New vote: Should we increase monthly contribution to KES 3,000?",
+      createdAt: iso(-2 * 3600e3), meta: { voteId: "v1" } },
+    { id: "cm5", chamaId: "c1", kind: "join_request", authorHandle: "@system", authorName: "System",
+      body: "David Kamau (@david) has requested to join the chama.",
+      createdAt: iso(-1 * 3600e3), meta: { requestId: "jr1" } },
+  ],
+  c2: [],
+  c3: [],
+};
+
+// Votes per chama (mutable)
+export const mockChamaVotes: Record<string, ChamaVote[]> = {
+  c1: [
+    {
+      id: "v1", chamaId: "c1",
+      question: "Should we increase monthly contribution to KES 3,000?",
+      options: ["Yes", "No"],
+      tallies: { Yes: ["@akinyi", "@jane", "@grace"], No: ["@beatrice"] },
+      status: "open",
+      createdAt: iso(-2 * 3600e3),
+    },
+  ],
+  c2: [],
+  c3: [],
+};
+
+// Join requests (mutable)
+export const mockJoinRequests: JoinRequest[] = [
+  {
+    id: "jr1", chamaId: "c1",
+    requesterHandle: "@david", requesterName: "David Kamau",
+    approvals: ["@wanjiku", "@akinyi", "@jane"],
+    status: "pending",
+  },
+];

@@ -11,9 +11,11 @@
 
 import type {
   User, Wallet, LedgerEntry, SavingsLock, Chama, Agent,
+  ChamaMessage, ChamaVote, JoinRequest,
 } from "@/types";
 import {
   mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent,
+  mockAllChamas, mockChamaMessages, mockChamaVotes, mockJoinRequests,
 } from "@/lib/mock";
 
 const USE_MOCKS = true; // flip to false once the backend endpoints exist
@@ -130,4 +132,221 @@ export async function createChama(name: string, contributionSats: number): Promi
 export async function getAgent(): Promise<Agent> {
   if (USE_MOCKS) return delay(mockAgent);
   return req<Agent>("/agent");
+}
+
+// ── Chama feature (new endpoints) ────────────────────────────────────────────
+// Current user handle used by mock layer only. Backend derives from session.
+const MOCK_HANDLE = "@wanjiku";
+const MOCK_NAME   = "Wanjiku Kamau";
+
+// Returns all YeboBank chamas with isMember/pendingJoin flags.
+// TODO(backend): GET /chama/all
+export async function getAllChamas(): Promise<Chama[]> {
+  if (USE_MOCKS) return delay([...mockAllChamas]);
+  return req<Chama[]>("/chama/all");
+}
+
+// Returns a single chama including full member list.
+// TODO(backend): GET /chama/{id}
+export async function getChama(id: string): Promise<Chama> {
+  if (USE_MOCKS) {
+    const chama = mockAllChamas.find((c) => c.id === id);
+    if (!chama) throw new Error(`Chama ${id} not found`);
+    return delay({ ...chama });
+  }
+  return req<Chama>(`/chama/${id}`);
+}
+
+// TODO(backend): GET /chama/{id}/messages
+export async function getChamaMessages(id: string): Promise<ChamaMessage[]> {
+  if (USE_MOCKS) return delay([...(mockChamaMessages[id] ?? [])]);
+  return req<ChamaMessage[]>(`/chama/${id}/messages`);
+}
+
+// Posts a plain-text message. Command parsing happens in the UI; each command
+// calls the appropriate action endpoint then calls this to record the message.
+// TODO(backend): POST /chama/{id}/messages
+export async function postChamaMessage(id: string, msg: Omit<ChamaMessage, "id" | "chamaId" | "createdAt">): Promise<ChamaMessage> {
+  if (USE_MOCKS) {
+    const newMsg: ChamaMessage = {
+      ...msg, id: `cm_${Date.now()}`, chamaId: id, createdAt: new Date().toISOString(),
+    };
+    if (!mockChamaMessages[id]) mockChamaMessages[id] = [];
+    mockChamaMessages[id].push(newMsg);
+    return delay(newMsg);
+  }
+  return req<ChamaMessage>(`/chama/${id}/messages`, { method: "POST", body: JSON.stringify(msg) });
+}
+
+// TODO(backend): GET /chama/{id}/votes
+export async function getChamaVotes(id: string): Promise<ChamaVote[]> {
+  if (USE_MOCKS) return delay([...(mockChamaVotes[id] ?? [])]);
+  return req<ChamaVote[]>(`/chama/${id}/votes`);
+}
+
+// TODO(backend): GET /chama/{id}/join
+export async function getChamaJoinRequests(id: string): Promise<JoinRequest[]> {
+  if (USE_MOCKS) return delay(mockJoinRequests.filter((r) => r.chamaId === id));
+  return req<JoinRequest[]>(`/chama/${id}/join`);
+}
+
+// TODO(backend): POST /chama/{id}/join
+export async function requestJoinChama(id: string): Promise<JoinRequest> {
+  if (USE_MOCKS) {
+    const existing = mockJoinRequests.find((r) => r.chamaId === id && r.requesterHandle === MOCK_HANDLE);
+    if (existing) return delay(existing);
+    const req_: JoinRequest = {
+      id: `jr_${Date.now()}`, chamaId: id,
+      requesterHandle: MOCK_HANDLE, requesterName: MOCK_NAME,
+      approvals: [], status: "pending",
+    };
+    mockJoinRequests.push(req_);
+    // Also post a join_request message into the chama chat
+    if (!mockChamaMessages[id]) mockChamaMessages[id] = [];
+    mockChamaMessages[id].push({
+      id: `cm_${Date.now()}`, chamaId: id, kind: "join_request",
+      authorHandle: "@system", authorName: "System",
+      body: `${MOCK_NAME} (${MOCK_HANDLE}) has requested to join the chama.`,
+      createdAt: new Date().toISOString(), meta: { requestId: req_.id },
+    });
+    // Mark the chama as pendingJoin for the current user
+    const chama = mockAllChamas.find((c) => c.id === id);
+    if (chama) chama.pendingJoin = true;
+    return delay(req_);
+  }
+  return req<JoinRequest>(`/chama/${id}/join`, { method: "POST" });
+}
+
+// Approve or reject a join request. Threshold: approvals > 75% of member count.
+// TODO(backend): POST /chama/{chamaId}/join/{requestId}/vote  realtime: push approved member
+export async function voteOnJoin(chamaId: string, requestId: string, approve: boolean): Promise<JoinRequest> {
+  if (USE_MOCKS) {
+    const jr = mockJoinRequests.find((r) => r.id === requestId && r.chamaId === chamaId);
+    if (!jr) throw new Error("Join request not found");
+    if (approve && !jr.approvals.includes(MOCK_HANDLE)) {
+      jr.approvals.push(MOCK_HANDLE);
+    }
+    const chama = mockAllChamas.find((c) => c.id === chamaId);
+    const memberCount = chama?.memberCount ?? 1;
+    const needed = memberCount * 0.75;
+    if (jr.approvals.length > needed) {
+      jr.status = "approved";
+      // Add member and post system message
+      if (chama) {
+        chama.memberCount += 1;
+        if (!mockChamaMessages[chamaId]) mockChamaMessages[chamaId] = [];
+        mockChamaMessages[chamaId].push({
+          id: `cm_${Date.now()}`, chamaId, kind: "system",
+          authorHandle: "@system", authorName: "System",
+          body: `${jr.requesterName} (${jr.requesterHandle}) has been approved and joined the chama! 🎉`,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    } else if (!approve) {
+      jr.status = "rejected";
+    }
+    return delay({ ...jr });
+  }
+  return req<JoinRequest>(`/chama/${chamaId}/join/${requestId}/vote`, {
+    method: "POST", body: JSON.stringify({ approve }),
+  });
+}
+
+// TODO(backend): POST /chama/{id}/votes
+export async function createChamaVote(id: string, question: string, options: string[]): Promise<ChamaVote> {
+  if (USE_MOCKS) {
+    const tallies: Record<string, string[]> = {};
+    options.forEach((o) => { tallies[o] = []; });
+    const vote: ChamaVote = {
+      id: `v_${Date.now()}`, chamaId: id, question, options, tallies,
+      status: "open", createdAt: new Date().toISOString(),
+    };
+    if (!mockChamaVotes[id]) mockChamaVotes[id] = [];
+    mockChamaVotes[id].push(vote);
+    return delay(vote);
+  }
+  return req<ChamaVote>(`/chama/${id}/votes`, { method: "POST", body: JSON.stringify({ question, options }) });
+}
+
+// Cast a vote on an option. Resolves instantly if threshold crossed or impossible.
+// Threshold: an option passes when its votes > 75% of member count.
+// TODO(backend): POST /chama/{chamaId}/votes/{voteId}/cast  realtime: push updated tallies
+export async function castVote(chamaId: string, voteId: string, option: string): Promise<ChamaVote> {
+  if (USE_MOCKS) {
+    const votes = mockChamaVotes[chamaId] ?? [];
+    const vote = votes.find((v) => v.id === voteId);
+    if (!vote) throw new Error("Vote not found");
+    if (vote.status !== "open") return delay({ ...vote });
+    // Remove previous vote by this user from all options
+    for (const opt of vote.options) {
+      vote.tallies[opt] = (vote.tallies[opt] ?? []).filter((h) => h !== MOCK_HANDLE);
+    }
+    if (!vote.tallies[option]) vote.tallies[option] = [];
+    vote.tallies[option].push(MOCK_HANDLE);
+
+    const chama = mockAllChamas.find((c) => c.id === chamaId);
+    const memberCount = chama?.memberCount ?? 1;
+    const threshold = memberCount * 0.75;
+    const allVoters = new Set(Object.values(vote.tallies).flat());
+    const remaining = memberCount - allVoters.size;
+
+    let concluded: "passed" | "failed" | null = null;
+    for (const opt of vote.options) {
+      if ((vote.tallies[opt]?.length ?? 0) > threshold) {
+        concluded = "passed";
+        vote.status = "passed";
+        vote.closedAt = new Date().toISOString();
+        break;
+      }
+    }
+    if (!concluded) {
+      const canAnyPass = vote.options.some(
+        (opt) => (vote.tallies[opt]?.length ?? 0) + remaining > threshold,
+      );
+      if (!canAnyPass) {
+        concluded = "failed";
+        vote.status = "failed";
+        vote.closedAt = new Date().toISOString();
+      }
+    }
+    if (concluded && mockChamaMessages[chamaId]) {
+      const winnerOpt = vote.options.find(
+        (opt) => (vote.tallies[opt]?.length ?? 0) > threshold,
+      );
+      const outcome = concluded === "passed"
+        ? `Vote passed: "${winnerOpt}" won on "${vote.question}".`
+        : `Vote closed with no majority on "${vote.question}".`;
+      mockChamaMessages[chamaId].push({
+        id: `cm_${Date.now()}`, chamaId, kind: "system",
+        authorHandle: "@system", authorName: "System",
+        body: outcome, createdAt: new Date().toISOString(),
+      });
+    }
+    return delay({ ...vote });
+  }
+  return req<ChamaVote>(`/chama/${chamaId}/votes/${voteId}/cast`, {
+    method: "POST", body: JSON.stringify({ option }),
+  });
+}
+
+// Deducts from member's personal wallet, adds to chama pool, posts deposit message.
+// TODO(backend): POST /chama/{id}/deposit
+export async function chamaDeposit(id: string, sats: number): Promise<{ ok: boolean }> {
+  if (USE_MOCKS) {
+    const chama = mockAllChamas.find((c) => c.id === id);
+    if (chama) chama.balanceSats += sats;
+    mockWallet.balanceSats = Math.max(0, mockWallet.balanceSats - sats);
+    return delay({ ok: true });
+  }
+  return req<{ ok: boolean }>(`/chama/${id}/deposit`, { method: "POST", body: JSON.stringify({ sats }) });
+}
+
+// Transfers sats from current member's chama balance to another member's chama balance.
+// Requires PIN verification (enforced by UI before calling; backend must re-verify).
+// TODO(backend): POST /chama/{id}/transfer  PIN verification on server side
+export async function chamaTransfer(id: string, toHandle: string, sats: number): Promise<{ ok: boolean }> {
+  if (USE_MOCKS) return delay({ ok: true });
+  return req<{ ok: boolean }>(`/chama/${id}/transfer`, {
+    method: "POST", body: JSON.stringify({ toHandle, sats }),
+  });
 }
