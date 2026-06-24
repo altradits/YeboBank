@@ -60,6 +60,33 @@ export interface Chama {
   members?: ChamaMember[];
   isMember?: boolean;
   pendingJoin?: boolean;
+  myContributionSats?: number;
+  poolContributionsSats?: number;
+  poolValueSats?: number;
+}
+
+export interface ChamaGrowthPoint {
+  date: string; // "YYYY-MM"
+  contributedSats: number;
+  valueSats: number;
+}
+
+export interface MyChamaStake {
+  chamaId: string;
+  name: string;
+  myContributionSats: number;
+  mySharePct: number;
+  myValueSats: number;
+  myGainSats: number;
+  poolContributionsSats: number;
+  poolValueSats: number;
+}
+
+export interface ChamaPortfolio {
+  stakes: MyChamaStake[];
+  totalContributedSats: number;
+  totalValueSats: number;
+  totalGainSats: number;
 }
 
 export interface Agent {

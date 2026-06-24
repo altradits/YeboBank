@@ -12,10 +12,12 @@
 import type {
   User, Wallet, LedgerEntry, SavingsLock, Chama, Agent,
   ChamaMessage, ChamaVote, JoinRequest,
+  MyChamaStake, ChamaGrowthPoint, ChamaPortfolio,
 } from "@/types";
 import {
   mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent,
   mockAllChamas, mockChamaMessages, mockChamaVotes, mockJoinRequests,
+  mockGrowthData,
 } from "@/lib/mock";
 
 const USE_MOCKS = true; // flip to false once the backend endpoints exist
@@ -348,5 +350,90 @@ export async function chamaTransfer(id: string, toHandle: string, sats: number):
   if (USE_MOCKS) return delay({ ok: true });
   return req<{ ok: boolean }>(`/chama/${id}/transfer`, {
     method: "POST", body: JSON.stringify({ toHandle, sats }),
+  });
+}
+
+// ── Stake & portfolio ────────────────────────────────────────────────────────
+
+// Returns my proportional stake summary for a single chama, derived from pool data.
+// TODO(backend): GET /chama/{id}/stake — server computes from ledger snapshots
+export async function getMyStake(chamaId: string): Promise<MyChamaStake> {
+  if (USE_MOCKS) {
+    const chama = mockAllChamas.find((c) => c.id === chamaId) ?? mockChamas.find((c) => c.id === chamaId);
+    const myC = chama?.myContributionSats ?? 0;
+    const poolC = chama?.poolContributionsSats ?? 0;
+    const poolV = chama?.poolValueSats ?? chama?.balanceSats ?? 0;
+    const mySharePct = poolC > 0 ? (myC / poolC) * 100 : 0;
+    const poolGain = poolV - poolC;
+    const myGainSats = Math.round((mySharePct / 100) * poolGain);
+    const myValueSats = myC + myGainSats;
+    return delay({
+      chamaId,
+      name: chama?.name ?? "",
+      myContributionSats: myC,
+      mySharePct,
+      myValueSats,
+      myGainSats,
+      poolContributionsSats: poolC,
+      poolValueSats: poolV,
+    });
+  }
+  return req<MyChamaStake>(`/chama/${chamaId}/stake`);
+}
+
+// Returns 12 monthly growth points (my cumulative contributed vs my value).
+// TODO(backend): GET /chama/{id}/growth — from interest_distributions + ledger snapshots
+export async function getChamaGrowth(chamaId: string): Promise<ChamaGrowthPoint[]> {
+  if (USE_MOCKS) return delay([...(mockGrowthData[chamaId] ?? [])]);
+  return req<ChamaGrowthPoint[]>(`/chama/${chamaId}/growth`);
+}
+
+// Returns aggregated portfolio across all chamas the user is a member of.
+// TODO(backend): GET /chama/portfolio — aggregate stakes from all member chamas
+export async function getChamaPortfolio(): Promise<ChamaPortfolio> {
+  if (USE_MOCKS) {
+    const memberChamas = mockAllChamas.filter((c) => c.isMember);
+    const stakes: MyChamaStake[] = memberChamas.map((chama) => {
+      const myC = chama.myContributionSats ?? 0;
+      const poolC = chama.poolContributionsSats ?? 0;
+      const poolV = chama.poolValueSats ?? chama.balanceSats;
+      const mySharePct = poolC > 0 ? (myC / poolC) * 100 : 0;
+      const poolGain = poolV - poolC;
+      const myGainSats = Math.round((mySharePct / 100) * poolGain);
+      return {
+        chamaId: chama.id,
+        name: chama.name,
+        myContributionSats: myC,
+        mySharePct,
+        myValueSats: myC + myGainSats,
+        myGainSats,
+        poolContributionsSats: poolC,
+        poolValueSats: poolV,
+      };
+    });
+    const totalContributedSats = stakes.reduce((s, x) => s + x.myContributionSats, 0);
+    const totalValueSats = stakes.reduce((s, x) => s + x.myValueSats, 0);
+    const totalGainSats = stakes.reduce((s, x) => s + x.myGainSats, 0);
+    return delay({ stakes, totalContributedSats, totalValueSats, totalGainSats });
+  }
+  return req<ChamaPortfolio>(`/chama/portfolio`);
+}
+
+// Withdraws from the user's proportional share of a chama pool.
+// PIN must be verified server-side even though the UI collects it.
+// TODO(backend): POST /chama/{id}/withdraw — verify PIN + chama withdrawal rules
+export async function withdrawFromChama(chamaId: string, sats: number): Promise<{ ok: boolean }> {
+  if (USE_MOCKS) {
+    const chama = mockAllChamas.find((c) => c.id === chamaId);
+    if (chama) {
+      chama.balanceSats = Math.max(0, chama.balanceSats - sats);
+      if (chama.myContributionSats !== undefined) {
+        chama.myContributionSats = Math.max(0, chama.myContributionSats - sats);
+      }
+    }
+    return delay({ ok: true });
+  }
+  return req<{ ok: boolean }>(`/chama/${chamaId}/withdraw`, {
+    method: "POST", body: JSON.stringify({ sats }),
   });
 }

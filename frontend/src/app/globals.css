@@ -461,3 +461,65 @@ h1.hero-h .grn{color:var(--emerald-deep)}
 .opt-row .rm-btn:hover{color:var(--red)}
 .add-opt{background:none;border:1.5px dashed var(--border);border-radius:var(--r-sm);color:var(--soft);font-size:13px;padding:9px;cursor:pointer;width:100%;transition:border-color .2s,color .2s}
 .add-opt:hover{border-color:var(--emerald);color:var(--emerald-deep)}
+
+/* ===== global bar-track / bar-fill (reused by stake + portfolio) ===== */
+.bar-track{height:7px;background:var(--cream);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--gold-soft),var(--emerald));border-radius:99px;transition:width .4s ease}
+@media(prefers-reduced-motion:reduce){.bar-fill{transition:none}}
+
+/* ===== stake panel ===== */
+.stake-panel{display:flex;flex-direction:column;gap:16px}
+.stake-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:480px){.stake-stats{grid-template-columns:1fr 1fr;}.stake-stats .stake-stat:last-child{grid-column:1/-1}}
+.stake-stat{display:flex;flex-direction:column;gap:3px}
+.stake-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.stake-value{font-family:var(--font-mono);font-weight:700;font-size:15px;color:var(--text)}
+.stake-sub{font-size:11px;color:var(--muted)}
+.gain-pos{color:var(--emerald-deep)}
+.gain-neg{color:var(--red)}
+.stake-share-row{display:flex;flex-direction:column;gap:6px}
+.stake-share-header{display:flex;align-items:center;justify-content:space-between}
+.stake-pct{font-family:var(--font-mono);font-weight:700;font-size:18px;color:var(--forest)}
+.stake-bar-track{margin-top:0}
+.stake-bar-sub{font-size:11px;color:var(--muted)}
+.stake-inline-summary{font-size:12px;color:var(--muted);margin-top:8px;font-family:var(--font-body)}
+
+/* ===== growth chart ===== */
+.growth-chart{display:flex;flex-direction:column;gap:10px}
+.growth-chart-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.growth-chart-title{font-family:var(--font-display);font-weight:600;font-size:13px;color:var(--muted)}
+.growth-legend{display:flex;gap:12px;font-size:11px}
+.legend-contributed{color:var(--soft)}
+.legend-value{color:var(--emerald-deep);font-weight:600}
+.growth-chart-empty{font-size:13px;color:var(--muted);text-align:center;padding:16px 0}
+
+/* ===== portfolio page ===== */
+.portfolio-totals{margin-top:16px}
+.portfolio-total-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:600px){.portfolio-total-grid{grid-template-columns:1fr 1fr;}.portfolio-total-grid .portfolio-total:last-child{grid-column:1/-1}}
+.portfolio-total{display:flex;flex-direction:column;gap:4px}
+.portfolio-total-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.portfolio-total-value{font-family:var(--font-mono);font-weight:700;font-size:18px;color:var(--text)}
+.portfolio-total-sub{font-size:12px;color:var(--muted)}
+.portfolio-chama-list{display:flex;flex-direction:column;gap:14px}
+.portfolio-chama-row{display:block;padding:12px 0;border-bottom:1px solid var(--border-soft);text-decoration:none;color:inherit}
+.portfolio-chama-row:last-child{border-bottom:none}
+.portfolio-chama-row:hover .portfolio-chama-name{color:var(--emerald-deep)}
+.portfolio-chama-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.portfolio-chama-name{font-family:var(--font-display);font-weight:600;font-size:14px;transition:color .2s}
+.portfolio-chama-pct{font-family:var(--font-mono);font-weight:700;font-size:15px;color:var(--forest)}
+.portfolio-bar-track{margin-bottom:6px}
+.portfolio-chama-sub{font-size:12px;color:var(--muted)}
+
+/* ===== bar chart (ChamaGrowthChart) ===== */
+.barchart{display:flex;flex-direction:column;gap:14px}
+.barchart-controls{display:flex;flex-direction:column;gap:10px}
+.barchart-title{font-family:var(--font-display);font-weight:600;font-size:13px;color:var(--muted)}
+.barchart-toggles{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.barchart-toggles .seg{padding:3px}
+.barchart-toggles .seg button{min-height:34px;font-size:12px;padding:5px 12px}
+
+/* Bar reveal animation */
+.barchart-bar{transform-box:fill-box;transform-origin:50% 100%;animation:barGrow .45s cubic-bezier(.2,.8,.3,1) both}
+@keyframes barGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@media(prefers-reduced-motion:reduce){.barchart-bar{animation:none}}

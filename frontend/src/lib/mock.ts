@@ -1,7 +1,7 @@
 // Mock data. Everything here is placeholder content so the frontend renders and
 // navigates fully before the backend exists. Replace by implementing src/lib/api.ts.
 
-import type { User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest } from "@/types";
+import type { User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, ChamaGrowthPoint } from "@/types";
 
 export const mockUser: User = {
   id: "u_demo",
@@ -33,8 +33,16 @@ export const mockLocks: SavingsLock[] = [
 ];
 
 export const mockChamas: Chama[] = [
-  { id: "c1", name: "Mama Mboga Chama", description: "Market traders saving weekly", balanceSats: 4_250_000, contributionSats: 25000, memberCount: 12, maxMembers: 30 },
-  { id: "c2", name: "Boda Riders SACCO", description: "Daily float for riders", balanceSats: 1_870_000, contributionSats: 10000, memberCount: 8, maxMembers: 50 },
+  {
+    id: "c1", name: "Mama Mboga Chama", description: "Market traders saving weekly",
+    balanceSats: 4_250_000, contributionSats: 25_000, memberCount: 12, maxMembers: 30,
+    myContributionSats: 250_000, poolContributionsSats: 4_100_000, poolValueSats: 4_250_000,
+  },
+  {
+    id: "c2", name: "Boda Riders SACCO", description: "Daily float for riders",
+    balanceSats: 1_870_000, contributionSats: 10_000, memberCount: 8, maxMembers: 50,
+    myContributionSats: 120_000, poolContributionsSats: 1_750_000, poolValueSats: 1_870_000,
+  },
 ];
 
 export const mockAgent: Agent = {
@@ -95,6 +103,7 @@ export const mockAllChamas: Chama[] = [
     balanceSats: 4_250_000, contributionSats: 25_000, memberCount: 12, maxMembers: 30,
     isMember: true, pendingJoin: false,
     members: mockChamaMembers.c1,
+    myContributionSats: 250_000, poolContributionsSats: 4_100_000, poolValueSats: 4_250_000,
   },
   {
     id: "c2", name: "Boda Riders SACCO",
@@ -102,6 +111,7 @@ export const mockAllChamas: Chama[] = [
     balanceSats: 1_870_000, contributionSats: 10_000, memberCount: 8, maxMembers: 50,
     isMember: true, pendingJoin: false,
     members: mockChamaMembers.c2,
+    myContributionSats: 120_000, poolContributionsSats: 1_750_000, poolValueSats: 1_870_000,
   },
   {
     id: "c3", name: "Kiambu Farmers Group",
@@ -160,3 +170,37 @@ export const mockJoinRequests: JoinRequest[] = [
     status: "pending",
   },
 ];
+
+// My cumulative contribution vs value per month (last 12 months)
+// c1: 250k contributed, 259,146 value at month 12
+// c2: 120k contributed, 128,229 value at month 12
+export const mockGrowthData: Record<string, ChamaGrowthPoint[]> = {
+  c1: [
+    { date: "2025-07", contributedSats:  20_000, valueSats:  20_050 },
+    { date: "2025-08", contributedSats:  42_000, valueSats:  42_280 },
+    { date: "2025-09", contributedSats:  63_000, valueSats:  63_770 },
+    { date: "2025-10", contributedSats:  84_000, valueSats:  85_180 },
+    { date: "2025-11", contributedSats: 105_000, valueSats: 106_900 },
+    { date: "2025-12", contributedSats: 126_000, valueSats: 128_400 },
+    { date: "2026-01", contributedSats: 147_000, valueSats: 150_100 },
+    { date: "2026-02", contributedSats: 168_000, valueSats: 172_000 },
+    { date: "2026-03", contributedSats: 189_000, valueSats: 194_000 },
+    { date: "2026-04", contributedSats: 210_000, valueSats: 216_500 },
+    { date: "2026-05", contributedSats: 231_000, valueSats: 238_300 },
+    { date: "2026-06", contributedSats: 250_000, valueSats: 259_146 },
+  ],
+  c2: [
+    { date: "2025-07", contributedSats:  10_000, valueSats:  10_020 },
+    { date: "2025-08", contributedSats:  20_000, valueSats:  20_080 },
+    { date: "2025-09", contributedSats:  30_000, valueSats:  30_200 },
+    { date: "2025-10", contributedSats:  40_000, valueSats:  40_380 },
+    { date: "2025-11", contributedSats:  50_000, valueSats:  50_620 },
+    { date: "2025-12", contributedSats:  60_000, valueSats:  61_000 },
+    { date: "2026-01", contributedSats:  70_000, valueSats:  71_550 },
+    { date: "2026-02", contributedSats:  80_000, valueSats:  82_280 },
+    { date: "2026-03", contributedSats:  90_000, valueSats:  93_100 },
+    { date: "2026-04", contributedSats: 100_000, valueSats: 104_100 },
+    { date: "2026-05", contributedSats: 110_000, valueSats: 115_280 },
+    { date: "2026-06", contributedSats: 120_000, valueSats: 128_229 },
+  ],
+};

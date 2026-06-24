@@ -10,8 +10,11 @@ import {
   getChama, getChamaMessages, getChamaVotes, getChamaJoinRequests,
   postChamaMessage, createChamaVote, castVote,
   voteOnJoin, chamaDeposit, chamaTransfer,
+  getMyStake, getChamaGrowth, withdrawFromChama,
 } from "@/lib/api";
-import type { Chama, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, Rate } from "@/types";
+import type { Chama, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, Rate, MyChamaStake as StakeType, ChamaGrowthPoint } from "@/types";
+import MyChamaStakePanel from "@/components/app/MyChamaStake";
+import ChamaGrowthChart from "@/components/app/ChamaGrowthChart";
 
 // TODO(backend): realtime/polling — replace these one-shot loads with
 // WebSocket subscription or polling (every ~5s) so all members see live state.
@@ -19,6 +22,12 @@ const CURRENT_HANDLE = "@wanjiku";
 const CURRENT_NAME   = "Wanjiku Kamau";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
+
+const _MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function dateToLabel(date: string): string {
+  const [, m] = date.split("-");
+  return _MONTHS[(parseInt(m, 10) - 1) % 12] ?? date;
+}
 
 function initials(name: string): string {
   return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -504,6 +513,94 @@ function ContributeModal({
   );
 }
 
+// ── Withdraw modal ────────────────────────────────────────────────────────────
+
+function WithdrawModal({
+  stake, rate, onConfirm, onCancel, loading,
+}: {
+  stake: StakeType;
+  rate: Rate;
+  onConfirm: (sats: number, pin: string) => void;
+  onCancel: () => void;
+  loading: boolean;
+}) {
+  const [unit, setUnit] = useState<"KES" | "sats">("KES");
+  const [amount, setAmount] = useState("");
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState("");
+
+  const sats = unit === "KES"
+    ? kesToSats(parseFloat(amount) || 0, rate)
+    : Math.round(parseFloat(amount) || 0);
+  const maxKES = Math.round(stake.myValueSats * rate.kesPerSat);
+  const overMax = sats > stake.myValueSats;
+  const canSubmit = !loading && sats > 0 && !overMax && pin.length === 6;
+
+  function handleConfirm() {
+    if (pin.length < 6) { setPinError("Enter your full 6-digit PIN."); return; }
+    // TODO(backend): verify PIN — currently accepts any 6 digits
+    onConfirm(sats, pin);
+  }
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="withdraw-title">
+        <button className="modal-close" onClick={onCancel} aria-label="Close">✕</button>
+        <h2 id="withdraw-title">Withdraw from chama</h2>
+        <p className="modal-sub">
+          Max: {num(stake.myValueSats)} sats (≈ KES {num(maxKES)})
+        </p>
+
+        <div className="seg" style={{ marginBottom: 14 }}>
+          <button className={unit === "KES" ? "on" : ""} onClick={() => setUnit("KES")}>KES</button>
+          <button className={unit === "sats" ? "on" : ""} onClick={() => setUnit("sats")}>sats</button>
+        </div>
+
+        <div className="field-group" style={{ marginBottom: 8 }}>
+          <label>Amount ({unit})</label>
+          <input
+            className="input"
+            type="number"
+            min="1"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+        </div>
+
+        {amount !== "" && (
+          <p className="note" style={{ marginBottom: 14 }}>
+            {unit === "KES"
+              ? `≈ ${num(sats)} sats`
+              : `≈ KES ${num(Math.round(sats * rate.kesPerSat))}`}
+            {overMax && <span style={{ color: "var(--red)", marginLeft: 8 }}>Exceeds your value</span>}
+          </p>
+        )}
+
+        <div className="field-group" style={{ marginBottom: 8 }}>
+          <label>6-digit PIN</label>
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={6}
+            className="input"
+            placeholder="••••••"
+            value={pin}
+            onChange={(e) => { setPin(e.target.value.replace(/\D/g, "").slice(0, 6)); setPinError(""); }}
+          />
+        </div>
+        {pinError && <p style={{ color: "var(--red)", fontSize: 13, marginTop: 4 }}>{pinError}</p>}
+
+        <div className="modal-actions">
+          <Button onClick={handleConfirm} disabled={!canSubmit}>
+            {loading ? "Processing…" : "Withdraw"}
+          </Button>
+          <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function ChamaDashboard() {
@@ -515,7 +612,14 @@ export default function ChamaDashboard() {
   const [messages, setMessages] = useState<ChamaMessage[]>([]);
   const [votes, setVotes] = useState<ChamaVote[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
+  const [stake, setStake] = useState<StakeType | null>(null);
+  const [growthPoints, setGrowthPoints] = useState<ChamaGrowthPoint[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // withdraw modal
+  const [withdrawModal, setWithdrawModal] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawSuccess, setWithdrawSuccess] = useState(false);
 
   // composer
   const [input, setInput] = useState("");
@@ -538,16 +642,20 @@ export default function ChamaDashboard() {
   const members = chama?.members ?? [];
 
   const loadAll = useCallback(async () => {
-    const [c, msgs, vs, jrs] = await Promise.all([
+    const [c, msgs, vs, jrs, st, gp] = await Promise.all([
       getChama(id),
       getChamaMessages(id),
       getChamaVotes(id),
       getChamaJoinRequests(id),
+      getMyStake(id),
+      getChamaGrowth(id),
     ]);
     setChama(c);
     setMessages(msgs);
     setVotes(vs);
     setJoinRequests(jrs);
+    setStake(st);
+    setGrowthPoints(gp);
     setLoading(false);
   }, [id]);
 
@@ -692,6 +800,18 @@ export default function ChamaDashboard() {
     setVoteModal(false);
   }
 
+  async function handleWithdraw(sats: number) {
+    setWithdrawing(true);
+    await withdrawFromChama(id, sats);
+    // Refresh stake to reflect new values
+    const updated = await getMyStake(id);
+    setStake(updated);
+    setWithdrawing(false);
+    setWithdrawModal(false);
+    setWithdrawSuccess(true);
+    setTimeout(() => setWithdrawSuccess(false), 4000);
+  }
+
   function handleCopyInvite() {
     const link = `${window.location.origin}/chama/discover`;
     navigator.clipboard.writeText(link).catch(() => {});
@@ -747,6 +867,9 @@ export default function ChamaDashboard() {
         <Button variant="primary" onClick={() => setContributeModal(true)}>
           <i className="ti ti-arrow-down" /> Contribute
         </Button>
+        <Button variant="ghost" onClick={() => setWithdrawModal(true)} disabled={!stake || stake.myValueSats <= 0}>
+          <i className="ti ti-arrow-up" /> Withdraw
+        </Button>
         <Button variant="ghost" onClick={handleCopyInvite}>
           <i className="ti ti-share" /> Invite/Share
         </Button>
@@ -757,6 +880,48 @@ export default function ChamaDashboard() {
           <i className="ti ti-file-download" /> Statement
         </Button>
       </div>
+
+      {withdrawSuccess && (
+        <div className="notif-banner" style={{ background: "rgba(17,166,91,.12)", borderColor: "rgba(17,166,91,.3)" }}>
+          <i className="ti ti-circle-check" style={{ color: "var(--emerald-deep)" }} />
+          <span>Withdrawal submitted. {/* TODO(backend): POST /chama/{id}/withdraw — settle via ledger */}</span>
+        </div>
+      )}
+
+      {/* My stake + growth */}
+      {stake && stake.myContributionSats > 0 && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <MyChamaStakePanel stake={stake} />
+          {growthPoints.length >= 2 && (
+            <div style={{ marginTop: 20 }}>
+              <ChamaGrowthChart
+                title="Your growth over time"
+                defaultSeriesKey="value"
+                series={[
+                  {
+                    key: "value",
+                    label: "Your value",
+                    color: "var(--emerald)",
+                    points: growthPoints.map((p) => ({
+                      label: dateToLabel(p.date),
+                      valueSats: p.valueSats,
+                    })),
+                  },
+                  {
+                    key: "contributed",
+                    label: "Contributed",
+                    color: "var(--forest)",
+                    points: growthPoints.map((p) => ({
+                      label: dateToLabel(p.date),
+                      valueSats: p.contributedSats,
+                    })),
+                  },
+                ]}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Main grid */}
       <div className="chama-grid">
@@ -855,6 +1020,17 @@ export default function ChamaDashboard() {
           onConfirm={handleContribute}
           onCancel={() => setContributeModal(false)}
           loading={contributing}
+        />
+      )}
+
+      {/* Withdraw modal */}
+      {withdrawModal && stake && (
+        <WithdrawModal
+          stake={stake}
+          rate={rate}
+          onConfirm={(sats) => handleWithdraw(sats)}
+          onCancel={() => setWithdrawModal(false)}
+          loading={withdrawing}
         />
       )}
     </>
