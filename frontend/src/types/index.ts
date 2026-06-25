@@ -42,6 +42,34 @@ export interface SavingsLock {
   status: "active" | "matured" | "withdrawn" | "early_exit";
   lockedAt: string;
   maturesAt: string;
+  // additive optional fields
+  kind?: "individual" | "group" | "chama";
+  title?: string;
+  chamaId?: string;
+  groupId?: string;
+  participants?: { handle: string; name: string; contributedSats: number }[];
+}
+
+export interface LockContribution {
+  lockId: string;
+  byHandle: string;
+  amountSats: number;
+  at: string; // ISO timestamp
+}
+
+export interface LockIntent {
+  kind: "group" | "chama";
+  targetId?: string;
+  amountSats?: number;
+  years?: number;
+  title?: string;
+}
+
+export interface PendingInvite {
+  id: string;
+  kind: "chama" | "group";
+  targetId: string;
+  targetName: string;
 }
 
 export interface ChamaMember {

@@ -12,23 +12,16 @@
 import type {
   User, Wallet, LedgerEntry, SavingsLock, Chama, Agent,
   ChamaMessage, ChamaVote, JoinRequest,
-<<<<<<< HEAD
-  MyChamaStake, ChamaGrowthPoint, ChamaPortfolio,
-  IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
-=======
   MyChamaStake, ChamaGrowthPoint, ChamaPortfolio, SavingsGrowthPoint, SavingsDeposit,
->>>>>>> d4fc9f6 (feat: add timeframes to savings graph)
+  IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
+  PendingInvite,
 } from "@/types";
 import {
   mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent,
   mockAllChamas, mockChamaMessages, mockChamaVotes, mockJoinRequests,
-<<<<<<< HEAD
-  mockGrowthData,
+  mockGrowthData, mockSavingsGrowth, mockSavingsDeposits, mockPendingInvites,
   mockIncomeSources, mockInvestorPositions, mockAccessRequests, mockFIProfiles,
   mockWithdrawalRequests, mockNotifications,
-=======
-  mockGrowthData, mockSavingsGrowth, mockSavingsDeposits,
->>>>>>> d4fc9f6 (feat: add timeframes to savings graph)
 } from "@/lib/mock";
 
 const USE_MOCKS = true; // flip to false once the backend endpoints exist
@@ -135,6 +128,90 @@ export async function createLock(sats: number, years: number): Promise<SavingsLo
     });
   }
   return req<SavingsLock>("/savings/lock", { method: "POST", body: JSON.stringify({ sats, years }) });
+}
+
+// TODO(backend): GET /savings/{id}
+export async function getLock(id: string): Promise<SavingsLock> {
+  if (USE_MOCKS) {
+    const lock = mockLocks.find((l) => l.id === id);
+    if (!lock) throw new Error(`Lock ${id} not found`);
+    return delay({ ...lock, participants: lock.participants?.map((p) => ({ ...p })) });
+  }
+  return req<SavingsLock>(`/savings/${id}`);
+}
+
+// TODO(backend): POST /savings/{lockId}/contribute — verify membership + deduct wallet
+export async function addToLock(lockId: string, sats: number): Promise<SavingsLock> {
+  if (USE_MOCKS) {
+    const lock = mockLocks.find((l) => l.id === lockId);
+    if (!lock) throw new Error(`Lock ${lockId} not found`);
+    lock.principalSats += sats;
+    const mine = lock.participants?.find((p) => p.handle === MOCK_HANDLE);
+    if (mine) {
+      mine.contributedSats += sats;
+    } else if (lock.participants) {
+      lock.participants.push({ handle: MOCK_HANDLE, name: MOCK_NAME, contributedSats: sats });
+    }
+    return delay({ ...lock, participants: lock.participants?.map((p) => ({ ...p })) });
+  }
+  return req<SavingsLock>(`/savings/${lockId}/contribute`, { method: "POST", body: JSON.stringify({ sats }) });
+}
+
+// TODO(backend): POST /savings/lock/group — creates shared lock, pushes invites to handles
+export async function createGroupLock(sats: number, years: number, title: string, handles: string[]): Promise<SavingsLock> {
+  if (USE_MOCKS) {
+    const newLock: SavingsLock = {
+      id: `s_g_${Date.now()}`, principalSats: sats, accruedSats: 0, lockYears: years,
+      status: "active", lockedAt: new Date().toISOString(),
+      maturesAt: new Date(Date.now() + years * 365 * 86400e3).toISOString(),
+      kind: "group", title,
+      participants: [
+        { handle: MOCK_HANDLE, name: MOCK_NAME, contributedSats: sats },
+        ...handles.map((h) => ({ handle: h, name: h, contributedSats: 0 })),
+      ],
+    };
+    mockLocks.push(newLock);
+    return delay({ ...newLock });
+  }
+  return req<SavingsLock>("/savings/lock/group", { method: "POST", body: JSON.stringify({ sats, years, title, handles }) });
+}
+
+// TODO(backend): POST /savings/lock/chama — creates chama-shared lock tied to chamaId
+export async function createChamaLock(chamaId: string, sats: number, years: number): Promise<SavingsLock> {
+  if (USE_MOCKS) {
+    const chama = mockAllChamas.find((c) => c.id === chamaId);
+    const newLock: SavingsLock = {
+      id: `s_c_${Date.now()}`, principalSats: sats, accruedSats: 0, lockYears: years,
+      status: "active", lockedAt: new Date().toISOString(),
+      maturesAt: new Date(Date.now() + years * 365 * 86400e3).toISOString(),
+      kind: "chama", title: chama?.name ?? "Chama lock", chamaId,
+      participants: [{ handle: MOCK_HANDLE, name: MOCK_NAME, contributedSats: sats }],
+    };
+    mockLocks.push(newLock);
+    return delay({ ...newLock });
+  }
+  return req<SavingsLock>("/savings/lock/chama", { method: "POST", body: JSON.stringify({ chamaId, sats, years }) });
+}
+
+// TODO(backend): GET /savings/invites — pending lock invites for current user
+export async function getMyPendingInvites(): Promise<PendingInvite[]> {
+  if (USE_MOCKS) return delay([...mockPendingInvites]);
+  return req<PendingInvite[]>("/savings/invites");
+}
+
+// TODO(backend): POST /savings/invites/{id}/accept — accept a lock invite, join the target
+export async function acceptInvite(inviteId: string): Promise<void> {
+  if (USE_MOCKS) {
+    const idx = mockPendingInvites.findIndex((i) => i.id === inviteId);
+    if (idx !== -1) {
+      const invite = mockPendingInvites[idx]!;
+      const chama = mockAllChamas.find((c) => c.id === invite.targetId);
+      if (chama) { chama.isMember = true; chama.memberCount += 1; }
+      mockPendingInvites.splice(idx, 1);
+    }
+    return delay(undefined);
+  }
+  await req(`/savings/invites/${inviteId}/accept`, { method: "POST" });
 }
 
 // ---- chamas ------------------------------------------------------------------

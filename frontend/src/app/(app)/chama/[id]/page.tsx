@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num, fmtKES, kesToSats, timeAgo } from "@/lib/format";
@@ -10,7 +10,7 @@ import {
   getChama, getChamaMessages, getChamaVotes, getChamaJoinRequests,
   postChamaMessage, createChamaVote, castVote,
   voteOnJoin, chamaDeposit, chamaTransfer,
-  getMyStake, getChamaGrowth, withdrawFromChama,
+  getMyStake, getChamaGrowth, withdrawFromChama, createChamaLock,
 } from "@/lib/api";
 import type { Chama, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, Rate, MyChamaStake as StakeType, ChamaGrowthPoint } from "@/types";
 import MyChamaStakePanel from "@/components/app/MyChamaStake";
@@ -638,6 +638,14 @@ export default function ChamaDashboard() {
   const [contributeModal, setContributeModal] = useState(false);
   const [contributing, setContributing] = useState(false);
 
+  // Lock intent (from ?intent=lock&amount=...&years=... query string)
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [lockIntentOpen, setLockIntentOpen] = useState(false);
+  const [lockIntentSats, setLockIntentSats] = useState(0);
+  const [lockIntentYears, setLockIntentYears] = useState(5);
+  const [lockCreating, setLockCreating] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const members = chama?.members ?? [];
@@ -665,6 +673,14 @@ export default function ChamaDashboard() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (searchParams.get("intent") === "lock") {
+      setLockIntentSats(parseInt(searchParams.get("amount") ?? "0", 10) || 0);
+      setLockIntentYears(parseInt(searchParams.get("years") ?? "5", 10) || 5);
+      setLockIntentOpen(true);
+    }
+  }, [searchParams]);
 
   async function handleSend() {
     const raw = input.trim();
@@ -829,6 +845,15 @@ export default function ChamaDashboard() {
     navigator.clipboard.writeText(link).catch(() => {});
     // Simple feedback — in real app would toast
     alert(`Chama: ${chama?.name}\nInvite link copied to clipboard:\n${link}`);
+  }
+
+  async function handleCreateChamaLock() {
+    if (!chama || lockIntentSats <= 0) return;
+    setLockCreating(true);
+    await createChamaLock(chama.id, lockIntentSats, lockIntentYears);
+    setLockCreating(false);
+    setLockIntentOpen(false);
+    router.push("/savings");
   }
 
   if (loading) {
@@ -1044,6 +1069,36 @@ export default function ChamaDashboard() {
           onCancel={() => setWithdrawModal(false)}
           loading={withdrawing}
         />
+      )}
+
+      {/* Lock intent modal — fires when ?intent=lock is in the URL */}
+      {lockIntentOpen && chama && (
+        <div className="modal-overlay">
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="lock-intent-title">
+            <button className="modal-close" onClick={() => setLockIntentOpen(false)} aria-label="Close">✕</button>
+            <h2 id="lock-intent-title">Create chama lock</h2>
+            <p className="modal-sub">Lock savings in {chama.name} and earn yield together.</p>
+            <div className="stat" style={{ marginBottom: 10 }}>
+              <span className="l">Initial contribution</span>
+              <span className="v">{num(lockIntentSats)} sats</span>
+            </div>
+            <p className="note" style={{ marginBottom: 6 }}>
+              ≈ KES {num(lockIntentSats * rate.kesPerSat)} · {lockIntentYears}yr lock
+            </p>
+            <p className="note" style={{ marginBottom: 16 }}>
+              Projected yield at ~5.2%: +{num(Math.round(lockIntentSats * (Math.pow(1.052, lockIntentYears) - 1)))} sats (illustrative)
+            </p>
+            <p className="note" style={{ marginBottom: 4 }}>
+              All chama members can contribute after the lock is created.
+            </p>
+            <div className="modal-actions">
+              <Button onClick={handleCreateChamaLock} disabled={lockCreating || lockIntentSats <= 0}>
+                {lockCreating ? "Creating…" : `Lock ${num(lockIntentSats)} sats`}
+              </Button>
+              <Button variant="ghost" onClick={() => setLockIntentOpen(false)}>Cancel</Button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

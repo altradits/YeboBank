@@ -1,14 +1,11 @@
 // Mock data. Everything here is placeholder content so the frontend renders and
 // navigates fully before the backend exists. Replace by implementing src/lib/api.ts.
 
-<<<<<<< HEAD
 import type {
-  User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, ChamaGrowthPoint,
+  User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest,
+  ChamaGrowthPoint, SavingsGrowthPoint, SavingsDeposit, PendingInvite,
   IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
 } from "@/types";
-=======
-import type { User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, ChamaGrowthPoint, SavingsGrowthPoint, SavingsDeposit } from "@/types";
->>>>>>> d4fc9f6 (feat: add timeframes to savings graph)
 
 export const mockUser: User = {
   id: "u_demo",
@@ -39,8 +36,27 @@ export const mockLedger: LedgerEntry[] = [
 ];
 
 export const mockLocks: SavingsLock[] = [
-  { id: "s1", principalSats: 300000, accruedSats: 12450, lockYears: 5, status: "active", lockedAt: iso(-200 * 86400e3), maturesAt: iso(1625 * 86400e3) },
-  { id: "s2", principalSats: 100000, accruedSats: 1980, lockYears: 5, status: "active", lockedAt: iso(-40 * 86400e3), maturesAt: iso(1785 * 86400e3) },
+  { id: "s1", principalSats: 300000, accruedSats: 12450, lockYears: 5, status: "active", lockedAt: iso(-200 * 86400e3), maturesAt: iso(1625 * 86400e3), kind: "individual" },
+  { id: "s2", principalSats: 100000, accruedSats: 1980, lockYears: 5, status: "active", lockedAt: iso(-40 * 86400e3), maturesAt: iso(1785 * 86400e3), kind: "individual" },
+  {
+    id: "s3", principalSats: 200000, accruedSats: 3200, lockYears: 5, status: "active",
+    lockedAt: iso(-90 * 86400e3), maturesAt: iso(1735 * 86400e3),
+    kind: "group", title: "Kilimani Savings Group",
+    participants: [
+      { handle: "@wanjiku", name: "Wanjiku Kamau", contributedSats: 100000 },
+      { handle: "@akinyi", name: "Akinyi Otieno", contributedSats: 100000 },
+    ],
+  },
+  {
+    id: "s4", principalSats: 500000, accruedSats: 8750, lockYears: 7, status: "active",
+    lockedAt: iso(-60 * 86400e3), maturesAt: iso(2495 * 86400e3),
+    kind: "chama", title: "Mama Mboga savings", chamaId: "c1",
+    participants: [
+      { handle: "@wanjiku", name: "Wanjiku Kamau", contributedSats: 150000 },
+      { handle: "@jane", name: "Jane Muthoni", contributedSats: 200000 },
+      { handle: "@akinyi", name: "Akinyi Otieno", contributedSats: 150000 },
+    ],
+  },
 ];
 
 export const mockChamas: Chama[] = [
@@ -171,6 +187,11 @@ export const mockChamaVotes: Record<string, ChamaVote[]> = {
   c2: [],
   c3: [],
 };
+
+// Pending lock invites for the current user (mutable — acceptInvite splices from this)
+export const mockPendingInvites: PendingInvite[] = [
+  { id: "inv1", kind: "chama", targetId: "c3", targetName: "Kiambu Farmers Group" },
+];
 
 // Join requests (mutable)
 export const mockJoinRequests: JoinRequest[] = [

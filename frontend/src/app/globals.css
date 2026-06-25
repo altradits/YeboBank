@@ -522,3 +522,27 @@ h1.hero-h .grn{color:var(--emerald-deep)}
 .barchart-bar{transform-box:fill-box;transform-origin:50% 100%;animation:barGrow .45s cubic-bezier(.2,.8,.3,1) both}
 @keyframes barGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @media(prefers-reduced-motion:reduce){.barchart-bar{animation:none}}
+
+/* ===== savings lock list ===== */
+.lock-list{display:flex;flex-direction:column;gap:14px;margin-top:16px}
+.lock-list-item-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.lock-list-item-title{font-family:var(--font-display);font-weight:600;font-size:15px}
+.lock-list-item-meta{margin-left:auto;font-size:12px;color:var(--soft);white-space:nowrap}
+.lock-kind-badge{display:inline-block;font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:3px 9px;border-radius:99px;background:var(--cream);color:var(--soft)}
+.lock-kind-badge.badge-group{background:rgba(17,166,91,.12);color:var(--emerald-deep)}
+.lock-kind-badge.badge-chama{background:rgba(224,168,0,.18);color:var(--gold-text)}
+.lock-list-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:10px}
+.lock-list-stat-label{font-size:12px;color:var(--soft)}
+.lock-list-stat-value{font-family:var(--font-mono);font-weight:700;font-size:14px}
+.lock-participants-preview{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.lock-participant-chip{font-family:var(--font-mono);font-size:11px;background:var(--cream);padding:3px 8px;border-radius:99px;color:var(--muted)}
+.lock-participants{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-soft)}
+.lock-participant-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-size:13px}
+.lock-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+
+/* ===== chama picker on lock page ===== */
+.lock-chama-option{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 16px;background:var(--cream);border:1.5px solid var(--border-soft);border-radius:var(--r-sm);cursor:pointer;text-align:left;transition:border-color .2s,background .2s}
+.lock-chama-option:hover:not(:disabled){border-color:var(--emerald);background:rgba(17,166,91,.06)}
+.lock-chama-option:disabled{opacity:.5;cursor:not-allowed}
+.lock-chama-invite{border-color:rgba(224,168,0,.5);background:rgba(224,168,0,.06)}
+.lock-chama-invite:hover:not(:disabled){border-color:var(--gold);background:rgba(224,168,0,.12)}
