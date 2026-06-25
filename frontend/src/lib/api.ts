@@ -13,11 +13,14 @@ import type {
   User, Wallet, LedgerEntry, SavingsLock, Chama, Agent,
   ChamaMessage, ChamaVote, JoinRequest,
   MyChamaStake, ChamaGrowthPoint, ChamaPortfolio,
+  IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
 } from "@/types";
 import {
   mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent,
   mockAllChamas, mockChamaMessages, mockChamaVotes, mockJoinRequests,
   mockGrowthData,
+  mockIncomeSources, mockInvestorPositions, mockAccessRequests, mockFIProfiles,
+  mockWithdrawalRequests, mockNotifications,
 } from "@/lib/mock";
 
 const USE_MOCKS = true; // flip to false once the backend endpoints exist
@@ -436,4 +439,231 @@ export async function withdrawFromChama(chamaId: string, sats: number): Promise<
   return req<{ ok: boolean }>(`/chama/${chamaId}/withdraw`, {
     method: "POST", body: JSON.stringify({ sats }),
   });
+}
+
+// ── Mlinzi (Fund Steward) — friends & family investor program ──────────────
+// PHASE 2: public access opens after CBK sandbox/licensing. Until then this
+// whole feature is gated to verified family/friends.
+// TODO(backend): custody, settlement, real verification (KYC-lite for F&F), realtime notifications.
+
+export const CBK_DECLINE_MESSAGE =
+  "Access isn't available yet. YeboBank's investment service is currently limited to the founder's family and friends while we complete Central Bank of Kenya (CBK) regulatory approval. Once we're licensed, this will open to the public — we'll let you know.";
+
+function pushNotification(toHandle: string, kind: AppNotification["kind"], body: string): AppNotification {
+  const n: AppNotification = { id: `nt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, toHandle, kind, body, createdAt: new Date().toISOString(), read: false };
+  mockNotifications.push(n);
+  return n;
+}
+
+// ---- income sources (Mlinzi) --------------------------------------------------
+// TODO(backend): GET /steward/income
+export async function getIncomeSources(): Promise<IncomeSource[]> {
+  if (USE_MOCKS) return delay([...mockIncomeSources]);
+  return req<IncomeSource[]>("/steward/income");
+}
+
+// TODO(backend): POST /steward/income (create or update)
+export async function upsertIncomeSource(source: IncomeSource): Promise<IncomeSource> {
+  if (USE_MOCKS) {
+    const idx = mockIncomeSources.findIndex((s) => s.id === source.id);
+    if (idx >= 0) mockIncomeSources[idx] = source;
+    else mockIncomeSources.push({ ...source, id: source.id || `is_${Date.now()}` });
+    return delay(source);
+  }
+  return req<IncomeSource>("/steward/income", { method: "POST", body: JSON.stringify(source) });
+}
+
+// TODO(backend): DELETE /steward/income/{id}
+export async function removeIncomeSource(id: string): Promise<{ ok: boolean }> {
+  if (USE_MOCKS) {
+    const idx = mockIncomeSources.findIndex((s) => s.id === id);
+    if (idx >= 0) mockIncomeSources.splice(idx, 1);
+    return delay({ ok: true });
+  }
+  return req<{ ok: boolean }>(`/steward/income/${id}`, { method: "DELETE" });
+}
+
+// ---- investor positions (Mlinzi) -----------------------------------------------
+// TODO(backend): GET /steward/investors
+export async function getInvestorPositions(): Promise<InvestorPosition[]> {
+  if (USE_MOCKS) return delay([...mockInvestorPositions]);
+  return req<InvestorPosition[]>("/steward/investors");
+}
+
+// TODO(backend): POST /steward/investors
+export async function addInvestorPosition(pos: Omit<InvestorPosition, "id" | "monthlyStatements">): Promise<InvestorPosition> {
+  if (USE_MOCKS) {
+    const created: InvestorPosition = { ...pos, id: `ip_${Date.now()}`, monthlyStatements: [] };
+    mockInvestorPositions.push(created);
+    return delay(created);
+  }
+  return req<InvestorPosition>("/steward/investors", { method: "POST", body: JSON.stringify(pos) });
+}
+
+// Posts an append-only monthly statement. Fee = 2% of return, only if return > 0.
+// TODO(backend): POST /steward/investors/{positionId}/statements  records must be append-only
+export async function postMonthlyStatement(positionId: string, returnKes: number): Promise<InvestorPosition> {
+  if (USE_MOCKS) {
+    const pos = mockInvestorPositions.find((p) => p.id === positionId);
+    if (!pos) throw new Error(`Investor position ${positionId} not found`);
+    const last = pos.monthlyStatements[pos.monthlyStatements.length - 1];
+    const opening = last ? last.closingKes : pos.principalKesAtEntry;
+    const feeKes = returnKes > 0 ? Math.round(returnKes * 0.02) : 0;
+    const closingKes = opening + returnKes - feeKes;
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    pos.monthlyStatements.push({ month, openingKes: opening, returnKes, feeKes, closingKes });
+    pushNotification(pos.investorHandle, "statement", `Your ${month} statement is ready: ${returnKes >= 0 ? "+" : ""}KES ${returnKes.toLocaleString()} return.`);
+    return delay({ ...pos });
+  }
+  return req<InvestorPosition>(`/steward/investors/${positionId}/statements`, { method: "POST", body: JSON.stringify({ returnKes }) });
+}
+
+// ---- access requests (Mlinzi review) -------------------------------------------
+// TODO(backend): GET /steward/access
+export async function getAccessRequests(): Promise<AccessRequest[]> {
+  if (USE_MOCKS) return delay([...mockAccessRequests]);
+  return req<AccessRequest[]>("/steward/access");
+}
+
+// TODO(backend): POST /steward/access/{handle}/accept
+export async function acceptAccess(handle: string, relationship: "family" | "friend" | "investor"): Promise<AccessRequest> {
+  if (USE_MOCKS) {
+    const r = mockAccessRequests.find((a) => a.handle === handle);
+    if (!r) throw new Error(`Access request for ${handle} not found`);
+    r.status = "accepted";
+    if (handle === MOCK_HANDLE) {
+      mockUser.relationship = relationship;
+      mockUser.ffVerified = true;
+      mockUser.accessStatus = "accepted";
+      if (!mockInvestorPositions.find((p) => p.investorHandle === MOCK_HANDLE)) {
+        mockInvestorPositions.push({
+          id: `ip_${Date.now()}`, investorHandle: MOCK_HANDLE, investorName: mockUser.fullName,
+          relationship, principalSats: 0, principalKesAtEntry: 0,
+          entryDate: new Date().toISOString(), realizedReturnPctAnnual: 20, compounding: true,
+          monthlyStatements: [],
+        });
+      }
+    }
+    pushNotification(handle, "access_accepted", "Karibu — your investor access is approved");
+    return delay({ ...r });
+  }
+  return req<AccessRequest>(`/steward/access/${encodeURIComponent(handle)}/accept`, { method: "POST", body: JSON.stringify({ relationship }) });
+}
+
+// TODO(backend): POST /steward/access/{handle}/decline
+export async function declineAccess(handle: string): Promise<AccessRequest> {
+  if (USE_MOCKS) {
+    const r = mockAccessRequests.find((a) => a.handle === handle);
+    if (!r) throw new Error(`Access request for ${handle} not found`);
+    r.status = "declined";
+    if (handle === MOCK_HANDLE) mockUser.accessStatus = "declined";
+    pushNotification(handle, "access_declined", CBK_DECLINE_MESSAGE);
+    return delay({ ...r });
+  }
+  return req<AccessRequest>(`/steward/access/${encodeURIComponent(handle)}/decline`, { method: "POST" });
+}
+
+// ---- withdrawals (Mlinzi review) -----------------------------------------------
+// TODO(backend): GET /steward/withdrawals
+export async function getWithdrawalRequests(): Promise<WithdrawalRequest[]> {
+  if (USE_MOCKS) return delay([...mockWithdrawalRequests]);
+  return req<WithdrawalRequest[]>("/steward/withdrawals");
+}
+
+// TODO(backend): POST /steward/withdrawals/{id}/approve
+export async function approveWithdrawal(id: string, expectedDeliveryDate: string, note?: string): Promise<WithdrawalRequest> {
+  if (USE_MOCKS) {
+    const wr = mockWithdrawalRequests.find((w) => w.id === id);
+    if (!wr) throw new Error(`Withdrawal ${id} not found`);
+    wr.status = "approved";
+    wr.expectedDeliveryDate = expectedDeliveryDate;
+    wr.mlinziNote = note;
+    pushNotification(wr.investorHandle, "withdrawal_update", `Your withdrawal request was approved. Expected delivery: ${new Date(expectedDeliveryDate).toLocaleDateString()}.`);
+    return delay({ ...wr });
+  }
+  return req<WithdrawalRequest>(`/steward/withdrawals/${id}/approve`, { method: "POST", body: JSON.stringify({ expectedDeliveryDate, note }) });
+}
+
+// TODO(backend): POST /steward/withdrawals/{id}/decline
+export async function declineWithdrawal(id: string, note?: string): Promise<WithdrawalRequest> {
+  if (USE_MOCKS) {
+    const wr = mockWithdrawalRequests.find((w) => w.id === id);
+    if (!wr) throw new Error(`Withdrawal ${id} not found`);
+    wr.status = "declined";
+    wr.mlinziNote = note;
+    pushNotification(wr.investorHandle, "withdrawal_update", `Your withdrawal request was declined.${note ? ` Note: ${note}` : ""}`);
+    return delay({ ...wr });
+  }
+  return req<WithdrawalRequest>(`/steward/withdrawals/${id}/decline`, { method: "POST", body: JSON.stringify({ note }) });
+}
+
+// ---- member/investor side ------------------------------------------------------
+// TODO(backend): POST /invest/request
+export async function requestAccess(): Promise<{ ok: boolean }> {
+  if (USE_MOCKS) {
+    mockUser.accessStatus = "requested";
+    const existing = mockAccessRequests.find((a) => a.handle === MOCK_HANDLE);
+    if (existing) existing.status = "requested";
+    else mockAccessRequests.push({ handle: MOCK_HANDLE, name: mockUser.fullName, requestedAt: new Date().toISOString(), status: "requested" });
+    return delay({ ok: true });
+  }
+  return req<{ ok: boolean }>("/invest/request", { method: "POST" });
+}
+
+// TODO(backend): GET /invest/me
+export async function getMyPosition(): Promise<InvestorPosition | null> {
+  if (USE_MOCKS) {
+    const pos = mockInvestorPositions.find((p) => p.investorHandle === MOCK_HANDLE);
+    return delay(pos ? { ...pos } : null);
+  }
+  return req<InvestorPosition | null>("/invest/me");
+}
+
+// TODO(backend): GET /invest/fi
+export async function getFIProfile(): Promise<FIProfile> {
+  if (USE_MOCKS) {
+    const existing = mockFIProfiles[MOCK_HANDLE];
+    if (existing) return delay({ ...existing });
+    const fresh: FIProfile = { handle: MOCK_HANDLE, annualExpensesKes: 1_200_000, fiRule: 0.04, assumedReturnPctAnnual: 20 };
+    mockFIProfiles[MOCK_HANDLE] = fresh;
+    return delay({ ...fresh });
+  }
+  return req<FIProfile>("/invest/fi");
+}
+
+// TODO(backend): POST /invest/fi
+export async function setFIProfile(profile: FIProfile): Promise<FIProfile> {
+  if (USE_MOCKS) {
+    mockFIProfiles[profile.handle] = profile;
+    return delay({ ...profile });
+  }
+  return req<FIProfile>("/invest/fi", { method: "POST", body: JSON.stringify(profile) });
+}
+
+// No self-service payout — Mlinzi must approve. Capital may be deployed/illiquid.
+// TODO(backend): POST /invest/withdraw
+export async function requestWithdrawal(sats: number): Promise<WithdrawalRequest> {
+  if (USE_MOCKS) {
+    const wr: WithdrawalRequest = { id: `wr_${Date.now()}`, investorHandle: MOCK_HANDLE, amountSats: sats, requestedAt: new Date().toISOString(), status: "requested" };
+    mockWithdrawalRequests.push(wr);
+    return delay(wr);
+  }
+  return req<WithdrawalRequest>("/invest/withdraw", { method: "POST", body: JSON.stringify({ sats }) });
+}
+
+// TODO(backend): GET /invest/notifications
+export async function getMyNotifications(): Promise<AppNotification[]> {
+  if (USE_MOCKS) return delay(mockNotifications.filter((n) => n.toHandle === MOCK_HANDLE));
+  return req<AppNotification[]>("/invest/notifications");
+}
+
+// TODO(backend): POST /invest/notifications/{id}/read
+export async function markRead(id: string): Promise<{ ok: boolean }> {
+  if (USE_MOCKS) {
+    const n = mockNotifications.find((x) => x.id === id);
+    if (n) n.read = true;
+    return delay({ ok: true });
+  }
+  return req<{ ok: boolean }>(`/invest/notifications/${id}/read`, { method: "POST" });
 }

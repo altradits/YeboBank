@@ -1,7 +1,7 @@
 // Domain types. These mirror the YeboBank database schema (see docs/DATABASE.md)
 // closely enough that the backend can return them directly.
 
-export type Role = "customer" | "agent" | "trader" | "admin";
+export type Role = "customer" | "agent" | "trader" | "admin" | "mlinzi";
 
 export interface User {
   id: string;
@@ -11,6 +11,10 @@ export interface User {
   lightningAddress: string; // user@yebobank.com
   language: "en" | "sw";
   isAgent: boolean;
+  // Additive — Mlinzi (Fund Steward) friends & family investor program.
+  relationship?: "self" | "family" | "friend" | "investor" | "none";
+  ffVerified?: boolean;
+  accessStatus?: "none" | "requested" | "accepted" | "declined";
 }
 
 export interface Wallet {
@@ -139,4 +143,78 @@ export interface Rate {
   satsPerKes: number; // derived
   kesPerSat: number;  // derived
   source: string;     // "CoinGecko · live" | "simulated feed"
+}
+
+// ── Mlinzi (Fund Steward) — friends & family investor program ───────────────
+
+export type IncomeSourceType = "real_estate" | "govt_bond" | "tbill" | "fund" | "business" | "other";
+
+export interface IncomeSource {
+  id: string;
+  name: string;
+  type: IncomeSourceType;
+  principalKes: number;
+  realizedReturnPctAnnual: number;
+  compounding: boolean;
+  liquidity: "liquid" | "illiquid";
+  notes?: string;
+}
+
+export interface MonthlyStatement {
+  month: string;     // "YYYY-MM"
+  openingKes: number;
+  returnKes: number;
+  feeKes: number;     // 2% of returnKes if positive, else 0
+  closingKes: number;
+}
+
+export interface InvestorPosition {
+  id: string;
+  investorHandle: string;
+  investorName: string;
+  relationship: "self" | "family" | "friend" | "investor";
+  principalSats: number;
+  principalKesAtEntry: number;
+  entryDate: string; // ISO
+  realizedReturnPctAnnual: number;
+  compounding: boolean;
+  monthlyStatements: MonthlyStatement[];
+}
+
+export interface FIProfile {
+  handle: string;
+  annualExpensesKes: number;
+  fiRule: number;                 // e.g. 0.04
+  assumedReturnPctAnnual: number; // e.g. 20
+}
+
+export type WithdrawalStatus = "requested" | "approved" | "scheduled" | "delivered" | "declined";
+
+export interface WithdrawalRequest {
+  id: string;
+  investorHandle: string;
+  amountSats: number;
+  requestedAt: string; // ISO
+  status: WithdrawalStatus;
+  expectedDeliveryDate?: string; // ISO date
+  mlinziNote?: string;
+}
+
+export type NotificationKind = "access_accepted" | "access_declined" | "statement" | "withdrawal_update";
+
+export interface AppNotification {
+  id: string;
+  toHandle: string;
+  kind: NotificationKind;
+  body: string;
+  createdAt: string; // ISO
+  read: boolean;
+}
+
+// Pending/decided requests from prospective friends & family investors.
+export interface AccessRequest {
+  handle: string;
+  name: string;
+  requestedAt: string; // ISO
+  status: "requested" | "accepted" | "declined";
 }

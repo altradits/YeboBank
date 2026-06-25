@@ -1,7 +1,10 @@
 // Mock data. Everything here is placeholder content so the frontend renders and
 // navigates fully before the backend exists. Replace by implementing src/lib/api.ts.
 
-import type { User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, ChamaGrowthPoint } from "@/types";
+import type {
+  User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, ChamaGrowthPoint,
+  IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
+} from "@/types";
 
 export const mockUser: User = {
   id: "u_demo",
@@ -11,6 +14,10 @@ export const mockUser: User = {
   lightningAddress: "wanjiku@yebobank.com",
   language: "en",
   isAgent: true,
+  // She's a friend of the Mlinzi who hasn't yet requested investor access.
+  relationship: "none",
+  ffVerified: false,
+  accessStatus: "none",
 };
 
 export const mockWallet: Wallet = {
@@ -204,3 +211,88 @@ export const mockGrowthData: Record<string, ChamaGrowthPoint[]> = {
     { date: "2026-06", contributedSats: 120_000, valueSats: 128_229 },
   ],
 };
+
+// ── Mlinzi (Fund Steward) mock data ──────────────────────────────────────────
+// Stanley Thuita invests his own and verified family/friend capital. Member
+// principal is custodied 1:1 in sats; planning/returns are tracked in KES.
+
+const SATS_PER_KES_SEED = 7.905; // matches the seed Rate in rate-context.tsx
+
+function buildStatements(openingKes: number, monthlyPct: number, startMonth: string, months: number): import("@/types").MonthlyStatement[] {
+  const out: import("@/types").MonthlyStatement[] = [];
+  let opening = openingKes;
+  const [y0, m0] = startMonth.split("-").map(Number);
+  for (let i = 0; i < months; i++) {
+    const d = new Date(y0, m0 - 1 + i, 1);
+    const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const returnKes = Math.round(opening * (monthlyPct / 100));
+    const feeKes = returnKes > 0 ? Math.round(returnKes * 0.02) : 0;
+    const closingKes = opening + returnKes - feeKes;
+    out.push({ month, openingKes: Math.round(opening), returnKes, feeKes, closingKes });
+    opening = closingKes;
+  }
+  return out;
+}
+
+const MONTHLY_PCT_20Y = 20 / 12; // ~1.667%/mo, compounded — a 20%/yr assumption
+
+export const mockIncomeSources: IncomeSource[] = [
+  {
+    id: "is1", name: "Kilimani 2-bed rental", type: "real_estate",
+    principalKes: 500_000, realizedReturnPctAnnual: 20, compounding: true,
+    liquidity: "illiquid", notes: "Rental income reinvested monthly.",
+  },
+];
+
+export const mockInvestorPositions: InvestorPosition[] = [
+  {
+    id: "ip_stanley", investorHandle: "@stanley", investorName: "Stanley Thuita",
+    relationship: "self",
+    principalSats: Math.round(2_000_000 * SATS_PER_KES_SEED),
+    principalKesAtEntry: 2_000_000,
+    entryDate: iso(-120 * 86400e3),
+    realizedReturnPctAnnual: 20, compounding: true,
+    monthlyStatements: buildStatements(2_000_000, MONTHLY_PCT_20Y, "2026-03", 4),
+  },
+  {
+    id: "ip_prudence", investorHandle: "@prudence", investorName: "Prudence Waithira",
+    relationship: "family",
+    principalSats: Math.round(800_000 * SATS_PER_KES_SEED),
+    principalKesAtEntry: 800_000,
+    entryDate: iso(-90 * 86400e3),
+    realizedReturnPctAnnual: 20, compounding: true,
+    monthlyStatements: buildStatements(800_000, MONTHLY_PCT_20Y, "2026-04", 3),
+  },
+  {
+    id: "ip_charity", investorHandle: "@charity", investorName: "Charity Ngina",
+    relationship: "family",
+    principalSats: Math.round(500_000 * SATS_PER_KES_SEED),
+    principalKesAtEntry: 500_000,
+    entryDate: iso(-60 * 86400e3),
+    realizedReturnPctAnnual: 20, compounding: true,
+    monthlyStatements: buildStatements(500_000, MONTHLY_PCT_20Y, "2026-05", 2),
+  },
+];
+
+// Pending + decided access requests. @kevin is a non-verified demo user
+// Mlinzi can decline; @wanjiku's entry is added/updated by requestAccess().
+export const mockAccessRequests: AccessRequest[] = [
+  { handle: "@kevin", name: "Kevin Omondi", requestedAt: iso(-2 * 86400e3), status: "requested" },
+];
+
+export const mockFIProfiles: Record<string, FIProfile> = {
+  "@stanley": { handle: "@stanley", annualExpensesKes: 6_000_000, fiRule: 0.04, assumedReturnPctAnnual: 20 },
+  "@prudence": { handle: "@prudence", annualExpensesKes: 1_800_000, fiRule: 0.04, assumedReturnPctAnnual: 20 },
+  "@charity": { handle: "@charity", annualExpensesKes: 900_000, fiRule: 0.04, assumedReturnPctAnnual: 20 },
+};
+
+export const mockWithdrawalRequests: WithdrawalRequest[] = [
+  {
+    id: "wr1", investorHandle: "@prudence",
+    amountSats: Math.round(100_000 * SATS_PER_KES_SEED),
+    requestedAt: iso(-1 * 86400e3), status: "requested",
+  },
+];
+
+// Notifications keyed by handle (mutable — API functions push to this array).
+export const mockNotifications: AppNotification[] = [];

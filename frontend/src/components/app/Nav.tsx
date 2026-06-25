@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logout } from "@/lib/api";
+import { mockUser } from "@/lib/mock";
 
 const WALLET = [
   { href: "/dashboard", icon: "ti-home", label: "Dashboard" },
@@ -15,6 +16,7 @@ const GROW = [
   { href: "/savings", icon: "ti-lock", label: "Savings" },
   { href: "/chama", icon: "ti-users", label: "Chamas" },
   { href: "/agent", icon: "ti-cash", label: "Agent" },
+  { href: "/invest", icon: "ti-trending-up", label: "Invest" },
 ];
 const ACCOUNT = [{ href: "/settings", icon: "ti-settings", label: "Settings" }];
 
@@ -22,6 +24,8 @@ export function Sidebar() {
   const path = usePathname();
   const router = useRouter();
   const isActive = (h: string) => path === h || path.startsWith(h + "/");
+  // role-gated: the Mlinzi (Fund Steward) console is only for the steward role.
+  const isMlinzi = mockUser.role === "mlinzi";
 
   async function onLogout() {
     await logout();
@@ -43,6 +47,11 @@ export function Sidebar() {
           <i className={`ti ${l.icon}`} /> {l.label}
         </Link>
       ))}
+      {isMlinzi && (
+        <Link href="/steward" className={`side-link${isActive("/steward") ? " active" : ""}`}>
+          <i className="ti ti-shield-lock" /> Mlinzi
+        </Link>
+      )}
       <div className="side-sec">Account</div>
       {ACCOUNT.map((l) => (
         <Link key={l.href} href={l.href} className={`side-link${isActive(l.href) ? " active" : ""}`}>
