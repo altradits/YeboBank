@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
@@ -18,13 +18,13 @@ export default function FeatureSections() {
   );
 }
 
+/* ── The Problem ─────────────────────────────────────────────────────────── */
 function Inflation() {
   const router = useRouter();
   return (
     <section className="sec">
       <div className="wrap infl">
         <div className="reveal">
-          <div className="kicker"><i className="ti ti-flame" /> The problem</div>
           <h2 className="h2">
             The shilling <span className="accent">shrinks.</span><br />
             Your savings <span className="grow">shouldn&apos;t.</span>
@@ -55,9 +55,11 @@ function Inflation() {
   );
 }
 
+/* ── The Solution ────────────────────────────────────────────────────────── */
 function Savings() {
-  const router = useRouter();
   const apyRef = useRef<HTMLSpanElement>(null);
+  const router = useRouter();
+
   useEffect(() => {
     const el = apyRef.current;
     if (!el) return;
@@ -85,12 +87,14 @@ function Savings() {
             <div className="amt mn"><span ref={apyRef}>0</span> sats</div>
             <div className="conv">earned this year</div>
             <div className="qa one">
-              <div className="q"><i className="ti ti-info-circle" /> Interest paid from real treasury yield — never from other savers&apos; deposits.</div>
+              <div className="q">
+                <i className="ti ti-info-circle" /> Interest paid from real treasury
+                yield — never from other savers&apos; deposits.
+              </div>
             </div>
           </div>
         </div>
         <div className="reveal d1">
-          <div className="kicker"><i className="ti ti-coin" /> Savings that earn</div>
           <h2 className="h2">Your money earns <span className="accent">while you sleep.</span></h2>
           <p className="lead">
             Lock your sats and earn a share of real returns, distributed
@@ -113,6 +117,7 @@ function Savings() {
   );
 }
 
+/* ── M-Pesa ──────────────────────────────────────────────────────────────── */
 function Mpesa() {
   const router = useRouter();
   const rate = useRate();
@@ -138,7 +143,6 @@ function Mpesa() {
           </div>
         </div>
         <div className="reveal d1">
-          <div className="kicker"><i className="ti ti-device-mobile" /> M-Pesa, built in</div>
           <h2 className="h2">Top up the way you <span className="accent">already pay.</span></h2>
           <p className="lead">
             Deposit and withdraw in shillings through the M-Pesa network 51 million
@@ -160,6 +164,7 @@ function Mpesa() {
   );
 }
 
+/* ── Chama ───────────────────────────────────────────────────────────────── */
 function Chama() {
   const router = useRouter();
   const nodes = [
@@ -197,7 +202,6 @@ function Chama() {
           </div>
         </div>
         <div className="reveal d1">
-          <div className="kicker"><i className="ti ti-users" /> Chama group wallets</div>
           <h2 className="h2">Save together.<br /><span className="grow">See everything.</span></h2>
           <p className="lead">
             Run your chama with a shared wallet and a transparent ledger every
@@ -219,6 +223,7 @@ function Chama() {
   );
 }
 
+/* ── Agents ──────────────────────────────────────────────────────────────── */
 function Agents() {
   const router = useRouter();
   const pins = [
@@ -245,7 +250,6 @@ function Agents() {
           </div>
         </div>
         <div className="reveal d1">
-          <div className="kicker"><i className="ti ti-cash" /> Agent cash network</div>
           <h2 className="h2">Cash in and out, <span className="accent">down the street.</span></h2>
           <p className="lead">
             No smartphone or bundles? Walk to a neighbourhood agent — a shop you

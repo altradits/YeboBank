@@ -16,9 +16,6 @@ export function Lightning() {
   return (
     <section className="sec sec-ink">
       <div className="wrap" style={{ textAlign: "center", maxWidth: 760 }}>
-        <div className="kicker reveal" style={{ justifyContent: "center" }}>
-          <i className="ti ti-bolt bolt-anim" /> Lightning network
-        </div>
         <h2 className="h2 reveal d1" style={{ margin: "14px auto 0" }}>
           Send money anywhere, <span className="accent">in seconds.</span>
         </h2>
@@ -55,11 +52,8 @@ export function Trust() {
     { ic: "ti-building-bank", h: "Regulator-ready", p: "Pursuing the Central Bank of Kenya sandbox — playing by the rules, on purpose." },
   ];
   return (
-    <section className="sec sec-dark">
+    <section className="sec sec-dark" id="trust">
       <div className="wrap" style={{ textAlign: "center" }}>
-        <div className="kicker reveal" style={{ justifyContent: "center" }}>
-          <i className="ti ti-shield-check" /> Built to be trusted
-        </div>
         <h2 className="h2 reveal d1" style={{ margin: "14px auto 0" }}>
           Every satoshi, <span className="accent">on the record.</span>
         </h2>

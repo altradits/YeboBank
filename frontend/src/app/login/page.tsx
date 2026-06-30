@@ -10,8 +10,8 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "";
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("+254712345678");
+  const [password, setPassword] = useState("demo1234");
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -48,6 +48,11 @@ export default function LoginPage() {
         </form>
         <p className="foot-link">
           New to YeboBank? <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : "/register"}>Open an account</Link>
+        </p>
+        <p className="foot-link" style={{ marginTop: 8 }}>
+          <Link href={redirect || "/dashboard"} style={{ color: "var(--soft)", fontSize: 13 }}>
+            Skip — enter demo directly →
+          </Link>
         </p>
       </div>
     </main>
