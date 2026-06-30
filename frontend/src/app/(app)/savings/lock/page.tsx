@@ -48,16 +48,16 @@ export default function LockPage() {
 
   async function onLockIndividual() {
     setLoading(true);
-    await createLock(satsNum, years);
-    router.push("/savings");
+    const lock = await createLock(satsNum, years);
+    router.push(`/savings/${lock.id}?justDeposited=1`);
   }
 
   async function onLockGroup() {
     if (!satsNum || !groupTitle.trim()) return;
     setLoading(true);
     const handles = groupHandles.split(",").map((h) => h.trim()).filter(Boolean);
-    await createGroupLock(satsNum, years, groupTitle.trim(), handles);
-    router.push("/savings");
+    const lock = await createGroupLock(satsNum, years, groupTitle.trim(), handles);
+    router.push(`/savings/${lock.id}?justDeposited=1`);
   }
 
   function onLockWithChama(chamaId: string) {

@@ -3,7 +3,7 @@
 
 import type {
   User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest,
-  ChamaGrowthPoint, SavingsGrowthPoint, SavingsDeposit, PendingInvite,
+  ChamaGrowthPoint, SavingsGrowthPoint, SavingsDeposit, PendingInvite, LockMessage,
   IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
 } from "@/types";
 
@@ -240,6 +240,37 @@ export const mockSavingsGrowth: SavingsGrowthPoint[] = [
   { date: "2026-05", principalSats: 400_000, valueSats: 412_000 },
   { date: "2026-06", principalSats: 400_000, valueSats: 414_430 },
 ];
+
+// Lock activity messages (mutable — postLockMessage pushes to these arrays)
+// s3 = Kilimani Savings Group (group, 2 participants)
+// s4 = Mama Mboga savings (chama, 3 participants)
+export const mockLockMessages: Record<string, LockMessage[]> = {
+  s3: [
+    { id: "lm1", lockId: "s3", kind: "system",  authorHandle: "@system",  authorName: "System",
+      body: "Kilimani Savings Group lock was created.",
+      createdAt: iso(-90 * 86400e3) },
+    { id: "lm2", lockId: "s3", kind: "deposit", authorHandle: "@wanjiku", authorName: "Wanjiku Kamau",
+      body: "Wanjiku Kamau deposited KES 7,900 (~100,000 sats).",
+      createdAt: iso(-90 * 86400e3), meta: { sats: 100000 } },
+    { id: "lm3", lockId: "s3", kind: "deposit", authorHandle: "@akinyi",  authorName: "Akinyi Otieno",
+      body: "Akinyi Otieno deposited KES 7,900 (~100,000 sats).",
+      createdAt: iso(-85 * 86400e3), meta: { sats: 100000 } },
+  ],
+  s4: [
+    { id: "lm4", lockId: "s4", kind: "system",  authorHandle: "@system",  authorName: "System",
+      body: "Mama Mboga savings lock was created.",
+      createdAt: iso(-60 * 86400e3) },
+    { id: "lm5", lockId: "s4", kind: "deposit", authorHandle: "@wanjiku", authorName: "Wanjiku Kamau",
+      body: "Wanjiku Kamau deposited KES 11,850 (~150,000 sats).",
+      createdAt: iso(-60 * 86400e3), meta: { sats: 150000 } },
+    { id: "lm6", lockId: "s4", kind: "deposit", authorHandle: "@jane",    authorName: "Jane Muthoni",
+      body: "Jane Muthoni deposited KES 15,800 (~200,000 sats).",
+      createdAt: iso(-55 * 86400e3), meta: { sats: 200000 } },
+    { id: "lm7", lockId: "s4", kind: "deposit", authorHandle: "@akinyi",  authorName: "Akinyi Otieno",
+      body: "Akinyi Otieno deposited KES 11,850 (~150,000 sats).",
+      createdAt: iso(-50 * 86400e3), meta: { sats: 150000 } },
+  ],
+};
 
 // My cumulative contribution vs value per month (last 12 months)
 // c1: 250k contributed, 259,146 value at month 12

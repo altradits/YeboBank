@@ -1,48 +1,196 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
-import { num } from "@/lib/format";
-import { getLock, addToLock } from "@/lib/api";
-import type { SavingsLock } from "@/types";
+import { fmtKES, num, timeAgo } from "@/lib/format";
+import { addToLock, getLock, getLockMessages, postLockMessage } from "@/lib/api";
+import type { LockMessage, Rate, SavingsLock } from "@/types";
 import ContributeModal from "@/components/app/ContributeModal";
 
-const KIND_LABEL: Record<string, string> = { individual: "Individual", group: "Group", chama: "Chama" };
+// TODO(backend): derive from session cookie on the server
+const CURRENT_HANDLE = "@wanjiku";
+const CURRENT_NAME   = "Wanjiku Kamau";
+
+const KIND_LABEL: Record<string, string> = {
+  individual: "Individual",
+  group: "Group",
+  chama: "Chama",
+};
+
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 function progressPct(lock: SavingsLock): number {
   const start = new Date(lock.lockedAt).getTime();
-  const end = new Date(lock.maturesAt).getTime();
+  const end   = new Date(lock.maturesAt).getTime();
   return Math.min(100, Math.max(0, ((Date.now() - start) / (end - start)) * 100));
 }
 
-export default function LockDetailPage() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
-  const rate = useRate();
+function initials(name: string): string {
+  return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+}
 
-  const [lock, setLock] = useState<SavingsLock | null>(null);
+// ── LockMessageBubble — reuses chama chat CSS classes exactly ─────────────────
+
+function LockMessageBubble({
+  msg,
+  isHighlighted,
+}: {
+  msg: LockMessage;
+  isHighlighted: boolean;
+}) {
+  const isOwn    = msg.authorHandle === CURRENT_HANDLE;
+  const isSystem = msg.kind === "system";
+
+  if (isSystem) {
+    return (
+      <div className="msg system-msg">
+        <div className="msg-bubble">{msg.body}</div>
+        <div className="msg-time">{timeAgo(msg.createdAt)}</div>
+      </div>
+    );
+  }
+
+  const bubbleClass =
+    msg.kind === "deposit"
+      ? `msg-bubble deposit-bubble${isHighlighted ? " deposit-highlight" : ""}`
+      : "msg-bubble";
+
+  return (
+    <div className={`msg ${isOwn ? "own" : "other"}`}>
+      {!isOwn && (
+        <div className="msg-author">
+          {msg.authorName} · {msg.authorHandle}
+        </div>
+      )}
+      <div className={bubbleClass}>{msg.body}</div>
+      <div className="msg-time">
+        {isHighlighted ? "Just now" : timeAgo(msg.createdAt)}
+      </div>
+    </div>
+  );
+}
+
+// ── ParticipantItem — reuses .member-item / .member-av CSS exactly ────────────
+
+function ParticipantItem({
+  p,
+  rate,
+}: {
+  p: { handle: string; name: string; contributedSats: number };
+  rate: Rate;
+}) {
+  return (
+    <div className="member-item">
+      <div className="member-av">{initials(p.name)}</div>
+      <div className="member-info">
+        <div className="name">{p.name}</div>
+        <div className="handle">{p.handle}</div>
+      </div>
+      <div className="member-bal">
+        <div>{num(p.contributedSats)} sats</div>
+        <div style={{ fontSize: 10, color: "var(--soft)" }}>≈ {fmtKES(p.contributedSats, rate, 0)}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+
+export default function LockDetailPage() {
+  const params       = useParams<{ id: string }>();
+  const id           = params.id;
+  const rate         = useRate();
+  const searchParams = useSearchParams();
+
+  const [lock, setLock]           = useState<SavingsLock | null>(null);
+  // Displayed newest-first so the just-made deposit appears at the top
+  const [messages, setMessages]   = useState<LockMessage[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [contributeModal, setContributeModal] = useState(false);
-  const [contributing, setContributing] = useState(false);
+  const [contributing, setContributing]       = useState(false);
+  const [justDepositedId, setJustDepositedId] = useState<string | null>(null);
+  const [input, setInput]   = useState("");
+  const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    getLock(id).then((l) => { setLock(l); setPageLoading(false); }).catch(() => setPageLoading(false));
+  const highlightRef    = useRef<HTMLDivElement>(null);
+  // Read once on mount: was this page reached after a deposit?
+  const wasJustDeposited = useRef(searchParams.get("justDeposited") === "1");
+
+  const loadAll = useCallback(async () => {
+    const [l, msgs] = await Promise.all([getLock(id), getLockMessages(id)]);
+    setLock(l);
+    // Reverse so newest is index 0 (top of feed)
+    setMessages([...msgs].reverse());
+    setPageLoading(false);
   }, [id]);
+
+  useEffect(() => { loadAll(); }, [loadAll]);
+
+  // After messages load, highlight the most recent deposit if redirected here post-payment
+  useEffect(() => {
+    if (!wasJustDeposited.current || messages.length === 0) return;
+    wasJustDeposited.current = false; // run once only
+    const newest = messages.find((m) => m.kind === "deposit");
+    if (!newest) return;
+    setJustDepositedId(newest.id);
+    const t = setTimeout(() => setJustDepositedId(null), 4000);
+    return () => clearTimeout(t);
+  }, [messages]);
+
+  // Scroll highlighted message into view
+  useEffect(() => {
+    if (justDepositedId) {
+      highlightRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [justDepositedId]);
 
   async function handleContribute(sats: number) {
     if (!lock) return;
     setContributing(true);
     const updated = await addToLock(lock.id, sats);
+    const isMultiMember = (updated.participants?.length ?? 0) > 1;
+    // Always post for personal activity log; multi-member fans out to all participants.
+    // TODO(backend): fan-out notification to every participant's chat in realtime (multi-member)
+    // TODO(backend): for chama-kind locks, also mirror into the linked chama chat
+    const msg = await postLockMessage(lock.id, {
+      kind: "deposit",
+      authorHandle: CURRENT_HANDLE,
+      authorName: CURRENT_NAME,
+      body: `${CURRENT_NAME} deposited ${fmtKES(sats, rate, 0)} (~${num(sats)} sats).`,
+      meta: { sats, multiMember: isMultiMember },
+    });
+    setMessages((prev) => [msg, ...prev]); // newest at top
+    setJustDepositedId(msg.id);
+    setTimeout(() => setJustDepositedId(null), 4000);
     setLock(updated);
     setContributing(false);
     setContributeModal(false);
   }
 
+  async function handleSendText() {
+    const raw = input.trim();
+    if (!raw || sending || !lock) return;
+    setSending(true);
+    setInput("");
+    const msg = await postLockMessage(lock.id, {
+      kind: "text",
+      authorHandle: CURRENT_HANDLE,
+      authorName: CURRENT_NAME,
+      body: raw,
+    });
+    setMessages((prev) => [msg, ...prev]);
+    setSending(false);
+  }
+
   if (pageLoading) {
-    return <p className="note" style={{ marginTop: 40, textAlign: "center" }}>Loading…</p>;
+    return (
+      <div style={{ padding: "60px 0", textAlign: "center" }}>
+        <p className="note">Loading…</p>
+      </div>
+    );
   }
 
   if (!lock) {
@@ -56,12 +204,11 @@ export default function LockDetailPage() {
     );
   }
 
-  const kind = lock.kind ?? "individual";
-  const pct = progressPct(lock);
-  // All active locks accept contributions — top-ups increase principalSats.
-  // TODO(backend): decide whether a top-up extends maturity, starts a sub-lock, or keeps the original clock
+  const kind          = lock.kind ?? "individual";
+  const pct           = progressPct(lock);
   const canContribute = lock.status === "active";
-  const maturesDate = new Date(lock.maturesAt).toLocaleDateString("en-KE", {
+  const isMultiMember = (lock.participants?.length ?? 0) > 1;
+  const maturesDate   = new Date(lock.maturesAt).toLocaleDateString("en-KE", {
     year: "numeric", month: "long", day: "numeric",
   });
   const lockedDate = new Date(lock.lockedAt).toLocaleDateString("en-KE", {
@@ -70,38 +217,69 @@ export default function LockDetailPage() {
 
   return (
     <>
+      {/* Header — mirrors chama dashboard */}
       <div className="section-head">
         <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+            <Link href="/savings" style={{ color: "var(--soft)", fontSize: 14 }}>
+              <i className="ti ti-arrow-left" /> Savings
+            </Link>
+          </div>
           <h1 className="page-title">{lock.title ?? "Savings lock"}</h1>
           <p className="page-sub">
-            <span className={`lock-kind-badge badge-${kind}`}>{KIND_LABEL[kind] ?? kind}</span>
+            <span className={`lock-kind-badge badge-${kind}`}>
+              {KIND_LABEL[kind] ?? kind}
+            </span>
             {" · "}{lock.lockYears}yr lock · matures {maturesDate}
           </p>
         </div>
-        <Link href="/savings"><Button variant="ghost">← All locks</Button></Link>
+        {kind === "chama" && lock.chamaId && (
+          <Link href={`/chama/${lock.chamaId}`}>
+            <Button variant="ghost">
+              <i className="ti ti-users" /> View chama
+            </Button>
+          </Link>
+        )}
       </div>
 
-      <div className="grid-2" style={{ marginTop: 16 }}>
+      {/* Action row — mirrors chama dashboard */}
+      <div className="chama-actions">
+        {canContribute && (
+          <Button variant="primary" onClick={() => setContributeModal(true)}>
+            <i className="ti ti-plus" /> Add contribution
+          </Button>
+        )}
+      </div>
+
+      {/* Stats cards */}
+      <div className="grid-2">
         <div className="card">
           <div className="stat">
             <span className="l">Principal</span>
             <span className="v">{num(lock.principalSats)} sats</span>
           </div>
-          <p className="note" style={{ marginTop: 8 }}>≈ KES {num(lock.principalSats * rate.kesPerSat)}</p>
+          <p className="note" style={{ marginTop: 8 }}>≈ {fmtKES(lock.principalSats, rate, 0)}</p>
         </div>
         <div className="card">
           <div className="stat">
             <span className="l">Accrued interest</span>
-            <span className="v" style={{ color: "var(--emerald-deep)" }}>+{num(lock.accruedSats)} sats</span>
+            <span className="v" style={{ color: "var(--emerald-deep)" }}>
+              +{num(lock.accruedSats)} sats
+            </span>
           </div>
-          <p className="note" style={{ marginTop: 8 }}>≈ KES {num(lock.accruedSats * rate.kesPerSat)}</p>
+          <p className="note" style={{ marginTop: 8 }}>≈ {fmtKES(lock.accruedSats, rate, 0)}</p>
         </div>
       </div>
 
+      {/* Progress bar */}
       <div className="card" style={{ marginTop: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13 }}>Time elapsed</span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--soft)" }}>{pct.toFixed(1)}%</span>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13 }}>
+            Time elapsed
+          </span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--soft)" }}>
+            {pct.toFixed(1)}%
+          </span>
         </div>
         <div className="bar-track">
           <div className="bar-fill" style={{ width: `${pct}%` }} />
@@ -109,50 +287,119 @@ export default function LockDetailPage() {
         <p className="note" style={{ marginTop: 8 }}>Locked {lockedDate}</p>
       </div>
 
-      {/* Add contribution — available for all active locks */}
-      {canContribute && (
-        <div className="card" style={{ marginTop: 16 }}>
-          <Button block variant="gold" onClick={() => setContributeModal(true)}>
-            <i className="ti ti-plus" /> Add contribution
-          </Button>
-        </div>
-      )}
-
-      {/* Participants — group/chama only (individuals have no participants array) */}
-      {lock.participants && lock.participants.length > 0 && (
-        <div className="card" style={{ marginTop: 16 }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, marginBottom: 4 }}>
-            Participants
-          </h2>
-          <div className="lock-participants">
-            {lock.participants.map((p) => (
-              <div key={p.handle} className="lock-participant-row">
-                <div>
-                  <span style={{ fontFamily: "var(--font-display)", fontWeight: 600 }}>{p.name}</span>
-                  <span className="note" style={{ marginLeft: 6 }}>{p.handle}</span>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 13 }}>
-                    {num(p.contributedSats)} sats
-                  </div>
-                  <div className="note">≈ KES {num(p.contributedSats * rate.kesPerSat)}</div>
-                </div>
-              </div>
+      {/* ── Multi-member: chama-grid layout (participants + chat) ── */}
+      {isMultiMember ? (
+        <div className="chama-grid">
+          {/* Participants sidebar — reuses .member-item CSS from chama */}
+          <div className="card">
+            <div style={{ marginBottom: 12 }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16 }}>
+                Participants ({lock.participants!.length})
+              </h2>
+            </div>
+            {lock.participants!.map((p) => (
+              <ParticipantItem key={p.handle} p={p} rate={rate} />
             ))}
           </div>
+
+          {/* Chat / activity panel — reuses .chama-chat CSS */}
+          <div className="card chama-chat">
+            <div className="chat-head">
+              <h2>Chat</h2>
+            </div>
+            {/* TODO(backend): poll or subscribe for shared realtime state */}
+            <div className="chat-msgs">
+              {messages.length === 0 && (
+                <p className="note" style={{ textAlign: "center", padding: "20px 0" }}>
+                  No activity yet.
+                </p>
+              )}
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  ref={msg.id === justDepositedId ? highlightRef : undefined}
+                >
+                  <LockMessageBubble msg={msg} isHighlighted={msg.id === justDepositedId} />
+                </div>
+              ))}
+            </div>
+            {/* Composer — multi-member only */}
+            <div className="chat-composer">
+              <div className="composer-row">
+                <textarea
+                  rows={1}
+                  placeholder="Message…"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void handleSendText();
+                    }
+                  }}
+                />
+                <button
+                  className="composer-send"
+                  onClick={() => void handleSendText()}
+                  disabled={sending || !input.trim()}
+                  aria-label="Send"
+                >
+                  <i className="ti ti-send" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+      ) : (
+        /* ── Single-member: simple activity list, no chat ── */
+        messages.length > 0 && (
+          <div className="card" style={{ marginTop: 16 }}>
+            <h2 style={{
+              fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, marginBottom: 12,
+            }}>
+              Activity
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              {messages.map((msg, i) => {
+                const isHighlighted = msg.id === justDepositedId;
+                const isDeposit     = msg.kind === "deposit";
+                return (
+                  <div
+                    key={msg.id}
+                    ref={isHighlighted ? highlightRef : undefined}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: isDeposit && isHighlighted ? "var(--r-sm)" : 0,
+                      borderBottom: i < messages.length - 1 ? "1px solid var(--border-soft)" : "none",
+                      background: isDeposit
+                        ? isHighlighted
+                          ? "rgba(17,166,91,.14)"
+                          : "rgba(17,166,91,.06)"
+                        : "transparent",
+                      transition: "background .4s",
+                    }}
+                  >
+                    <div style={{
+                      fontSize: 13,
+                      color: isDeposit ? "var(--emerald-deep)" : "var(--muted)",
+                      fontWeight: isDeposit ? 500 : 400,
+                    }}>
+                      {msg.body}
+                    </div>
+                    <div style={{
+                      fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--soft)", marginTop: 2,
+                    }}>
+                      {isHighlighted ? "Just now" : timeAgo(msg.createdAt)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )
       )}
 
-      {kind === "chama" && lock.chamaId && (
-        <div className="card" style={{ marginTop: 16 }}>
-          <Link href={`/chama/${lock.chamaId}`}>
-            <Button block variant="ghost">
-              <i className="ti ti-users" /> View chama
-            </Button>
-          </Link>
-        </div>
-      )}
-
+      {/* Contribute modal */}
       {contributeModal && (
         <ContributeModal
           lock={lock}

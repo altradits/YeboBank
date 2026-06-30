@@ -546,3 +546,11 @@ h1.hero-h .grn{color:var(--emerald-deep)}
 .lock-chama-option:disabled{opacity:.5;cursor:not-allowed}
 .lock-chama-invite{border-color:rgba(224,168,0,.5);background:rgba(224,168,0,.06)}
 .lock-chama-invite:hover:not(:disabled){border-color:var(--gold);background:rgba(224,168,0,.12)}
+
+/* ===== lock dashboard — deposit highlight (append-only) ===== */
+/* Box shadow always shows; animation only fires when motion is allowed */
+.deposit-bubble.deposit-highlight{box-shadow:0 0 0 2px rgba(17,166,91,.45)}
+@media(prefers-reduced-motion:no-preference){
+  @keyframes deposit-flash{0%,8%{background:rgba(17,166,91,.22)}100%{background:rgba(17,166,91,.1)}}
+  .deposit-bubble.deposit-highlight{animation:deposit-flash 3s ease-out}
+}

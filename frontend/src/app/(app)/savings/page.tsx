@@ -2,19 +2,23 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
-import { num } from "@/lib/format";
-import { getLocks, getSavingsDeposits, addToLock } from "@/lib/api";
-
+import { num, fmtKES } from "@/lib/format";
+import { getLocks, getSavingsDeposits, addToLock, postLockMessage } from "@/lib/api";
 import type { SavingsLock, SavingsDeposit } from "@/types";
 import ChamaGrowthChart from "@/components/app/ChamaGrowthChart";
 import ContributeModal from "@/components/app/ContributeModal";
 import LockCard from "@/components/app/LockCard";
 import { bucketDeposits, type Preset } from "@/lib/bucket";
 
+const CURRENT_HANDLE = "@wanjiku";
+const CURRENT_NAME   = "Wanjiku Kamau";
+
 export default function SavingsPage() {
   const rate = useRate();
+  const router = useRouter();
   const [locks, setLocks] = useState<SavingsLock[]>([]);
   const [deposits, setDeposits] = useState<SavingsDeposit[]>([]);
   const [preset, setPreset] = useState<Preset>("Monthly");
@@ -34,9 +38,19 @@ export default function SavingsPage() {
     if (!contributingLock) return;
     setContributing(true);
     const updated = await addToLock(contributingLock.id, sats);
-    setLocks((prev) => prev.map((l) => l.id === updated.id ? updated : l));
+    // Post activity message; for multi-member locks this notifies all participants.
+    // TODO(backend): fan-out to every participant in realtime (multi-member only)
+    // TODO(backend): for chama-kind, also mirror into the linked chama chat
+    await postLockMessage(updated.id, {
+      kind: "deposit",
+      authorHandle: CURRENT_HANDLE,
+      authorName: CURRENT_NAME,
+      body: `${CURRENT_NAME} deposited ${fmtKES(sats, rate, 0)} (~${num(sats)} sats).`,
+      meta: { sats },
+    });
     setContributing(false);
     setContributingLock(null);
+    router.push(`/savings/${updated.id}?justDeposited=1`);
   }
 
   return (

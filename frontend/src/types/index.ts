@@ -174,6 +174,19 @@ export interface JoinRequest {
   status: "pending" | "approved" | "rejected";
 }
 
+export type LockMessageKind = "deposit" | "system" | "text";
+
+export interface LockMessage {
+  id: string;
+  lockId: string;
+  kind: LockMessageKind;
+  authorHandle: string;
+  authorName: string;
+  body: string;
+  createdAt: string; // ISO timestamp
+  meta?: Record<string, unknown>;
+}
+
 // A single source of exchange-rate truth shared across the UI.
 export interface Rate {
   btcUsd: number;

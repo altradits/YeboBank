@@ -14,7 +14,7 @@ import type {
   ChamaMessage, ChamaVote, JoinRequest,
   MyChamaStake, ChamaGrowthPoint, ChamaPortfolio, SavingsGrowthPoint, SavingsDeposit,
   IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
-  PendingInvite,
+  PendingInvite, LockMessage,
 } from "@/types";
 import {
   mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent,
@@ -22,6 +22,7 @@ import {
   mockGrowthData, mockSavingsGrowth, mockSavingsDeposits, mockPendingInvites,
   mockIncomeSources, mockInvestorPositions, mockAccessRequests, mockFIProfiles,
   mockWithdrawalRequests, mockNotifications,
+  mockLockMessages,
 } from "@/lib/mock";
 
 const USE_MOCKS = true; // flip to false once the backend endpoints exist
@@ -763,4 +764,33 @@ export async function markRead(id: string): Promise<{ ok: boolean }> {
     return delay({ ok: true });
   }
   return req<{ ok: boolean }>(`/invest/notifications/${id}/read`, { method: "POST" });
+}
+
+// ── Lock messages (activity / chat) ──────────────────────────────────────────
+
+// TODO(backend): GET /savings/{id}/messages — fetch activity/chat for a lock
+export async function getLockMessages(lockId: string): Promise<LockMessage[]> {
+  if (USE_MOCKS) return delay([...(mockLockMessages[lockId] ?? [])]);
+  return req<LockMessage[]>(`/savings/${lockId}/messages`);
+}
+
+// Posts a deposit or text message into a lock's activity feed.
+// TODO(backend): POST /savings/{id}/messages — persist + fan-out notification to every
+//   participant's chat in realtime (multi-member locks only).
+//   For chama-kind locks, also mirror the deposit message into the linked chama chat.
+export async function postLockMessage(
+  lockId: string,
+  msg: Omit<LockMessage, "id" | "lockId" | "createdAt">,
+): Promise<LockMessage> {
+  if (USE_MOCKS) {
+    const newMsg: LockMessage = {
+      ...msg, id: `lm_${Date.now()}`, lockId, createdAt: new Date().toISOString(),
+    };
+    if (!mockLockMessages[lockId]) mockLockMessages[lockId] = [];
+    mockLockMessages[lockId].push(newMsg);
+    return delay(newMsg);
+  }
+  return req<LockMessage>(`/savings/${lockId}/messages`, {
+    method: "POST", body: JSON.stringify(msg),
+  });
 }
