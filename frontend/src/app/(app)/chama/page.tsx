@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num, fmtKES } from "@/lib/format";
 import { getChamas, getChamaJoinRequests, getChamaVotes } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import type { Chama } from "@/types";
 
 export default function ChamaPage() {
@@ -52,6 +53,8 @@ export default function ChamaPage() {
           </Link>
         </div>
       </div>
+
+      <ATMCard variant="compact" />
 
       {pendingCount > 0 && (
         <div className="notif-banner">

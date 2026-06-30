@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 import { sendLightning } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import { mockUser } from "@/lib/mock";
 
 export default function SendPage() {
@@ -32,6 +33,8 @@ export default function SendPage() {
     <>
       <h1 className="page-title">Send &amp; receive</h1>
       <p className="page-sub">Move sats anywhere over Lightning — instantly.</p>
+
+      <ATMCard variant="full" balanceLabel="BALANCE AVAILABLE TO SEND" />
 
       <div className="seg" style={{ marginTop: 20 }}>
         <button className={tab === "send" ? "on" : ""} onClick={() => setTab("send")}>Send</button>

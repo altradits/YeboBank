@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { fmtKES, num, timeAgo } from "@/lib/format";
 import { addToLock, getLock, getLockMessages, postLockMessage } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import type { LockMessage, Rate, SavingsLock } from "@/types";
 import ContributeModal from "@/components/app/ContributeModal";
 
@@ -225,6 +226,11 @@ export default function LockDetailPage() {
 
   return (
     <>
+      <ATMCard variant="compact"
+        sats={lock ? lock.principalSats + lock.accruedSats : undefined}
+        balanceLabel="LOCK VALUE"
+      />
+
       {/* Header — mirrors chama dashboard */}
       <div className="section-head">
         <div>

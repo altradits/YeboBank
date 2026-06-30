@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 import { createChama } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 
 export default function CreateChamaPage() {
   const rate = useRate();
@@ -24,6 +25,8 @@ export default function CreateChamaPage() {
     <>
       <h1 className="page-title">Create a chama</h1>
       <p className="page-sub">Start a group wallet your members can all see.</p>
+
+      <ATMCard variant="compact" />
 
       <div className="card" style={{ marginTop: 20 }}>
         <label className="field-group">

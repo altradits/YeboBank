@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 import { withdrawMpesa } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 
 export default function WithdrawPage() {
   const rate = useRate();
@@ -23,6 +24,8 @@ export default function WithdrawPage() {
     <>
       <h1 className="page-title">Withdraw to M-Pesa</h1>
       <p className="page-sub">Send shillings straight back to your phone.</p>
+
+      <ATMCard variant="full" balanceLabel="BALANCE AVAILABLE TO WITHDRAW" />
 
       <div className="card" style={{ marginTop: 20 }}>
         {done ? (

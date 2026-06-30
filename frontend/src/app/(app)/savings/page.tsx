@@ -11,6 +11,7 @@ import type { SavingsLock, SavingsDeposit } from "@/types";
 import ChamaGrowthChart from "@/components/app/ChamaGrowthChart";
 import ContributeModal from "@/components/app/ContributeModal";
 import LockCard from "@/components/app/LockCard";
+import { ATMCard } from "@/components/app/ATMCard";
 import { bucketDeposits, type Preset } from "@/lib/bucket";
 
 const CURRENT_HANDLE = "@wanjiku";
@@ -62,6 +63,8 @@ export default function SavingsPage() {
         </div>
         <Link href="/savings/lock"><Button variant="gold"><i className="ti ti-plus" /> New lock</Button></Link>
       </div>
+
+      <ATMCard variant="compact" sats={totalPrincipal + totalAccrued} balanceLabel="TOTAL SAVINGS VALUE" />
 
       <div className="grid-2" style={{ marginTop: 16 }}>
         <div className="card">

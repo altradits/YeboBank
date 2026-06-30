@@ -10,6 +10,7 @@ import {
   createLock, createGroupLock, getChamas,
   getMyPendingInvites, acceptInvite,
 } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import type { Chama, PendingInvite } from "@/types";
 
 type LockKind = "individual" | "group" | "chama";
@@ -77,6 +78,8 @@ export default function LockPage() {
     <>
       <h1 className="page-title">New savings lock</h1>
       <p className="page-sub">Lock sats away and earn a share of treasury yield.</p>
+
+      <ATMCard variant="full" balanceLabel="BALANCE AVAILABLE TO LOCK" />
 
       {/* Kind selector */}
       <div className="card" style={{ marginTop: 20 }}>

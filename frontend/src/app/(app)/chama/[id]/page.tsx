@@ -12,6 +12,7 @@ import {
   voteOnJoin, chamaDeposit, chamaTransfer,
   getMyStake, getChamaGrowth, withdrawFromChama, createChamaLock,
 } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import type { Chama, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, Rate, MyChamaStake as StakeType, ChamaGrowthPoint } from "@/types";
 import MyChamaStakePanel from "@/components/app/MyChamaStake";
 import ChamaGrowthChart from "@/components/app/ChamaGrowthChart";
@@ -887,6 +888,11 @@ export default function ChamaDashboard() {
 
   return (
     <>
+      <ATMCard variant="compact"
+        sats={stake?.myValueSats}
+        balanceLabel="MY CHAMA STAKE"
+      />
+
       {/* Header */}
       <div className="section-head">
         <div>
