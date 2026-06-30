@@ -2,12 +2,14 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { verifyOtp } from "@/lib/api";
 
 export default function VerifyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") ?? "";
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const refs = useRef<(HTMLInputElement | null)[]>([]);
@@ -29,7 +31,7 @@ export default function VerifyPage() {
     setLoading(true);
     try {
       await verifyOtp(digits.join("")); // mock — always succeeds
-      router.push("/dashboard");
+      router.push(redirect || "/dashboard");
     } finally {
       setLoading(false);
     }
@@ -62,7 +64,7 @@ export default function VerifyPage() {
           </Button>
         </form>
         <p className="foot-link">
-          Didn&apos;t get it? <a href="#">Resend code</a>
+          Didn&apos;t get it? <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : "/register"}>Resend code</Link>
         </p>
       </div>
     </main>

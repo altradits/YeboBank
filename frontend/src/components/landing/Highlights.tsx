@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Button from "@/components/ui/Button";
 
 export function Lightning() {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   function copy() {
     const addr = "wanjiku@yebobank.com";
@@ -33,12 +36,18 @@ export function Lightning() {
             </button>
           </div>
         </div>
+        <div className="reveal d4" style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
+          <Button variant="gold" onClick={() => router.push("/register?redirect=/send")}>
+            Get your Lightning address <i className="ti ti-arrow-right" />
+          </Button>
+        </div>
       </div>
     </section>
   );
 }
 
 export function Trust() {
+  const router = useRouter();
   const cards = [
     { ic: "ti-list-check", h: "Append-only ledger", p: "Every movement is timestamped and permanent. Nothing is quietly edited or deleted." },
     { ic: "ti-brand-open-source", h: "Fully open source", p: "Read every line of the code that holds your money. No black boxes." },
@@ -66,6 +75,11 @@ export function Trust() {
               <p>{c.p}</p>
             </div>
           ))}
+        </div>
+        <div className="reveal d3" style={{ display: "flex", justifyContent: "center", marginTop: 40 }}>
+          <Button variant="gold" onClick={() => router.push("/register")}>
+            Open a trusted account <i className="ti ti-arrow-right" />
+          </Button>
         </div>
       </div>
     </section>

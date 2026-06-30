@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { register } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") ?? "";
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,7 +19,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(phone, fullName); // mock — sends an OTP
-      router.push("/verify");
+      router.push(redirect ? `/verify?redirect=${encodeURIComponent(redirect)}` : "/verify");
     } finally {
       setLoading(false);
     }
@@ -45,7 +47,7 @@ export default function RegisterPage() {
           </Button>
         </form>
         <p className="foot-link">
-          Already have an account? <Link href="/login">Log in</Link>
+          Already have an account? <Link href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login"}>Log in</Link>
         </p>
       </div>
     </main>

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
+import Button from "@/components/ui/Button";
 
 export default function FeatureSections() {
   return (
@@ -17,6 +19,7 @@ export default function FeatureSections() {
 }
 
 function Inflation() {
+  const router = useRouter();
   return (
     <section className="sec">
       <div className="wrap infl">
@@ -31,6 +34,11 @@ function Inflation() {
             to inflation. Park the same amount in YeboBank and it earns interest in
             Bitcoin — designed to hold value across decades, not melt away.
           </p>
+          <div style={{ marginTop: 28 }}>
+            <Button variant="gold" onClick={() => router.push("/register")}>
+              Protect my savings <i className="ti ti-arrow-right" />
+            </Button>
+          </div>
         </div>
         <div className="bars reveal d1">
           <div className="bar-col">
@@ -48,6 +56,7 @@ function Inflation() {
 }
 
 function Savings() {
+  const router = useRouter();
   const apyRef = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const el = apyRef.current;
@@ -93,6 +102,11 @@ function Savings() {
             <SplitLi icon="ti-scale" title="Honest by design" desc="Your principal is never touched for fees — ever." />
             <SplitLi icon="ti-arrow-back-up" title="Leave early if you must" desc="Your full principal always comes back to you." />
           </div>
+          <div style={{ marginTop: 28 }}>
+            <Button variant="gold" onClick={() => router.push("/register?redirect=/savings")}>
+              Start saving today <i className="ti ti-arrow-right" />
+            </Button>
+          </div>
         </div>
       </div>
     </section>
@@ -100,6 +114,7 @@ function Savings() {
 }
 
 function Mpesa() {
+  const router = useRouter();
   const rate = useRate();
   const sats = Math.round(500 * rate.satsPerKes);
   return (
@@ -134,6 +149,11 @@ function Mpesa() {
             <SplitLi icon="ti-arrow-down" title="Deposit in seconds" desc="A prompt on your phone, your PIN, done." />
             <SplitLi icon="ti-arrow-up" title="Cash out to your line" desc="Send shillings straight back to M-Pesa." />
           </div>
+          <div style={{ marginTop: 28 }}>
+            <Button variant="gold" onClick={() => router.push("/register?redirect=/deposit")}>
+              Deposit via M-Pesa <i className="ti ti-arrow-right" />
+            </Button>
+          </div>
         </div>
       </div>
     </section>
@@ -141,6 +161,7 @@ function Mpesa() {
 }
 
 function Chama() {
+  const router = useRouter();
   const nodes = [
     { s: 84, l: "calc(50% - 42px)", t: "calc(50% - 42px)", txt: "Chama", hub: true, d: 0 },
     { s: 52, l: "10%", t: "14%", txt: "+5k", d: 0.1 },
@@ -187,6 +208,11 @@ function Chama() {
             <SplitLi icon="ti-eye" title="Open books" desc="Every contribution and payout is visible to all members." />
             <SplitLi icon="ti-checkbox" title="Group decisions" desc="Payouts move only when the group agrees." />
           </div>
+          <div style={{ marginTop: 28 }}>
+            <Button variant="gold" onClick={() => router.push("/register?redirect=/chama")}>
+              Start or join a chama <i className="ti ti-arrow-right" />
+            </Button>
+          </div>
         </div>
       </div>
     </section>
@@ -194,6 +220,7 @@ function Chama() {
 }
 
 function Agents() {
+  const router = useRouter();
   const pins = [
     { l: "46%", t: "44%", lab: "You", ic: "ti-building-store", d: 0.05 },
     { l: "20%", t: "24%", lab: "Gikomba", ic: "ti-map-pin", d: 0.15 },
@@ -228,6 +255,11 @@ function Agents() {
           <div className="split-list">
             <SplitLi icon="ti-walk" title="Always nearby" desc="A growing network of mawakala across Kenya." />
             <SplitLi icon="ti-heart-handshake" title="Community first" desc="Local agents, local trust, local livelihoods." />
+          </div>
+          <div style={{ marginTop: 28 }}>
+            <Button variant="gold" onClick={() => router.push("/register?redirect=/agent")}>
+              Find an agent <i className="ti ti-arrow-right" />
+            </Button>
           </div>
         </div>
       </div>

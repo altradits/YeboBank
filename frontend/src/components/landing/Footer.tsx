@@ -49,10 +49,10 @@ export function SiteFooter() {
             </div>
             <div className="col">
               <h4>Company</h4>
-              <a href="#">About</a>
-              <a href="#">Open source</a>
-              <a href="#">Security</a>
-              <a href="#">Contact</a>
+              <Link href="/">About</Link>
+              <a href="https://github.com/altradits/YeboBank" target="_blank" rel="noopener noreferrer">Open source</a>
+              <Link href="/#trust">Security</Link>
+              <Link href="/register">Contact us</Link>
             </div>
             <div className="col">
               <h4>Get started</h4>

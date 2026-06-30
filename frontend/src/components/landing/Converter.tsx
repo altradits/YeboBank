@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
+import Button from "@/components/ui/Button";
 
 type Unit = "kes" | "sats" | "btc";
 
 export default function Converter() {
+  const router = useRouter();
   const rate = useRate();
   const [unit, setUnit] = useState<Unit>("kes");
   const [raw, setRaw] = useState("1,000");
@@ -55,6 +58,11 @@ export default function Converter() {
           </div>
           <div className="rate-note">
             <span className="pulse" /> 1 BTC = ${num(rate.btcUsd)} · KES {num(rate.btcKes)} ({rate.source})
+          </div>
+          <div style={{ marginTop: 24, display: "flex", justifyContent: "center" }}>
+            <Button variant="gold" onClick={() => router.push("/register?redirect=/savings")}>
+              Start saving in sats <i className="ti ti-arrow-right" />
+            </Button>
           </div>
         </div>
       </div>
