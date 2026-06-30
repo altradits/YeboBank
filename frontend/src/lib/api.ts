@@ -17,7 +17,7 @@ import type {
   PendingInvite, LockMessage, PoolDeployment,
 } from "@/types";
 import {
-  mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent, mockAgentLedger,
+  mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent, mockAgentLedger, mockCustomerDirectory,
   mockAllChamas, mockChamaMessages, mockChamaVotes, mockJoinRequests,
   mockGrowthData, mockSavingsGrowth, mockSavingsDeposits, mockPendingInvites,
   mockIncomeSources, mockInvestorPositions, mockAccessRequests, mockFIProfiles,
@@ -264,6 +264,68 @@ export async function agentCashTransact(
 export async function getAgentHistory(): Promise<LedgerEntry[]> {
   if (USE_MOCKS) return delay(mockAgentLedger);
   return req<LedgerEntry[]>("/agent/history");
+}
+
+// Looks up whoever is in front of the agent's counter — member or not.
+// Anyone with or without a YeboBank wallet can be served; only members go
+// through the access-verification step below.
+// TODO(backend): GET /agent/customer/{phone}
+export async function lookupAgentCustomer(
+  phone: string,
+): Promise<{ phone: string; name: string | null; isMember: boolean }> {
+  if (USE_MOCKS) {
+    const found = mockCustomerDirectory.find((c) => c.phone === phone);
+    return delay(found ? { ...found } : { phone, name: null, isMember: false });
+  }
+  return req(`/agent/customer/${encodeURIComponent(phone)}`);
+}
+
+export type AccessChannel = "sms" | "email" | "offline";
+
+// TODO(backend): POST /agent/access/request — sends real OTP for sms/email
+export async function requestAgentAccessCode(phone: string, channel: AccessChannel): Promise<{ sent: boolean }> {
+  if (USE_MOCKS) return delay({ sent: true });
+  return req("/agent/access/request", { method: "POST", body: JSON.stringify({ phone, channel }) });
+}
+
+// TODO(backend): POST /agent/access/verify — real OTP/offline-code check
+export async function verifyAgentAccessCode(phone: string, code: string): Promise<{ verified: boolean }> {
+  if (USE_MOCKS) return delay({ verified: code.trim().length >= 4 });
+  return req("/agent/access/verify", { method: "POST", body: JSON.stringify({ phone, code }) });
+}
+
+export type AgentServiceKind = "savings_deposit" | "chama_contribution" | "withdrawal_request" | "lightning_send";
+
+const AGENT_SERVICE_LABELS: Record<AgentServiceKind, string> = {
+  savings_deposit:     "Savings deposit",
+  chama_contribution:  "Chama contribution",
+  withdrawal_request:  "Withdrawal request",
+  lightning_send:      "Lightning send",
+};
+
+// Lets a verified, in-person customer use any YeboBank service through the
+// agent without needing their own device.
+// TODO(backend): POST /agent/service — route to matching service endpoint
+// (savings/{lockId}/contribute, chama/{id}/deposit, invest/withdraw, etc.)
+// after re-checking the access verification server-side.
+export async function agentAssistService(
+  phone: string, kind: AgentServiceKind, amountSats: number, note?: string,
+): Promise<{ ok: boolean; entry: LedgerEntry }> {
+  if (USE_MOCKS) {
+    const entry: LedgerEntry = {
+      id: `l_agentsvc_${Date.now()}`,
+      type: "agent_service_assist",
+      direction: "credit",
+      amountSats,
+      balanceAfter: mockAgent.totalEarnedSats,
+      note: `${AGENT_SERVICE_LABELS[kind]} for ${phone} via agent${note ? ` · ${note}` : ""}`,
+      createdAt: new Date().toISOString(),
+      status: "confirmed",
+    };
+    mockAgentLedger.unshift(entry);
+    return delay({ ok: true, entry });
+  }
+  return req("/agent/service", { method: "POST", body: JSON.stringify({ phone, kind, amountSats, note }) });
 }
 
 // ── Chama feature (new endpoints) ────────────────────────────────────────────

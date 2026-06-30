@@ -82,8 +82,18 @@ export const mockAgent: Agent = {
   totalEarnedSats: 184_000,
 };
 
+// Anyone the agent might serve at the counter — registered YeboBank members
+// (isMember: true) and people without a YeboBank account who just want a
+// cash-only transaction relayed through the agent (isMember: false).
+export const mockCustomerDirectory: { phone: string; name: string; isMember: boolean }[] = [
+  { phone: "+254712345678", name: "Wanjiku Kamau",  isMember: true },
+  { phone: "+254722333444", name: "Akinyi Otieno",  isMember: true },
+  { phone: "+254733444555", name: "Jane Muthoni",   isMember: true },
+  { phone: "+254700111222", name: "Peter Mwangi",   isMember: false },
+];
+
 export const mockAgentLedger: LedgerEntry[] = [
-  { id: "al1", type: "agent_cash_in", direction: "credit", amountSats: 410, balanceAfter: 184_000, note: "Cash in for +254711222333 · commission", createdAt: iso(-5 * 3600e3), status: "confirmed" },
+  { id: "al1", type: "agent_cash_in",  direction: "credit", amountSats: 410, balanceAfter: 184_000, note: "Cash in for +254711222333 · commission",  createdAt: iso(-5  * 3600e3), status: "confirmed" },
   { id: "al2", type: "agent_cash_out", direction: "credit", amountSats: 290, balanceAfter: 183_590, note: "Cash out for +254722333444 · commission", createdAt: iso(-26 * 3600e3), status: "confirmed" },
 ];
 
