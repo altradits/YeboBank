@@ -16,6 +16,7 @@ const LOW_FLOAT_THRESHOLD = 2_000_000;
 
 type Mode = "cash_in" | "cash_out" | "service";
 type Step = "phone" | "verify" | "details";
+type Unit = "kes" | "sats";
 
 const SERVICE_OPTIONS: { kind: AgentServiceKind; label: string; hint: string }[] = [
   { kind: "savings_deposit",    label: "Savings deposit",     hint: "Add cash to a locked savings goal." },
@@ -46,7 +47,8 @@ export default function AgentPage() {
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
 
-  const [kes, setKes] = useState("");
+  const [unit, setUnit] = useState<Unit>("kes");
+  const [amount, setAmount] = useState("");
   const [serviceKind, setServiceKind] = useState<AgentServiceKind>("savings_deposit");
   const [serviceNote, setServiceNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -58,10 +60,15 @@ export default function AgentPage() {
   }
   useEffect(load, []);
 
+  function toSats(value: string, u: Unit): number {
+    const n = Number(value) || 0;
+    return u === "sats" ? Math.round(n) : Math.round(n / rate.kesPerSat);
+  }
+
   function openFlow(m: Mode) {
     setMode(m); setStep("phone"); setPhone(""); setCustomer(null);
     setChannel(null); setCodeSent(false); setCode("");
-    setKes(""); setServiceKind("savings_deposit"); setServiceNote("");
+    setUnit("kes"); setAmount(""); setServiceKind("savings_deposit"); setServiceNote("");
     setSubmitting(false); setError("");
   }
   function closeFlow() { setMode(null); }
@@ -96,18 +103,18 @@ export default function AgentPage() {
   }
 
   async function submitCash() {
-    if (!mode || mode === "service" || !kes) return;
+    if (!mode || mode === "service" || !amount) return;
     setSubmitting(true);
-    const amountSats = Math.round((Number(kes) || 0) / rate.kesPerSat);
+    const amountSats = toSats(amount, unit);
     await agentCashTransact(mode === "cash_in" ? "in" : "out", phone, amountSats);
     setSubmitting(false);
     closeFlow(); load();
   }
 
   async function submitService() {
-    if (!kes) return;
+    if (!amount) return;
     setSubmitting(true);
-    const amountSats = Math.round((Number(kes) || 0) / rate.kesPerSat);
+    const amountSats = toSats(amount, unit);
     await agentAssistService(phone, serviceKind, amountSats, serviceNote || undefined);
     setSubmitting(false);
     closeFlow(); load();
@@ -251,17 +258,21 @@ export default function AgentPage() {
                     : "No YeboBank account on file — cash-only transaction, no account to protect."}
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <input className="input" type="number" placeholder="Amount (KES)" value={kes}
-                    onChange={(e) => setKes(e.target.value)} />
-                  {kes && (
-                    <p className="note">
-                      ≈ {num(Math.round((Number(kes) || 0) / rate.kesPerSat))} sats
-                      {" · "}commission ≈ {fmtKESraw((Number(kes) || 0) * agent.commissionRate, 0)}
-                    </p>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <Button variant={unit === "kes" ? "primary" : "ghost"} style={{ flex: 1 }} onClick={() => setUnit("kes")}>Cash (KES)</Button>
+                    <Button variant={unit === "sats" ? "primary" : "ghost"} style={{ flex: 1 }} onClick={() => setUnit("sats")}>Sats / Lightning</Button>
+                  </div>
+                  <input className="input" type="number" placeholder={unit === "kes" ? "Amount (KES)" : "Amount (sats)"} value={amount}
+                    onChange={(e) => setAmount(e.target.value)} />
+                  {amount && unit === "kes" && (
+                    <p className="note">≈ {num(toSats(amount, unit))} sats · commission ≈ {fmtKESraw(Number(amount) * agent.commissionRate, 0)}</p>
+                  )}
+                  {amount && unit === "sats" && (
+                    <p className="note">≈ KES {num(Math.round(Number(amount) * rate.kesPerSat))} · commission ≈ {num(Math.round(Number(amount) * agent.commissionRate))} sats</p>
                   )}
                 </div>
                 <div className="modal-actions">
-                  <Button disabled={!kes || submitting} onClick={submitCash}>
+                  <Button disabled={!amount || submitting} onClick={submitCash}>
                     {submitting ? "Processing…" : `Confirm ${mode === "cash_in" ? "cash in" : "cash out"}`}
                   </Button>
                   <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
@@ -287,14 +298,22 @@ export default function AgentPage() {
                       <p className="note" style={{ marginTop: 4 }}>{s.hint}</p>
                     </button>
                   ))}
-                  <input className="input" type="number" placeholder="Amount (KES)" value={kes}
-                    onChange={(e) => setKes(e.target.value)} />
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <Button variant={unit === "kes" ? "primary" : "ghost"} style={{ flex: 1 }} onClick={() => setUnit("kes")}>KES</Button>
+                    <Button variant={unit === "sats" ? "primary" : "ghost"} style={{ flex: 1 }} onClick={() => setUnit("sats")}>Sats</Button>
+                  </div>
+                  <input className="input" type="number" placeholder={unit === "kes" ? "Amount (KES)" : "Amount (sats)"} value={amount}
+                    onChange={(e) => setAmount(e.target.value)} />
                   <input className="input" placeholder="Note (optional — e.g. lock or chama name)" value={serviceNote}
                     onChange={(e) => setServiceNote(e.target.value)} />
-                  {kes && <p className="note">≈ {num(Math.round((Number(kes) || 0) / rate.kesPerSat))} sats</p>}
+                  {amount && (
+                    <p className="note">
+                      {unit === "kes" ? `≈ ${num(toSats(amount, unit))} sats` : `≈ KES ${num(Math.round(Number(amount) * rate.kesPerSat))}`}
+                    </p>
+                  )}
                 </div>
                 <div className="modal-actions">
-                  <Button disabled={!kes || submitting} onClick={submitService}>
+                  <Button disabled={!amount || submitting} onClick={submitService}>
                     {submitting ? "Processing…" : "Confirm & assist"}
                   </Button>
                   <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
