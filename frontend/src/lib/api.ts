@@ -17,7 +17,7 @@ import type {
   PendingInvite, LockMessage, PoolDeployment,
 } from "@/types";
 import {
-  mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent,
+  mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent, mockAgentLedger,
   mockAllChamas, mockChamaMessages, mockChamaVotes, mockJoinRequests,
   mockGrowthData, mockSavingsGrowth, mockSavingsDeposits, mockPendingInvites,
   mockIncomeSources, mockInvestorPositions, mockAccessRequests, mockFIProfiles,
@@ -235,6 +235,35 @@ export async function createChama(name: string, contributionSats: number): Promi
 export async function getAgent(): Promise<Agent> {
   if (USE_MOCKS) return delay(mockAgent);
   return req<Agent>("/agent");
+}
+
+export async function agentCashTransact(
+  direction: "in" | "out", phone: string, amountSats: number,
+): Promise<{ agent: Agent; entry: LedgerEntry }> {
+  if (USE_MOCKS) {
+    const commission = Math.round(amountSats * mockAgent.commissionRate);
+    mockAgent.totalEarnedSats += commission;
+    if (direction === "in") mockAgent.floatLimitSats -= amountSats;
+    else mockAgent.floatLimitSats += amountSats;
+    const entry: LedgerEntry = {
+      id: `l_agent_${Date.now()}`,
+      type: direction === "in" ? "agent_cash_in" : "agent_cash_out",
+      direction: direction === "in" ? "credit" : "debit",
+      amountSats: commission,
+      balanceAfter: mockAgent.totalEarnedSats,
+      note: `${direction === "in" ? "Cash in" : "Cash out"} for ${phone} · commission`,
+      createdAt: new Date().toISOString(),
+      status: "confirmed",
+    };
+    mockAgentLedger.unshift(entry);
+    return delay({ agent: mockAgent, entry });
+  }
+  return req("/agent/cash", { method: "POST", body: JSON.stringify({ direction, phone, amountSats }) });
+}
+
+export async function getAgentHistory(): Promise<LedgerEntry[]> {
+  if (USE_MOCKS) return delay(mockAgentLedger);
+  return req<LedgerEntry[]>("/agent/history");
 }
 
 // ── Chama feature (new endpoints) ────────────────────────────────────────────

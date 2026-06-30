@@ -82,6 +82,11 @@ export const mockAgent: Agent = {
   totalEarnedSats: 184_000,
 };
 
+export const mockAgentLedger: LedgerEntry[] = [
+  { id: "al1", type: "agent_cash_in", direction: "credit", amountSats: 410, balanceAfter: 184_000, note: "Cash in for +254711222333 · commission", createdAt: iso(-5 * 3600e3), status: "confirmed" },
+  { id: "al2", type: "agent_cash_out", direction: "credit", amountSats: 290, balanceAfter: 183_590, note: "Cash out for +254722333444 · commission", createdAt: iso(-26 * 3600e3), status: "confirmed" },
+];
+
 function iso(offsetMs: number): string {
   return new Date(Date.now() + offsetMs).toISOString();
 }
