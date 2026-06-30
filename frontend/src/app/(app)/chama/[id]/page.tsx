@@ -638,6 +638,9 @@ export default function ChamaDashboard() {
   const [contributeModal, setContributeModal] = useState(false);
   const [contributing, setContributing] = useState(false);
 
+  // Chat fullscreen
+  const [chatExpanded, setChatExpanded] = useState(false);
+
   // Lock intent (from ?intent=lock&amount=...&years=... query string)
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -673,6 +676,13 @@ export default function ChamaDashboard() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (!chatExpanded) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setChatExpanded(false); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [chatExpanded]);
 
   useEffect(() => {
     if (searchParams.get("intent") === "lock") {
@@ -976,9 +986,17 @@ export default function ChamaDashboard() {
         </div>
 
         {/* Chat panel */}
-        <div className="card chama-chat">
+        <div className={`card chama-chat${chatExpanded ? " chat-fs" : ""}`}>
           <div className="chat-head">
             <h2>Chat</h2>
+            <button
+              className="chat-expand-btn"
+              onClick={() => setChatExpanded((v) => !v)}
+              aria-label={chatExpanded ? "Exit fullscreen" : "Expand chat"}
+              title={chatExpanded ? "Exit fullscreen (Esc)" : "Expand to fullscreen"}
+            >
+              <i className={`ti ${chatExpanded ? "ti-arrows-minimize" : "ti-arrows-maximize"}`} />
+            </button>
           </div>
 
           {/* TODO(backend): poll or subscribe for shared realtime state */}

@@ -114,6 +114,7 @@ export default function LockDetailPage() {
   const [justDepositedId, setJustDepositedId] = useState<string | null>(null);
   const [input, setInput]   = useState("");
   const [sending, setSending] = useState(false);
+  const [chatExpanded, setChatExpanded] = useState(false);
 
   const highlightRef    = useRef<HTMLDivElement>(null);
   // Read once on mount: was this page reached after a deposit?
@@ -146,6 +147,13 @@ export default function LockDetailPage() {
       highlightRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [justDepositedId]);
+
+  useEffect(() => {
+    if (!chatExpanded) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setChatExpanded(false); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [chatExpanded]);
 
   async function handleContribute(sats: number) {
     if (!lock) return;
@@ -303,9 +311,17 @@ export default function LockDetailPage() {
           </div>
 
           {/* Chat / activity panel — reuses .chama-chat CSS */}
-          <div className="card chama-chat">
+          <div className={`card chama-chat${chatExpanded ? " chat-fs" : ""}`}>
             <div className="chat-head">
               <h2>Chat</h2>
+              <button
+                className="chat-expand-btn"
+                onClick={() => setChatExpanded((v) => !v)}
+                aria-label={chatExpanded ? "Exit fullscreen" : "Expand chat"}
+                title={chatExpanded ? "Exit fullscreen (Esc)" : "Expand to fullscreen"}
+              >
+                <i className={`ti ${chatExpanded ? "ti-arrows-minimize" : "ti-arrows-maximize"}`} />
+              </button>
             </div>
             {/* TODO(backend): poll or subscribe for shared realtime state */}
             <div className="chat-msgs">
