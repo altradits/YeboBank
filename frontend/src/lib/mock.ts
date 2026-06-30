@@ -80,6 +80,7 @@ export const mockAgent: Agent = {
   floatLimitSats: 10_000_000,
   commissionRate: 0.005,
   totalEarnedSats: 184_000,
+  mpesaTillNumber: "0712 000 001",
 };
 
 // Anyone the agent might serve at the counter — registered YeboBank members
