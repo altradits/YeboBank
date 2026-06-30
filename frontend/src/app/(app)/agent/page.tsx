@@ -7,253 +7,227 @@ import TransactionRow from "@/components/app/TransactionRow";
 import { useRate } from "@/lib/rate-context";
 import { num, fmtKESraw } from "@/lib/format";
 import {
-  getAgent, getAgentHistory, agentCashTransact,
+  getAgent, getAgentHistory,
+  agentCashTransact, agentFiatSwap, agentTopUpFloat, confirmAgentTopUp,
   lookupAgentCustomer, requestAgentAccessCode, verifyAgentAccessCode, agentAssistService,
   agentGenerateInvoice, agentPayInvoice,
 } from "@/lib/api";
 import type { AccessChannel, AgentServiceKind } from "@/lib/api";
 import type { Agent, LedgerEntry } from "@/types";
 
-const LOW_FLOAT_THRESHOLD    = 2_000_000;
-const CRITICAL_FLOAT         = 500_000;
-const KE_PHONE_RE            = /^(\+254|0)\d{9}$/;
+// ── constants ─────────────────────────────────────────────────────────────────
+const LOW_FLOAT      = 2_000_000;
+const CRITICAL_FLOAT = 500_000;
+const KE_PHONE_RE    = /^(\+254|0)\d{9}$/;
+const MOCK_APPROX_SATS_PER_KES = 13; // for preview only, actual rate from context
 
-type Mode   = "cash_in" | "cash_out" | "service";
-type Step   = "phone" | "verify" | "details";
-// Incoming → Cash | M-Pesa | Sats
-// Outgoing → Cash | M-Pesa | Send  (sats label flips to "Send" on cash_out)
+// ── types ─────────────────────────────────────────────────────────────────────
 type Medium = "cash" | "mpesa" | "sats";
+type Step   = "phone" | "verify" | "amount";
+
+// A corridor is what the customer brings vs what they want.
+interface Corridor { from: Medium; to: Medium }
+
+const CORRIDORS: (Corridor & { label: string; fromIcon: string; toIcon: string; hint: string })[] = [
+  { from: "cash",  to: "mpesa", label: "Cash → M-Pesa",  fromIcon: "ti-cash",             toIcon: "ti-device-mobile",    hint: "No YeboBank account needed." },
+  { from: "mpesa", to: "cash",  label: "M-Pesa → Cash",  fromIcon: "ti-device-mobile",    toIcon: "ti-cash",             hint: "No YeboBank account needed." },
+  { from: "cash",  to: "sats",  label: "Cash → Sats",    fromIcon: "ti-cash",             toIcon: "ti-currency-bitcoin", hint: "Credits the customer's wallet." },
+  { from: "mpesa", to: "sats",  label: "M-Pesa → Sats",  fromIcon: "ti-device-mobile",    toIcon: "ti-currency-bitcoin", hint: "Credits the customer's wallet." },
+  { from: "sats",  to: "cash",  label: "Sats → Cash",    fromIcon: "ti-currency-bitcoin", toIcon: "ti-cash",             hint: "Debits the customer's wallet." },
+  { from: "sats",  to: "mpesa", label: "Sats → M-Pesa",  fromIcon: "ti-currency-bitcoin", toIcon: "ti-device-mobile",    hint: "Debits the customer's wallet." },
+];
 
 const SERVICE_OPTIONS: { kind: AgentServiceKind; label: string; hint: string }[] = [
-  { kind: "savings_deposit",    label: "Savings deposit",     hint: "Add to a locked savings goal." },
-  { kind: "chama_contribution", label: "Chama contribution",  hint: "Pay into a group's chama pool." },
-  { kind: "withdrawal_request", label: "Withdrawal request",  hint: "File a withdrawal for Mlinzi to review." },
-  { kind: "lightning_send",     label: "Send via Lightning",  hint: "Send sats on the customer's behalf." },
+  { kind: "savings_deposit",    label: "Savings deposit",    hint: "Add to a locked savings goal." },
+  { kind: "chama_contribution", label: "Chama contribution", hint: "Pay into a group's chama pool." },
+  { kind: "withdrawal_request", label: "Withdrawal request", hint: "File a withdrawal for Mlinzi to review." },
+  { kind: "lightning_send",     label: "Send via Lightning", hint: "Send sats on the customer's behalf." },
 ];
 
 const CHANNELS: { id: AccessChannel; label: string; icon: string; hint: string }[] = [
   { id: "sms",     label: "SMS code",   icon: "ti-message", hint: "We text a one-time code to their phone." },
   { id: "email",   label: "Email code", icon: "ti-mail",    hint: "We email a one-time code." },
-  { id: "offline", label: "Saved code", icon: "ti-key",     hint: "They read out a code they already have." },
+  { id: "offline", label: "Saved code", icon: "ti-key",     hint: "They read out a code they already saved." },
 ];
 
-// ── Inline error banner ───────────────────────────────────────────────────────
-function ErrorNote({ msg }: { msg: string }) {
+const MEDIUM_COLOR: Record<Medium, string> = {
+  cash:  "var(--gold)",
+  mpesa: "var(--emerald-deep)",
+  sats:  "#F7931A",
+};
+const MEDIUM_LABEL: Record<Medium, string> = { cash: "Cash", mpesa: "M-Pesa", sats: "Sats" };
+
+function needsAccount(c: Corridor)    { return c.from === "sats" || c.to === "sats"; }
+function allowsKesInput(c: Corridor)  { return c.from !== "sats"; } // sats-from always enters sats
+
+// ── small components ──────────────────────────────────────────────────────────
+function ErrNote({ msg }: { msg: string }) {
+  if (!msg) return null;
   return (
     <p className="note" style={{
       color: "var(--terra-text)", background: "rgba(185,72,50,.08)",
-      border: "1px solid rgba(185,72,50,.2)", borderRadius: "var(--r-sm)",
-      padding: "8px 12px",
+      border: "1px solid rgba(185,72,50,.2)", borderRadius: "var(--r-sm)", padding: "8px 12px",
     }}>
       <i className="ti ti-alert-circle" style={{ marginRight: 6 }} />{msg}
     </p>
   );
 }
 
-// ── Medium toggle strip ───────────────────────────────────────────────────────
-function MediumToggle({
-  options, value, onChange,
-}: {
-  options: { id: Medium; label: string; disabled?: boolean; reason?: string }[];
-  value: Medium;
-  onChange: (m: Medium) => void;
-}) {
+function InfoNote({ msg }: { msg: string }) {
   return (
-    <div>
-      <div style={{
-        display: "flex", borderRadius: "var(--r-sm)",
-        border: "1px solid var(--border)", overflow: "hidden",
+    <p className="note" style={{
+      color: "var(--emerald-deep)", background: "rgba(17,166,91,.06)",
+      border: "1px solid rgba(17,166,91,.18)", borderRadius: "var(--r-sm)", padding: "8px 12px",
+    }}>
+      <i className="ti ti-info-circle" style={{ marginRight: 6 }} />{msg}
+    </p>
+  );
+}
+
+// Scan-or-paste row for Lightning addresses
+function LnDestRow({ value, onChange, onScan }: { value: string; onChange: (v: string) => void; onScan: () => void }) {
+  return (
+    <div style={{ display: "flex", gap: 8 }}>
+      <input className="input" style={{ flex: 1 }} placeholder="Paste invoice / Lightning address"
+        value={value} onChange={(e) => onChange(e.target.value)} />
+      <button onClick={onScan} title="Scan QR" style={{
+        background: "var(--ivory)", border: "1px solid var(--border)",
+        borderRadius: "var(--r-sm)", padding: "0 14px",
+        cursor: "pointer", color: "var(--forest)", fontSize: 18,
+        display: "flex", alignItems: "center",
       }}>
-        {options.map(({ id, label, disabled }, i) => (
-          <button key={id}
-            disabled={disabled}
-            onClick={() => onChange(id)}
-            style={{
-              flex: 1, padding: "10px 0", textAlign: "center",
-              background: value === id ? "var(--forest)" : "transparent",
-              color: value === id ? "white" : disabled ? "var(--border)" : "var(--text)",
-              border: "none",
-              borderRight: i < options.length - 1 ? "1px solid var(--border)" : "none",
-              cursor: disabled ? "not-allowed" : "pointer",
-              fontSize: 13, fontWeight: value === id ? 600 : 400,
-              transition: "background .15s",
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      {options.find((o) => o.id === value && o.reason) && (
-        <p className="note" style={{ marginTop: 6, color: "var(--emerald-deep)" }}>
-          <i className="ti ti-lock" style={{ marginRight: 4 }} />
-          {options.find((o) => o.id === value)!.reason}
-        </p>
-      )}
-      {options.find((o) => o.disabled && o.id !== value && o.reason) && (
-        <p className="note" style={{ marginTop: 6 }}>
-          {options.filter((o) => o.disabled).map((o) => o.reason).join(" ")}
-        </p>
-      )}
+        <i className="ti ti-qrcode-scan" />
+      </button>
     </div>
   );
 }
 
+// ── main page ─────────────────────────────────────────────────────────────────
 export default function AgentPage() {
   const rate = useRate();
-  const [agent, setAgent]   = useState<Agent | null>(null);
+
+  // ── page data ──────────────────────────────────────────────────────────────
+  const [agent,   setAgent]   = useState<Agent | null>(null);
   const [history, setHistory] = useState<LedgerEntry[]>([]);
 
-  // ── flow state ──────────────────────────────────────────────────────────────
-  const [mode, setMode]       = useState<Mode | null>(null);
-  const [step, setStep]       = useState<Step>("phone");
-  const [phone, setPhone]     = useState("");
-  const [customer, setCustomer] = useState<{ phone: string; name: string | null; isMember: boolean } | null>(null);
-  const [looking, setLooking] = useState(false);
-
-  // verification
-  const [channel, setChannel]     = useState<AccessChannel | null>(null);
-  const [codeSent, setCodeSent]   = useState(false);
-  const [code, setCode]           = useState("");
-  const [verifying, setVerifying] = useState(false);
-
-  // details
-  const [medium, setMedium]       = useState<Medium>("cash");
-  const [amount, setAmount]       = useState("");
-  const [mpesaRef, setMpesaRef]   = useState("");       // M-Pesa number for outgoing, ref for incoming
-  const [lnInvoice, setLnInvoice] = useState<string | null>(null);
-  const [lnBusy, setLnBusy]       = useState(false);
-  const [lnDest, setLnDest]       = useState("");
-  const [scanning, setScanning]   = useState(false);
-  const [serviceKind, setServiceKind] = useState<AgentServiceKind>("savings_deposit");
-  const [serviceNote, setServiceNote] = useState("");
-  const [submitting, setSubmitting]   = useState(false);
-  const [error, setError]             = useState("");
-
-  function load() {
-    getAgent().then(setAgent);
-    getAgentHistory().then(setHistory);
-  }
+  function load() { getAgent().then(setAgent); getAgentHistory().then(setHistory); }
   useEffect(load, []);
 
-  // ── helpers ─────────────────────────────────────────────────────────────────
+  // ── active flow ────────────────────────────────────────────────────────────
+  // null = no modal; otherwise one of three flows
+  type ActiveFlow = { type: "corridor"; corridor: Corridor }
+                  | { type: "service" }
+                  | { type: "topup" };
+  const [flow, setFlow] = useState<ActiveFlow | null>(null);
 
-  function toSats(value: string, m: Medium): number {
+  // ── step / identity ────────────────────────────────────────────────────────
+  const [step,     setStep]     = useState<Step>("amount");
+  const [phone,    setPhone]    = useState("");
+  const [customer, setCustomer] = useState<{ phone: string; name: string | null; isMember: boolean } | null>(null);
+  const [looking,  setLooking]  = useState(false);
+  const [channel,  setChannel]  = useState<AccessChannel | null>(null);
+  const [codeSent, setCodeSent] = useState(false);
+  const [code,     setCode]     = useState("");
+  const [verifying,setVerifying]= useState(false);
+
+  // ── amount ─────────────────────────────────────────────────────────────────
+  const [rawAmount, setRawAmount]   = useState("");
+  const [useKes,    setUseKes]      = useState(true); // unit toggle (for sats corridors)
+  const [mpesaDest, setMpesaDest]   = useState("");   // dest M-Pesa number (Cash→M-Pesa, Sats→M-Pesa)
+  const [lnInvoice, setLnInvoice]   = useState<string | null>(null);
+  const [lnBusy,    setLnBusy]      = useState(false);
+  const [lnDest,    setLnDest]      = useState("");
+  const [scanning,  setScanning]    = useState(false);
+
+  // ── service assist ────────────────────────────────────────────────────────
+  const [serviceKind, setServiceKind] = useState<AgentServiceKind>("savings_deposit");
+  const [serviceNote, setServiceNote] = useState("");
+
+  // ── top-up ─────────────────────────────────────────────────────────────────
+  const [topupAmount,  setTopupAmount]  = useState("");
+  const [topupInvoice, setTopupInvoice] = useState<string | null>(null);
+  const [topupBusy,    setTopupBusy]    = useState(false);
+
+  // ── shared ─────────────────────────────────────────────────────────────────
+  const [submitting, setSubmitting] = useState(false);
+  const [error,      setError]      = useState("");
+
+  // ── helpers ────────────────────────────────────────────────────────────────
+  function toSats(value: string): number {
     const n = Number(value) || 0;
-    return m === "sats" ? Math.round(n) : Math.round(n / rate.kesPerSat);
+    return useKes ? Math.round(n / rate.kesPerSat) : Math.round(n);
+  }
+  function toKes(value: string): number { return Number(value) || 0; }
+
+  function conversionNote(corridor: Corridor): string {
+    if (!rawAmount || Number(rawAmount) <= 0 || !agent) return "";
+    if (corridor.from === "sats" || corridor.to === "sats") {
+      const sats = useKes ? toSats(rawAmount) : Number(rawAmount);
+      const kes  = useKes ? Number(rawAmount) : Math.round(Number(rawAmount) * rate.kesPerSat);
+      const comm = useKes
+        ? fmtKESraw(kes * agent.commissionRate, 0)
+        : `${num(Math.round(sats * agent.commissionRate))} sats`;
+      return `≈ ${useKes ? `${num(sats)} sats` : `KES ${num(kes)}`} · commission ≈ ${comm}`;
+    }
+    const kes  = toKes(rawAmount);
+    const comm = fmtKESraw(kes * agent.commissionRate, 0);
+    return `≈ ${num(Math.round(kes / rate.kesPerSat))} sats · commission ≈ ${comm}`;
   }
 
-  function fmtConversion(m: Medium): string {
-    if (!amount || Number(amount) <= 0) return "";
-    if (m === "sats")
-      return `≈ KES ${num(Math.round(Number(amount) * rate.kesPerSat))}`;
-    return `≈ ${num(toSats(amount, m))} sats`;
-  }
-
-  function commissionNote(m: Medium): string {
-    if (!agent || !amount || Number(amount) <= 0) return "";
-    if (m === "sats")
-      return ` · commission ≈ ${num(Math.round(Number(amount) * agent.commissionRate))} sats`;
-    return ` · commission ≈ ${fmtKESraw(Number(amount) * agent.commissionRate, 0)}`;
-  }
-
-  // ── medium options per step ─────────────────────────────────────────────────
-
-  function mediumOptions(forMode: Mode, sk: AgentServiceKind) {
-    const noWallet = !customer?.isMember;
-    const isSend   = forMode === "cash_out";
-    // lightning_send service must use sats
-    const mustSats = forMode === "service" && sk === "lightning_send";
-
-    return [
-      {
-        id: "cash"  as Medium,
-        label: "Cash",
-        disabled: mustSats,
-        reason: mustSats ? "Cash can't be sent over Lightning." : undefined,
-      },
-      {
-        id: "mpesa" as Medium,
-        label: "M-Pesa",
-        disabled: mustSats,
-        reason: mustSats ? "M-Pesa can't be sent over Lightning." : undefined,
-      },
-      {
-        id: "sats"  as Medium,
-        label: isSend ? "Send" : "Sats",
-        disabled: noWallet && !mustSats,
-        reason: noWallet && !mustSats
-          ? "Sats require a YeboBank wallet — this customer doesn't have one yet."
-          : undefined,
-      },
-    ];
-  }
-
-  // ── validation ──────────────────────────────────────────────────────────────
-
-  function phoneError(): string | null {
-    if (!phone) return null;
-    if (!KE_PHONE_RE.test(phone.trim()))
-      return "Enter a valid Kenyan number — e.g. +254712345678 or 0712345678.";
-    return null;
-  }
-
-  function detailsError(): string | null {
-    if (!amount || Number(amount) <= 0)
-      return "Enter an amount greater than zero.";
-    if (medium === "mpesa" && mode === "cash_out" && !mpesaRef.trim())
-      return "Enter the customer's M-Pesa number to send to.";
-    if (medium === "mpesa" && mpesaRef && !KE_PHONE_RE.test(mpesaRef.trim()))
-      return "M-Pesa number looks invalid — check the format (+254... or 07...).";
-    if (medium === "sats" && mode === "cash_in" && !lnInvoice)
-      return "Tap \"Generate QR\" so the customer can pay over Lightning first.";
-    if (medium === "sats" && mode === "cash_out" && !lnDest.trim())
-      return "Paste or scan the customer's Lightning invoice / address.";
-    if (agent && medium === "cash" && mode === "cash_out" &&
-        toSats(amount, medium) > agent.floatLimitSats)
-      return `Amount exceeds your float (${num(agent.floatLimitSats)} sats). Top up or reduce the amount.`;
-    return null;
-  }
-
-  function serviceDetailsError(): string | null {
-    if (!amount || Number(amount) <= 0)
-      return "Enter an amount greater than zero.";
-    if (serviceKind === "lightning_send" && medium === "sats" && !lnDest.trim())
-      return "Paste or scan the customer's Lightning invoice / address.";
-    return null;
-  }
-
-  // ── flow control ─────────────────────────────────────────────────────────────
-
-  function openFlow(m: Mode) {
-    setMode(m); setStep("phone"); setPhone(""); setCustomer(null);
-    setChannel(null); setCodeSent(false); setCode("");
-    setMedium("cash"); setAmount(""); setMpesaRef("");
+  function resetDetails() {
+    setRawAmount(""); setUseKes(true); setMpesaDest("");
     setLnInvoice(null); setLnBusy(false); setLnDest(""); setScanning(false);
     setServiceKind("savings_deposit"); setServiceNote("");
+    setTopupAmount(""); setTopupInvoice(null); setTopupBusy(false);
     setSubmitting(false); setError("");
   }
-  function closeFlow() { setMode(null); }
 
-  // When service kind changes, auto-switch medium for lightning_send
-  function changeServiceKind(k: AgentServiceKind) {
-    setServiceKind(k);
-    if (k === "lightning_send") setMedium("sats");
-    setLnDest(""); setAmount(""); setError("");
+  function resetIdentity() {
+    setPhone(""); setCustomer(null); setLooking(false);
+    setChannel(null); setCodeSent(false); setCode(""); setVerifying(false);
+  }
+
+  // ── open flows ─────────────────────────────────────────────────────────────
+  function openCorridor(c: Corridor) {
+    resetIdentity(); resetDetails();
+    // sats-from defaults to sats input; others to KES
+    setUseKes(c.from !== "sats");
+    setStep(needsAccount(c) ? "phone" : "amount");
+    setFlow({ type: "corridor", corridor: c });
+  }
+
+  function openService() {
+    resetIdentity(); resetDetails();
+    setStep("phone");
+    setFlow({ type: "service" });
+  }
+
+  function openTopup() {
+    resetDetails();
+    setFlow({ type: "topup" });
+  }
+
+  function closeFlow() { setFlow(null); setError(""); }
+
+  // ── identity steps ─────────────────────────────────────────────────────────
+  function phoneErr(): string | null {
+    if (!phone) return null;
+    if (!KE_PHONE_RE.test(phone.trim())) return "Enter a valid Kenyan number — +254712345678 or 0712345678.";
+    return null;
   }
 
   async function doLookup() {
-    const pe = phoneError();
+    const pe = phoneErr();
     if (pe) { setError(pe); return; }
     setLooking(true); setError("");
     const c = await lookupAgentCustomer(phone.trim());
-    setLooking(false);
-    setCustomer(c);
-    if (mode === "service" && !c.isMember) {
-      setError("This customer isn't a YeboBank member yet — offer cash in/out instead, or help them register at yebobank.com.");
+    setLooking(false); setCustomer(c);
+    if (flow?.type === "service" && !c.isMember) {
+      setError("This customer isn't a YeboBank member yet — offer a Cash / M-Pesa exchange instead, or help them register at yebobank.com.");
       return;
     }
     if (c.isMember) setStep("verify");
-    else setStep("details");
+    else setStep("amount"); // cash corridors allow non-members
   }
 
   async function sendCode(ch: AccessChannel) {
@@ -267,71 +241,116 @@ export default function AgentPage() {
     setVerifying(true); setError("");
     const r = await verifyAgentAccessCode(phone.trim(), code.trim());
     setVerifying(false);
-    if (r.verified) setStep("details");
-    else setError("That code didn't match. Double-check with the customer and try again.");
+    if (r.verified) setStep("amount");
+    else setError("Code didn't match — double-check with the customer and try again.");
   }
 
-  async function submitCash() {
-    const err = detailsError();
+  // ── validation ─────────────────────────────────────────────────────────────
+  function amountErr(corridor: Corridor): string | null {
+    const n = Number(rawAmount);
+    if (!rawAmount || n <= 0) return "Enter an amount greater than zero.";
+    if (corridor.to === "mpesa" && !mpesaDest.trim())
+      return `Enter the ${corridor.from === "cash" ? "customer's" : "destination"} M-Pesa number.`;
+    if (mpesaDest && !KE_PHONE_RE.test(mpesaDest.trim()))
+      return "M-Pesa number looks invalid — use +254... or 07...";
+    if (corridor.to === "sats" && corridor.from !== "cash" && !lnInvoice)
+      return null; // M-Pesa→Sats: no LN invoice needed (agent just credits wallet)
+    if (corridor.from === "sats" && corridor.to === "cash") {
+      const sats = toSats(rawAmount);
+      if (agent && sats > agent.floatLimitSats)
+        return `Amount exceeds your sats float (${num(agent.floatLimitSats)} sats). Top up first.`;
+    }
+    return null;
+  }
+
+  function serviceErr(): string | null {
+    const n = Number(rawAmount);
+    if (!rawAmount || n <= 0) return "Enter an amount greater than zero.";
+    if (serviceKind === "lightning_send" && !lnDest.trim())
+      return "Paste or scan the customer's Lightning invoice / address.";
+    return null;
+  }
+
+  // ── submit handlers ────────────────────────────────────────────────────────
+  async function submitCorridor(c: Corridor) {
+    const err = amountErr(c);
     if (err) { setError(err); return; }
-    if (!mode || mode === "service") return;
     setError(""); setSubmitting(true);
-    const amountSats = toSats(amount, medium);
-    await agentCashTransact(mode === "cash_in" ? "in" : "out", phone.trim(), amountSats);
+
+    if (c.from === "cash" && c.to === "mpesa") {
+      await agentFiatSwap("cash", "mpesa", toKes(rawAmount), mpesaDest || undefined);
+    } else if (c.from === "mpesa" && c.to === "cash") {
+      await agentFiatSwap("mpesa", "cash", toKes(rawAmount));
+    } else if (c.to === "sats") {
+      // Cash→Sats or M-Pesa→Sats: agent received fiat, credits wallet
+      await agentCashTransact("in", phone.trim(), toSats(rawAmount));
+    } else if (c.from === "sats" && c.to === "cash") {
+      // Sats→Cash: debit wallet, agent gives cash
+      await agentCashTransact("out", phone.trim(), toSats(rawAmount));
+    } else if (c.from === "sats" && c.to === "mpesa") {
+      // Sats→M-Pesa: debit wallet, agent sends M-Pesa to mpesaDest
+      if (lnDest) await agentPayInvoice(lnDest, toSats(rawAmount));
+      await agentCashTransact("out", phone.trim(), toSats(rawAmount));
+    }
+
     setSubmitting(false);
     closeFlow(); load();
   }
 
   async function submitService() {
-    const err = serviceDetailsError();
+    const err = serviceErr();
     if (err) { setError(err); return; }
     setError(""); setSubmitting(true);
-    const amountSats = toSats(amount, medium);
-    if (serviceKind === "lightning_send" && medium === "sats" && lnDest) {
-      await agentPayInvoice(lnDest, amountSats);
-    }
-    await agentAssistService(phone.trim(), serviceKind, amountSats, serviceNote || undefined);
+    const sats = toSats(rawAmount);
+    if (serviceKind === "lightning_send" && lnDest) await agentPayInvoice(lnDest, sats);
+    await agentAssistService(phone.trim(), serviceKind, sats, serviceNote || undefined);
     setSubmitting(false);
     closeFlow(); load();
   }
 
-  async function generateInvoice() {
-    if (!amount || Number(amount) <= 0) { setError("Enter an amount first."); return; }
+  async function generateCashInInvoice() {
+    if (!rawAmount || Number(rawAmount) <= 0) { setError("Enter an amount first."); return; }
     setError(""); setLnBusy(true);
-    const res = await agentGenerateInvoice(toSats(amount, medium));
-    setLnBusy(false);
-    setLnInvoice(res.invoice);
+    const res = await agentGenerateInvoice(toSats(rawAmount));
+    setLnBusy(false); setLnInvoice(res.invoice);
   }
 
-  async function confirmLightningCashIn() {
-    if (!lnInvoice || !amount) return;
+  async function confirmLnCashIn() {
+    if (!lnInvoice || !rawAmount) return;
     setSubmitting(true);
-    await agentCashTransact("in", phone.trim(), toSats(amount, medium));
-    setSubmitting(false);
-    closeFlow(); load();
+    await agentCashTransact("in", phone.trim(), toSats(rawAmount));
+    setSubmitting(false); closeFlow(); load();
   }
 
-  async function payAndCashOut() {
-    const err = detailsError();
-    if (err) { setError(err); return; }
-    setError(""); setSubmitting(true);
-    const amountSats = toSats(amount, medium);
-    await agentPayInvoice(lnDest, amountSats);
-    await agentCashTransact("out", phone.trim(), amountSats);
-    setSubmitting(false);
-    closeFlow(); load();
+  async function generateTopupInvoice() {
+    const n = Number(topupAmount);
+    if (!n || n <= 0) { setError("Enter an amount in sats."); return; }
+    setError(""); setTopupBusy(true);
+    const res = await agentTopUpFloat(n);
+    setTopupBusy(false); setTopupInvoice(res.invoice);
   }
 
-  // ── render ──────────────────────────────────────────────────────────────────
+  async function confirmTopup() {
+    const n = Number(topupAmount);
+    if (!n) return;
+    setSubmitting(true);
+    const updated = await confirmAgentTopUp(n);
+    setAgent(updated);
+    setSubmitting(false); closeFlow();
+  }
 
+  // ── render ─────────────────────────────────────────────────────────────────
   if (!agent) return <p className="note">Loading…</p>;
 
-  const floatKes      = Math.round(agent.floatLimitSats * rate.kesPerSat);
-  const lowFloat      = agent.floatLimitSats < LOW_FLOAT_THRESHOLD;
-  const criticalFloat = agent.floatLimitSats < CRITICAL_FLOAT;
+  const floatKes       = Math.round(agent.floatLimitSats * rate.kesPerSat);
+  const criticalFloat  = agent.floatLimitSats < CRITICAL_FLOAT;
+  const lowFloat       = agent.floatLimitSats < LOW_FLOAT;
+  const corridor       = flow?.type === "corridor" ? flow.corridor : null;
+  const noAccountFlow  = corridor && !needsAccount(corridor);
 
   return (
     <>
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div className="section-head">
         <div>
           <h1 className="page-title">Agent</h1>
@@ -340,348 +359,387 @@ export default function AgentPage() {
         <span className="badge agent">{agent.status}</span>
       </div>
 
+      {/* ── Stats ───────────────────────────────────────────────────────────── */}
       <div className="grid-2" style={{ marginTop: 16 }}>
         <div className="card">
           <div className="stat">
-            <span className="l">Float available</span>
+            <span className="l">Sats float</span>
             <span className="v" style={{ color: criticalFloat ? "var(--terra-text)" : undefined }}>
               {num(agent.floatLimitSats)} sats
             </span>
           </div>
-          <p className="note" style={{ marginTop: 8 }}>≈ KES {num(floatKes)}</p>
-          {criticalFloat && (
-            <p className="note" style={{ marginTop: 6, color: "var(--terra-text)", fontWeight: 600 }}>
-              <i className="ti ti-alert-triangle" /> Critical — cash-out may fail. Top up now.
-            </p>
-          )}
-          {lowFloat && !criticalFloat && (
-            <p className="note" style={{ marginTop: 6, color: "var(--terra-text)" }}>
-              <i className="ti ti-alert-triangle" /> Float is running low — top up soon.
-            </p>
-          )}
+          <p className="note" style={{ marginTop: 6 }}>≈ KES {num(floatKes)}</p>
+          {criticalFloat
+            ? <p className="note" style={{ color: "var(--terra-text)", fontWeight: 600, marginTop: 6 }}><i className="ti ti-alert-triangle" /> Critical — top up now.</p>
+            : lowFloat
+            ? <p className="note" style={{ color: "var(--terra-text)", marginTop: 6 }}><i className="ti ti-alert-triangle" /> Float running low.</p>
+            : null}
+          <Button variant="ghost" style={{ marginTop: 12, width: "100%" }} onClick={openTopup}>
+            <i className="ti ti-bolt" /> Top up float
+          </Button>
         </div>
         <div className="card">
           <div className="stat">
             <span className="l">Commission earned</span>
             <span className="v" style={{ color: "var(--emerald-deep)" }}>+{num(agent.totalEarnedSats)} sats</span>
           </div>
-          <p className="note" style={{ marginTop: 8 }}>
-            {(agent.commissionRate * 100).toFixed(1)}% per transaction · held in sats, protected from KES inflation
-          </p>
-        </div>
-      </div>
-
-      <div className="grid-2" style={{ marginTop: 18 }}>
-        <div className="card" style={{ textAlign: "center" }}>
-          <i className="ti ti-arrow-down" style={{ fontSize: 30, color: "var(--emerald-deep)" }} />
-          <h2 style={{ fontFamily: "var(--font-display)", marginTop: 10 }}>Accept money</h2>
           <p className="note" style={{ marginTop: 6 }}>
-            Customer brings Cash, M-Pesa, or Sats — you credit their wallet.
+            {(agent.commissionRate * 100).toFixed(1)}% per transaction · held in sats, shielded from KES inflation
           </p>
-          <Button block style={{ marginTop: 14 }} onClick={() => openFlow("cash_in")}>Cash in</Button>
-        </div>
-        <div className="card" style={{ textAlign: "center" }}>
-          <i className="ti ti-arrow-up" style={{ fontSize: 30, color: "var(--terra-text)" }} />
-          <h2 style={{ fontFamily: "var(--font-display)", marginTop: 10 }}>Pay out money</h2>
           <p className="note" style={{ marginTop: 6 }}>
-            Customer needs Cash, M-Pesa, or Sats — you debit their wallet.
+            M-Pesa till: <strong>{agent.mpesaTillNumber}</strong>
           </p>
-          <Button block variant="ghost" style={{ marginTop: 14 }}
-            onClick={() => openFlow("cash_out")}
-            disabled={criticalFloat}
-            title={criticalFloat ? "Float is critically low — top up before cash out" : undefined}
-          >
-            Cash out {criticalFloat && <i className="ti ti-lock" style={{ marginLeft: 6 }} />}
-          </Button>
-          {criticalFloat && (
-            <p className="note" style={{ color: "var(--terra-text)", marginTop: 6, fontSize: 11 }}>
-              Float too low for cash payouts
-            </p>
-          )}
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: 18, textAlign: "center" }}>
-        <i className="ti ti-headset" style={{ fontSize: 30, color: "var(--emerald-deep)" }} />
-        <h2 style={{ fontFamily: "var(--font-display)", marginTop: 10 }}>Assist with a service</h2>
-        <p className="note" style={{ marginTop: 6 }}>
-          Help a verified YeboBank member use savings, chama, withdrawals, or Lightning — without needing their own phone.
-        </p>
-        <Button block style={{ marginTop: 14, maxWidth: 320, margin: "14px auto 0" }} onClick={() => openFlow("service")}>
-          Assist a customer
-        </Button>
-      </div>
-
+      {/* ── Transaction corridor grid ────────────────────────────────────────── */}
       <div className="card" style={{ marginTop: 18 }}>
+        <div className="section-head" style={{ marginBottom: 14 }}>
+          <h2>New transaction</h2>
+          <span className="note">Tap the corridor that matches the customer</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {CORRIDORS.map((c) => {
+            const disabled = criticalFloat && c.from === "sats";
+            return (
+              <button key={`${c.from}-${c.to}`}
+                disabled={disabled}
+                onClick={() => openCorridor(c)}
+                style={{
+                  textAlign: "left", padding: "12px 14px", cursor: disabled ? "not-allowed" : "pointer",
+                  background: "var(--ivory)", border: "1.5px solid var(--border)",
+                  borderRadius: "var(--r-sm)", opacity: disabled ? 0.4 : 1,
+                  display: "flex", flexDirection: "column", gap: 6,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className={`ti ${c.fromIcon}`} style={{ color: MEDIUM_COLOR[c.from], fontSize: 16 }} />
+                  <i className="ti ti-arrow-right" style={{ color: "var(--soft)", fontSize: 12 }} />
+                  <i className={`ti ${c.toIcon}`} style={{ color: MEDIUM_COLOR[c.to], fontSize: 16 }} />
+                </div>
+                <strong style={{ fontSize: 13 }}>
+                  {MEDIUM_LABEL[c.from]} → {MEDIUM_LABEL[c.to]}
+                </strong>
+                <p className="note" style={{ margin: 0, fontSize: 11 }}>{c.hint}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Member service assist ────────────────────────────────────────────── */}
+      <button className="card" style={{ marginTop: 10, width: "100%", textAlign: "left", cursor: "pointer" }}
+        onClick={openService}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <strong>Assist a YeboBank member</strong>
+            <p className="note" style={{ marginTop: 4 }}>
+              Savings, chama contributions, withdrawals, Lightning send — identity verified first.
+            </p>
+          </div>
+          <i className="ti ti-chevron-right" style={{ color: "var(--soft)", fontSize: 20 }} />
+        </div>
+      </button>
+
+      {/* ── Recent activity ──────────────────────────────────────────────────── */}
+      <div className="card" style={{ marginTop: 10 }}>
         <div className="section-head"><h2>Recent activity</h2></div>
         {history.length === 0 && <p className="note">No transactions yet today.</p>}
         {history.slice(0, 8).map((tx) => <TransactionRow key={tx.id} tx={tx} />)}
       </div>
 
-      {/* ── Modal ─────────────────────────────────────────────────────────────── */}
-      {mode && (
+      {/* ════════════════════════════════════════════════════════════════════════
+          MODALS
+         ════════════════════════════════════════════════════════════════════════ */}
+      {flow && (
         <div className="modal-overlay" onClick={closeFlow}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}
-            style={{ maxHeight: "90dvh", overflowY: "auto" }}>
+          <div className="modal" style={{ maxHeight: "90dvh", overflowY: "auto" }}
+            onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={closeFlow}>&times;</button>
-            <h2>
-              {mode === "cash_in" ? "Cash in" : mode === "cash_out" ? "Cash out" : "Assist with a service"}
-              {customer?.name && <span style={{ fontWeight: 400, color: "var(--soft)", fontSize: 15 }}> — {customer.name}</span>}
-            </h2>
 
-            {/* ── Step 1: Phone lookup ──────────────────────────────────────── */}
-            {step === "phone" && (
+            {/* ── Float top-up ────────────────────────────────────────────── */}
+            {flow.type === "topup" && (
               <>
+                <h2><i className="ti ti-bolt" style={{ color: MEDIUM_COLOR.sats, marginRight: 8 }} />Top up sats float</h2>
                 <p className="modal-sub">
-                  Enter the customer&apos;s phone number. We&apos;ll check if they&apos;re already a
-                  YeboBank member and gate identity verification accordingly.
+                  Generate a Lightning invoice. Pay it from your personal wallet to add sats to your agent float.
                 </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <input className="input" placeholder="Customer phone (+254712... or 0712...)" value={phone}
-                    onChange={(e) => { setPhone(e.target.value); setCustomer(null); setError(""); }} />
-                  {phone && phoneError() && <ErrorNote msg={phoneError()!} />}
-                  {error && !phoneError() && <ErrorNote msg={error} />}
-                </div>
-                <div className="modal-actions">
-                  <Button disabled={!phone || !!phoneError() || looking} onClick={doLookup}>
-                    {looking ? "Looking up…" : "Continue"}
-                  </Button>
-                  <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
-                </div>
-              </>
-            )}
-
-            {/* ── Step 2: Identity verification ────────────────────────────── */}
-            {step === "verify" && customer && (
-              <>
-                <p className="modal-sub">
-                  <strong>{customer.name ?? customer.phone}</strong> has a YeboBank account.
-                  Verify they&apos;re physically present before touching their wallet.
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {CHANNELS.map((c) => (
-                    <button key={c.id}
-                      style={{
-                        textAlign: "left", padding: 12, cursor: "pointer", background: "var(--ivory)",
-                        border: `1.5px solid ${channel === c.id ? "var(--emerald-deep)" : "var(--border)"}`,
-                        borderRadius: "var(--r-sm)",
-                      }}
-                      onClick={() => sendCode(c.id)}
-                    >
-                      <strong><i className={`ti ${c.icon}`} style={{ marginRight: 8 }} />{c.label}</strong>
-                      <p className="note" style={{ marginTop: 4 }}>{c.hint}</p>
-                    </button>
-                  ))}
-                  {channel && codeSent && (
-                    <input className="input"
-                      placeholder={channel === "offline" ? "Code the customer reads out" : "One-time code from SMS / email"}
-                      value={code} onChange={(e) => { setCode(e.target.value); setError(""); }} />
-                  )}
-                  {error && <ErrorNote msg={error} />}
-                </div>
-                <div className="modal-actions">
-                  <Button disabled={!channel || !codeSent || !code || verifying} onClick={doVerify}>
-                    {verifying ? "Verifying…" : "Verify & continue"}
-                  </Button>
-                  <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
-                </div>
-              </>
-            )}
-
-            {/* ── Step 3a: Cash in / out ────────────────────────────────────── */}
-            {step === "details" && mode !== "service" && (
-              <>
-                <p className="modal-sub">
-                  {customer?.isMember
-                    ? `Identity confirmed. Choose how the customer is ${mode === "cash_in" ? "paying" : "receiving"} and enter the amount.`
-                    : "No YeboBank account on file — cash and M-Pesa only; no wallet to debit/credit."}
-                </p>
-
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {/* Medium toggle */}
-                  <MediumToggle
-                    value={medium}
-                    options={mediumOptions(mode, serviceKind)}
-                    onChange={(m) => {
-                      setMedium(m);
-                      setAmount(""); setLnInvoice(null); setLnDest(""); setMpesaRef(""); setError("");
-                    }}
-                  />
-
-                  {/* Amount */}
-                  <div>
-                    <input className="input" type="number" min="0"
-                      placeholder={medium === "sats" ? "Amount (sats)" : "Amount (KES)"}
-                      value={amount}
-                      onChange={(e) => { setAmount(e.target.value); setLnInvoice(null); setError(""); }} />
-                    {amount && Number(amount) > 0 && (
-                      <p className="note" style={{ marginTop: 6 }}>
-                        {fmtConversion(medium)}{commissionNote(medium)}
+                  <input className="input" type="number" min="1" placeholder="Amount (sats)"
+                    value={topupAmount} onChange={(e) => { setTopupAmount(e.target.value); setTopupInvoice(null); setError(""); }} />
+                  {topupAmount && Number(topupAmount) > 0 && (
+                    <p className="note">≈ KES {num(Math.round(Number(topupAmount) * rate.kesPerSat))}</p>
+                  )}
+                  {topupInvoice ? (
+                    <div style={{ textAlign: "center", background: "var(--ivory)", borderRadius: "var(--r-sm)", padding: 16 }}>
+                      <i className="ti ti-qrcode" style={{ fontSize: 56, color: "var(--forest)" }} />
+                      <p className="note" style={{ marginTop: 8, wordBreak: "break-all", fontFamily: "var(--font-mono)", fontSize: 10 }}>
+                        {topupInvoice}
                       </p>
-                    )}
-                  </div>
-
-                  {/* M-Pesa: outgoing phone field */}
-                  {medium === "mpesa" && mode === "cash_out" && (
-                    <div>
-                      <input className="input" placeholder="Customer's M-Pesa number (+254... or 07...)"
-                        value={mpesaRef} onChange={(e) => { setMpesaRef(e.target.value); setError(""); }} />
-                      <p className="note" style={{ marginTop: 4 }}>
-                        Send the STK push to this number after confirming.
-                      </p>
+                      <InfoNote msg={`Scan and pay ${num(Number(topupAmount))} sats from your Lightning wallet, then tap Confirm.`} />
                     </div>
-                  )}
-
-                  {/* M-Pesa: incoming reference */}
-                  {medium === "mpesa" && mode === "cash_in" && (
-                    <p className="note" style={{ color: "var(--emerald-deep)" }}>
-                      <i className="ti ti-check" /> Confirm you have received the M-Pesa before tapping Confirm.
-                    </p>
-                  )}
-
-                  {/* Sats cash-in: generate invoice */}
-                  {medium === "sats" && mode === "cash_in" && (
-                    lnInvoice ? (
-                      <div style={{ textAlign: "center", background: "var(--ivory)", borderRadius: "var(--r-sm)", padding: 16 }}>
-                        <i className="ti ti-qrcode" style={{ fontSize: 48, color: "var(--forest)" }} />
-                        <p className="note" style={{ marginTop: 8, wordBreak: "break-all", fontFamily: "var(--font-mono)", fontSize: 11 }}>{lnInvoice}</p>
-                        <p className="note" style={{ marginTop: 6 }}>
-                          Have the customer scan this to pay <strong>{num(toSats(amount, medium))} sats</strong> over Lightning.
-                        </p>
-                      </div>
-                    ) : (
-                      <Button variant="ghost" disabled={!amount || Number(amount) <= 0 || lnBusy} onClick={generateInvoice}>
-                        <i className="ti ti-qrcode" /> {lnBusy ? "Generating…" : "Generate QR to receive"}
-                      </Button>
-                    )
-                  )}
-
-                  {/* Sats cash-out: paste / scan invoice */}
-                  {medium === "sats" && mode === "cash_out" && (
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <input className="input" style={{ flex: 1 }}
-                        placeholder="Paste invoice / Lightning address"
-                        value={lnDest} onChange={(e) => { setLnDest(e.target.value); setError(""); }} />
-                      <button onClick={() => setScanning(true)} title="Scan QR"
-                        style={{
-                          background: "var(--ivory)", border: "1px solid var(--border)",
-                          borderRadius: "var(--r-sm)", padding: "0 14px",
-                          cursor: "pointer", color: "var(--forest)", fontSize: 18,
-                          display: "flex", alignItems: "center",
-                        }}>
-                        <i className="ti ti-qrcode-scan" />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Low float warning in details */}
-                  {medium === "cash" && mode === "cash_out" && lowFloat && (
-                    <ErrorNote msg={`Float is low (${num(agent.floatLimitSats)} sats ≈ KES ${num(floatKes)}). Make sure you have enough physical cash on hand.`} />
-                  )}
-
-                  {error && <ErrorNote msg={error} />}
-                </div>
-
-                <div className="modal-actions">
-                  {medium === "sats" && mode === "cash_in" ? (
-                    <Button disabled={!lnInvoice || submitting} onClick={confirmLightningCashIn}>
-                      {submitting ? "Confirming…" : "Confirm payment received"}
-                    </Button>
-                  ) : medium === "sats" && mode === "cash_out" ? (
-                    <Button disabled={!lnDest || !amount || submitting} onClick={payAndCashOut}>
-                      {submitting ? "Paying…" : "Pay & confirm cash out"}
-                    </Button>
                   ) : (
-                    <Button disabled={!amount || Number(amount) <= 0 || submitting} onClick={submitCash}>
-                      {submitting ? "Processing…" : `Confirm ${mode === "cash_in" ? "cash in" : "cash out"}`}
+                    <Button variant="ghost" disabled={!topupAmount || Number(topupAmount) <= 0 || topupBusy}
+                      onClick={generateTopupInvoice}>
+                      <i className="ti ti-qrcode" /> {topupBusy ? "Generating…" : "Generate invoice"}
                     </Button>
                   )}
+                  {error && <ErrNote msg={error} />}
+                </div>
+                <div className="modal-actions">
+                  <Button disabled={!topupInvoice || submitting} onClick={confirmTopup}>
+                    {submitting ? "Confirming…" : "Confirm — I've paid the invoice"}
+                  </Button>
                   <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
                 </div>
               </>
             )}
 
-            {/* ── Step 3b: Service assist ───────────────────────────────────── */}
-            {step === "details" && mode === "service" && (
+            {/* ── Service assist ───────────────────────────────────────────── */}
+            {flow.type === "service" && (
               <>
-                <p className="modal-sub">
-                  Choose the service, how the customer is paying, and the amount.
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {/* Service picker */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {SERVICE_OPTIONS.map((s) => (
-                      <button key={s.kind}
-                        style={{
-                          textAlign: "left", padding: 12, cursor: "pointer", background: "var(--ivory)",
-                          border: `1.5px solid ${serviceKind === s.kind ? "var(--emerald-deep)" : "var(--border)"}`,
-                          borderRadius: "var(--r-sm)",
-                        }}
-                        onClick={() => changeServiceKind(s.kind)}
-                      >
-                        <strong>{s.label}</strong>
-                        <p className="note" style={{ marginTop: 4 }}>{s.hint}</p>
-                      </button>
-                    ))}
-                  </div>
+                <h2>
+                  Assist a member
+                  {customer?.name && <span style={{ fontWeight: 400, color: "var(--soft)", fontSize: 15 }}> — {customer.name}</span>}
+                </h2>
 
-                  <div style={{ height: 1, background: "var(--border-soft)" }} />
-
-                  {/* Medium toggle — lightning_send auto-locks to Sats */}
-                  <MediumToggle
-                    value={medium}
-                    options={mediumOptions(mode, serviceKind)}
-                    onChange={(m) => { setMedium(m); setLnDest(""); setAmount(""); setError(""); }}
-                  />
-
-                  {/* Amount */}
-                  <div>
-                    <input className="input" type="number" min="0"
-                      placeholder={medium === "sats" ? "Amount (sats)" : "Amount (KES)"}
-                      value={amount}
-                      onChange={(e) => { setAmount(e.target.value); setError(""); }} />
-                    {amount && Number(amount) > 0 && (
-                      <p className="note" style={{ marginTop: 6 }}>{fmtConversion(medium)}</p>
-                    )}
-                  </div>
-
-                  {/* Lightning dest for lightning_send */}
-                  {serviceKind === "lightning_send" && medium === "sats" && (
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <input className="input" style={{ flex: 1 }}
-                        placeholder="Paste invoice / Lightning address"
-                        value={lnDest} onChange={(e) => { setLnDest(e.target.value); setError(""); }} />
-                      <button onClick={() => setScanning(true)} title="Scan QR"
-                        style={{
-                          background: "var(--ivory)", border: "1px solid var(--border)",
-                          borderRadius: "var(--r-sm)", padding: "0 14px",
-                          cursor: "pointer", color: "var(--forest)", fontSize: 18,
-                          display: "flex", alignItems: "center",
-                        }}>
-                        <i className="ti ti-qrcode-scan" />
-                      </button>
+                {step === "phone" && (
+                  <>
+                    <p className="modal-sub">Look up the customer's account first.</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <input className="input" placeholder="Phone (+254712... or 0712...)"
+                        value={phone} onChange={(e) => { setPhone(e.target.value); setCustomer(null); setError(""); }} />
+                      {phone && phoneErr() && <ErrNote msg={phoneErr()!} />}
+                      {error && !phoneErr() && <ErrNote msg={error} />}
                     </div>
-                  )}
+                    <div className="modal-actions">
+                      <Button disabled={!phone || !!phoneErr() || looking} onClick={doLookup}>
+                        {looking ? "Looking up…" : "Continue"}
+                      </Button>
+                      <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
+                    </div>
+                  </>
+                )}
 
-                  {/* M-Pesa cash-in confirmation reminder */}
-                  {medium === "mpesa" && (
-                    <p className="note" style={{ color: "var(--emerald-deep)" }}>
-                      <i className="ti ti-check" /> Confirm you have received the M-Pesa before submitting.
+                {step === "verify" && customer && (
+                  <VerifyStep customer={customer} channel={channel} codeSent={codeSent} code={code}
+                    error={error} verifying={verifying}
+                    onSendCode={sendCode} onCodeChange={(v) => { setCode(v); setError(""); }}
+                    onVerify={doVerify} onCancel={closeFlow} />
+                )}
+
+                {step === "amount" && customer && (
+                  <>
+                    <p className="modal-sub">
+                      Choose the service and enter the amount — {customer.name}.
                     </p>
-                  )}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {SERVICE_OPTIONS.map((s) => (
+                        <button key={s.kind}
+                          style={{
+                            textAlign: "left", padding: 12, cursor: "pointer", background: "var(--ivory)",
+                            border: `1.5px solid ${serviceKind === s.kind ? "var(--emerald-deep)" : "var(--border)"}`,
+                            borderRadius: "var(--r-sm)",
+                          }}
+                          onClick={() => { setServiceKind(s.kind); setLnDest(""); setError(""); }}
+                        >
+                          <strong>{s.label}</strong>
+                          <p className="note" style={{ marginTop: 3 }}>{s.hint}</p>
+                        </button>
+                      ))}
+                      <div style={{ height: 1, background: "var(--border-soft)" }} />
+                      <input className="input" type="number" min="0"
+                        placeholder={serviceKind === "lightning_send" ? "Amount (sats)" : "Amount (KES)"}
+                        value={rawAmount} onChange={(e) => { setRawAmount(e.target.value); setError(""); }} />
+                      {rawAmount && Number(rawAmount) > 0 && (
+                        <p className="note">
+                          {serviceKind === "lightning_send"
+                            ? `≈ KES ${num(Math.round(Number(rawAmount) * rate.kesPerSat))}`
+                            : `≈ ${num(Math.round(Number(rawAmount) / rate.kesPerSat))} sats`}
+                        </p>
+                      )}
+                      {serviceKind === "lightning_send" && (
+                        <LnDestRow value={lnDest} onChange={(v) => { setLnDest(v); setError(""); }}
+                          onScan={() => setScanning(true)} />
+                      )}
+                      <input className="input" placeholder="Note (optional — lock name, chama name…)"
+                        value={serviceNote} onChange={(e) => setServiceNote(e.target.value)} />
+                      {error && <ErrNote msg={error} />}
+                    </div>
+                    <div className="modal-actions">
+                      <Button disabled={!rawAmount || Number(rawAmount) <= 0 || submitting} onClick={submitService}>
+                        {submitting ? "Processing…" : "Confirm & assist"}
+                      </Button>
+                      <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
 
-                  <input className="input" placeholder="Note (optional — e.g. lock name, chama name)"
-                    value={serviceNote} onChange={(e) => setServiceNote(e.target.value)} />
+            {/* ── Corridor flow ────────────────────────────────────────────── */}
+            {flow.type === "corridor" && corridor && (
+              <>
+                <h2 style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ color: MEDIUM_COLOR[corridor.from] }}>
+                    <i className={`ti ${CORRIDORS.find(c => c.from === corridor.from && c.to === corridor.to)?.fromIcon}`} />
+                  </span>
+                  {MEDIUM_LABEL[corridor.from]}
+                  <i className="ti ti-arrow-right" style={{ color: "var(--soft)", fontSize: 16 }} />
+                  <span style={{ color: MEDIUM_COLOR[corridor.to] }}>
+                    <i className={`ti ${CORRIDORS.find(c => c.from === corridor.from && c.to === corridor.to)?.toIcon}`} />
+                  </span>
+                  {MEDIUM_LABEL[corridor.to]}
+                  {customer?.name && <span style={{ fontWeight: 400, color: "var(--soft)", fontSize: 15 }}> — {customer.name}</span>}
+                </h2>
 
-                  {error && <ErrorNote msg={error} />}
-                </div>
+                {/* Step: phone (account-required corridors) */}
+                {step === "phone" && (
+                  <>
+                    <p className="modal-sub">Look up the customer's YeboBank account.</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <input className="input" placeholder="Phone (+254712... or 0712...)"
+                        value={phone} onChange={(e) => { setPhone(e.target.value); setCustomer(null); setError(""); }} />
+                      {phone && phoneErr() && <ErrNote msg={phoneErr()!} />}
+                      {error && !phoneErr() && <ErrNote msg={error} />}
+                    </div>
+                    <div className="modal-actions">
+                      <Button disabled={!phone || !!phoneErr() || looking} onClick={doLookup}>
+                        {looking ? "Looking up…" : "Continue"}
+                      </Button>
+                      <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
+                    </div>
+                  </>
+                )}
 
-                <div className="modal-actions">
-                  <Button disabled={!amount || Number(amount) <= 0 || submitting} onClick={submitService}>
-                    {submitting ? "Processing…" : "Confirm & assist"}
-                  </Button>
-                  <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
-                </div>
+                {/* Step: verify */}
+                {step === "verify" && customer && (
+                  <VerifyStep customer={customer} channel={channel} codeSent={codeSent} code={code}
+                    error={error} verifying={verifying}
+                    onSendCode={sendCode} onCodeChange={(v) => { setCode(v); setError(""); }}
+                    onVerify={doVerify} onCancel={closeFlow} />
+                )}
+
+                {/* Step: amount */}
+                {step === "amount" && (
+                  <>
+                    {/* Context line */}
+                    {customer && (
+                      <p className="modal-sub">
+                        {customer.isMember ? `Verified — ${customer.name}.` : "Guest — no YeboBank account."}
+                        {" "}Enter the amount below.
+                      </p>
+                    )}
+                    {noAccountFlow && (
+                      <p className="modal-sub">Enter the amount and complete the exchange.</p>
+                    )}
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+
+                      {/* ── M-Pesa→Cash: show agent's till so customer knows where to send ── */}
+                      {corridor.from === "mpesa" && corridor.to === "cash" && (
+                        <InfoNote msg={`Ask the customer to send M-Pesa to your till: ${agent.mpesaTillNumber}`} />
+                      )}
+
+                      {/* ── Unit toggle (sats corridors only) ──────────────────────────── */}
+                      {needsAccount(corridor) && (
+                        <div style={{ display: "flex", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", overflow: "hidden" }}>
+                          {[
+                            { id: true,  label: "KES" },
+                            { id: false, label: corridor.from === "sats" ? "Sats (customer sends)" : "Sats" },
+                          ].map(({ id, label }) => (
+                            <button key={String(id)} onClick={() => { setUseKes(id); setRawAmount(""); setError(""); }}
+                              style={{
+                                flex: 1, padding: "9px 0", textAlign: "center", border: "none",
+                                background: useKes === id ? "var(--forest)" : "transparent",
+                                color: useKes === id ? "white" : "var(--text)",
+                                cursor: "pointer", fontSize: 13, fontWeight: useKes === id ? 600 : 400,
+                                borderRight: id ? "1px solid var(--border)" : "none",
+                              }}>
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* ── Amount field ───────────────────────────────────────────────── */}
+                      <div>
+                        <input className="input" type="number" min="0"
+                          placeholder={(!needsAccount(corridor) || useKes) ? "Amount (KES)" : "Amount (sats)"}
+                          value={rawAmount}
+                          onChange={(e) => { setRawAmount(e.target.value); setLnInvoice(null); setError(""); }} />
+                        {rawAmount && Number(rawAmount) > 0 && (
+                          <p className="note" style={{ marginTop: 6 }}>{conversionNote(corridor)}</p>
+                        )}
+                      </div>
+
+                      {/* ── Cash→M-Pesa: destination M-Pesa number ────────────────────── */}
+                      {corridor.to === "mpesa" && (
+                        <div>
+                          <input className="input" placeholder="Customer's M-Pesa number (+254... or 07...)"
+                            value={mpesaDest} onChange={(e) => { setMpesaDest(e.target.value); setError(""); }} />
+                          <p className="note" style={{ marginTop: 4 }}>
+                            You will send M-Pesa to this number after confirming.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* ── M-Pesa→Cash: receipt confirmation ─────────────────────────── */}
+                      {corridor.from === "mpesa" && corridor.to === "cash" && (
+                        <InfoNote msg="Only confirm after you see the M-Pesa credit on your phone." />
+                      )}
+
+                      {/* ── M-Pesa→Sats: receipt confirmation ─────────────────────────── */}
+                      {corridor.from === "mpesa" && corridor.to === "sats" && (
+                        <InfoNote msg="Confirm after M-Pesa arrives on your till. The customer's wallet will be credited immediately." />
+                      )}
+
+                      {/* ── Cash→Sats or M-Pesa→Sats: Lightning invoice option ─────────── */}
+                      {(corridor.from === "cash" || corridor.from === "mpesa") && corridor.to === "sats" && !useKes && (
+                        lnInvoice ? (
+                          <div style={{ textAlign: "center", background: "var(--ivory)", borderRadius: "var(--r-sm)", padding: 16 }}>
+                            <i className="ti ti-qrcode" style={{ fontSize: 48, color: "var(--forest)" }} />
+                            <p className="note" style={{ marginTop: 8, wordBreak: "break-all", fontFamily: "var(--font-mono)", fontSize: 10 }}>{lnInvoice}</p>
+                            <p className="note" style={{ marginTop: 6 }}>
+                              Customer scans to pay {num(Number(rawAmount))} sats over Lightning.
+                            </p>
+                          </div>
+                        ) : (
+                          <Button variant="ghost" disabled={!rawAmount || Number(rawAmount) <= 0 || lnBusy}
+                            onClick={generateCashInInvoice}>
+                            <i className="ti ti-qrcode" /> {lnBusy ? "Generating…" : "Generate QR for customer to scan"}
+                          </Button>
+                        )
+                      )}
+
+                      {/* ── Sats→M-Pesa: Lightning scan (optional, if customer wants Lightning pay) ── */}
+                      {corridor.from === "sats" && corridor.to === "mpesa" && (
+                        <>
+                          <p className="note" style={{ color: "var(--soft)" }}>
+                            Optional: if the customer wants to pay via Lightning (rather than wallet debit), scan their invoice.
+                          </p>
+                          <LnDestRow value={lnDest} onChange={(v) => { setLnDest(v); setError(""); }}
+                            onScan={() => setScanning(true)} />
+                        </>
+                      )}
+
+                      {/* ── Low float warning for Sats→Cash ───────────────────────────── */}
+                      {corridor.from === "sats" && corridor.to === "cash" && lowFloat && (
+                        <ErrNote msg={`Sats float is low (${num(agent.floatLimitSats)} sats). Make sure you have enough cash on hand to pay out.`} />
+                      )}
+
+                      {error && <ErrNote msg={error} />}
+                    </div>
+
+                    <div className="modal-actions">
+                      <Button disabled={!rawAmount || Number(rawAmount) <= 0 || submitting}
+                        onClick={() => submitCorridor(corridor)}>
+                        {submitting ? "Processing…" : `Confirm ${MEDIUM_LABEL[corridor.from]} → ${MEDIUM_LABEL[corridor.to]}`}
+                      </Button>
+                      <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -694,6 +752,71 @@ export default function AgentPage() {
           onClose={() => setScanning(false)}
         />
       )}
+    </>
+  );
+}
+
+// ── VerifyStep — extracted to avoid duplication ───────────────────────────────
+function VerifyStep({
+  customer, channel, codeSent, code, error, verifying,
+  onSendCode, onCodeChange, onVerify, onCancel,
+}: {
+  customer: { phone: string; name: string | null; isMember: boolean };
+  channel: AccessChannel | null;
+  codeSent: boolean;
+  code: string;
+  error: string;
+  verifying: boolean;
+  onSendCode: (ch: AccessChannel) => void;
+  onCodeChange: (v: string) => void;
+  onVerify: () => void;
+  onCancel: () => void;
+}) {
+  const CHANNELS: { id: AccessChannel; label: string; icon: string; hint: string }[] = [
+    { id: "sms",     label: "SMS code",   icon: "ti-message", hint: "We text a one-time code to their phone." },
+    { id: "email",   label: "Email code", icon: "ti-mail",    hint: "We email a one-time code." },
+    { id: "offline", label: "Saved code", icon: "ti-key",     hint: "They read out a code they already saved." },
+  ];
+  return (
+    <>
+      <p className="modal-sub">
+        <strong>{customer.name ?? customer.phone}</strong> has a YeboBank account.
+        Verify they&apos;re physically present before touching their wallet.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {CHANNELS.map((c) => (
+          <button key={c.id}
+            style={{
+              textAlign: "left", padding: 12, cursor: "pointer", background: "var(--ivory)",
+              border: `1.5px solid ${channel === c.id ? "var(--emerald-deep)" : "var(--border)"}`,
+              borderRadius: "var(--r-sm)",
+            }}
+            onClick={() => onSendCode(c.id)}
+          >
+            <strong><i className={`ti ${c.icon}`} style={{ marginRight: 8 }} />{c.label}</strong>
+            <p className="note" style={{ marginTop: 4 }}>{c.hint}</p>
+          </button>
+        ))}
+        {channel && codeSent && (
+          <input className="input"
+            placeholder={channel === "offline" ? "Code the customer reads out" : "One-time code from SMS / email"}
+            value={code} onChange={(e) => onCodeChange(e.target.value)} />
+        )}
+        {error && (
+          <p className="note" style={{
+            color: "var(--terra-text)", background: "rgba(185,72,50,.08)",
+            border: "1px solid rgba(185,72,50,.2)", borderRadius: "var(--r-sm)", padding: "8px 12px",
+          }}>
+            <i className="ti ti-alert-circle" style={{ marginRight: 6 }} />{error}
+          </p>
+        )}
+      </div>
+      <div className="modal-actions">
+        <Button disabled={!channel || !codeSent || !code || verifying} onClick={onVerify}>
+          {verifying ? "Verifying…" : "Verify & continue"}
+        </Button>
+        <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+      </div>
     </>
   );
 }

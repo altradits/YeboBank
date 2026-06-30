@@ -343,6 +343,51 @@ export async function agentPayInvoice(invoiceOrAddress: string, amountSats: numb
   return req("/agent/pay", { method: "POST", body: JSON.stringify({ invoiceOrAddress, amountSats }) });
 }
 
+// Cash ↔ M-Pesa swap — no YeboBank account required; agent earns commission.
+// TODO(backend): POST /agent/swap — logs the exchange, credits commission to agent
+export async function agentFiatSwap(
+  from: "cash" | "mpesa", to: "cash" | "mpesa",
+  amountKes: number, mpesaNumber?: string,
+): Promise<{ ok: boolean; entry: LedgerEntry }> {
+  if (USE_MOCKS) {
+    const commissionKes = amountKes * mockAgent.commissionRate;
+    const commissionSats = Math.round(commissionKes * 13); // ≈ 13 sats/KES at mock rate
+    mockAgent.totalEarnedSats += commissionSats;
+    const entry: LedgerEntry = {
+      id: `l_swap_${Date.now()}`,
+      type: "agent_fiat_swap",
+      direction: "credit",
+      amountSats: commissionSats,
+      balanceAfter: mockAgent.totalEarnedSats,
+      note: `${from === "cash" ? "Cash" : "M-Pesa"} → ${to === "cash" ? "Cash" : "M-Pesa"} KES ${amountKes}${mpesaNumber ? ` · ${mpesaNumber}` : ""} · commission`,
+      createdAt: new Date().toISOString(),
+      status: "confirmed",
+    };
+    mockAgentLedger.unshift(entry);
+    return delay({ ok: true, entry });
+  }
+  return req("/agent/swap", { method: "POST", body: JSON.stringify({ from, to, amountKes, mpesaNumber }) });
+}
+
+// Agent tops up their own sats float by paying a Lightning invoice they generate here.
+// TODO(backend): POST /agent/float/topup → lnd.AddInvoice, return bolt11
+export async function agentTopUpFloat(amountSats: number): Promise<{ invoice: string }> {
+  if (USE_MOCKS) {
+    return delay({ invoice: `lnbc${amountSats}n1p` + Math.random().toString(36).slice(2, 12) + "floattopup" });
+  }
+  return req("/agent/float/topup", { method: "POST", body: JSON.stringify({ amountSats }) });
+}
+
+// Agent confirms the top-up payment was received (in production this fires via webhook).
+// TODO(backend): POST /agent/float/confirm → verify payment_hash, credit float
+export async function confirmAgentTopUp(amountSats: number): Promise<Agent> {
+  if (USE_MOCKS) {
+    mockAgent.floatLimitSats += amountSats;
+    return delay({ ...mockAgent });
+  }
+  return req<Agent>("/agent/float/confirm", { method: "POST", body: JSON.stringify({ amountSats }) });
+}
+
 // ── Chama feature (new endpoints) ────────────────────────────────────────────
 // Current user handle used by mock layer only. Backend derives from session.
 const MOCK_HANDLE = "@wanjiku";

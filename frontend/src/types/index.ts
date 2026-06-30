@@ -139,6 +139,7 @@ export interface Agent {
   floatLimitSats: number;
   commissionRate: number;     // e.g. 0.005
   totalEarnedSats: number;
+  mpesaTillNumber: string;   // agent's M-Pesa business number customers send to
 }
 
 export type ChamaMessageKind = "text" | "system" | "deposit" | "withdrawal" | "transfer" | "vote" | "join_request";
