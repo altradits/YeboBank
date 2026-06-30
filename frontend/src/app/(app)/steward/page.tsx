@@ -46,6 +46,12 @@ export default function StewardPage() {
         <div className="card"><div className="stat"><span className="l">Fee earned (2% of profit)</span><span className="v" style={{ color: "var(--emerald-deep)" }}>{fmtKESraw(totalFeeKes, 0)}</span></div></div>
       </div>
 
+      <div className="chama-actions" style={{ marginTop: 18 }}>
+        <Link href="/steward/deploy" className="btn btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <i className="ti ti-arrow-bar-up" /> Deploy capital
+        </Link>
+      </div>
+
       <div className="grid-2" style={{ marginTop: 18 }}>
         <Link href="/steward/income" className="card" style={{ display: "block" }}>
           <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16 }}>Income sources</h2>

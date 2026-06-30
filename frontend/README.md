@@ -28,15 +28,45 @@ npm run build && npm start
 - `/login`, `/register`, `/verify` — auth flow (navigates straight to the app)
 
 **Authenticated app** (route group `(app)` with sidebar + mobile bottom nav)
+
+Core
 - `/dashboard` — balance, savings + interest stats, recent activity
 - `/deposit` — M-Pesa STK Push + Lightning invoice tabs
 - `/withdraw` — M-Pesa B2C payout
 - `/send` — Lightning send + receive (your Lightning address)
-- `/savings` and `/savings/lock` — locks, progress, new lock
-- `/history` — full ledger with in/out filters
-- `/chama` and `/chama/create` — group wallets
-- `/agent` — agent dashboard (cash in / cash out)
-- `/settings` — profile, security, logout
+- `/history` — full ledger with credit/debit filters
+- `/settings` — profile, language, security, logout
+
+Savings locks
+- `/savings` — all your locks, deposits-over-time chart with Daily / Weekly /
+  Monthly / Q1–Q3 / 1Y–10Y timeframe selector, contribute from any lock card
+- `/savings/lock` — create a new individual, group, or chama savings lock
+- `/savings/{id}` — per-lock dashboard (principal + interest stats, progress
+  bar). Single-member: simple activity list. Multi-member: participants sidebar
+  + shared chat panel. Highlights new deposit when redirected with
+  `?justDeposited=1`.
+
+Chamas (group wallets)
+- `/chama` — your chamas overview
+- `/chama/create` — create a new chama
+- `/chama/discover` — browse and request to join public chamas
+- `/chama/portfolio` — combined stake view (share %, personal value, gains,
+  growth chart across all chamas)
+- `/chama/{id}` — full chama dashboard (stats, members sidebar, chat/activity
+  feed, deposit, withdraw, vote, join-request management)
+
+Mlinzi — friends & family investor program
+- `/invest` — investor view (request access, position + projected growth,
+  FI calculator, withdrawal requests)
+- `/steward` — fund steward overview (AUM, fees, pending queue counts)
+- `/steward/income` — income sources (add / edit / remove yield sources)
+- `/steward/investors` — investor positions + monthly statement posting
+- `/steward/access` — access request queue (accept / decline, set relationship)
+- `/steward/withdrawals` — withdrawal queue (approve / decline, set delivery
+  date)
+
+Agent
+- `/agent` — cash-in / cash-out operations, float tracking
 
 Every amount is in **satoshis** and converts to KES / BTC / USD using one live
 exchange rate shared across the whole UI.
@@ -77,20 +107,35 @@ src/
     login|register|verify auth pages
     (app)/
       layout.tsx          app shell (sidebar + bottom nav + top bar)
-      dashboard|deposit|withdraw|send|savings|savings/lock|
-      history|chama|chama/create|agent|settings
+      dashboard|deposit|withdraw|send|history|agent|settings
+      savings/            overview + deposits chart
+        lock/             new-lock wizard
+        [id]/             per-lock dashboard (activity / shared chat)
+      chama/              overview
+        create/           new chama wizard
+        discover/         browse public chamas
+        portfolio/        combined stake + growth view
+        [id]/             full chama dashboard (chat, votes, join requests)
+      invest/             F&F investor view
+      steward/            fund steward overview
+        income/           income sources CRUD
+        investors/        positions + monthly statements
+        access/           access request queue
+        withdrawals/      withdrawal queue
   components/
     landing/              Ticker, SiteNav, Hero, FeatureSections, Highlights,
                           Converter, Footer
-    app/                  Nav (sidebar + bottom nav), TopBar, BalanceCard,
-                          TransactionRow
+    app/                  Nav, TopBar, BalanceCard, TransactionRow,
+                          ContributeModal, LockCard
     ui/                   Button (material ripple), useReveal hook
   lib/
     api.ts                ← backend seam (mock now, fetch later)
     rate-context.tsx      live rate provider + useRate()
     format.ts             money + time formatters
     mock.ts               placeholder data
-  types/index.ts          domain types
+    bucket.ts             deposit bucketing for the savings chart
+  types/index.ts          domain types (User, SavingsLock, Chama, LockMessage,
+                          IncomeSource, InvestorPosition, FIProfile, …)
 ```
 
 ## Design notes

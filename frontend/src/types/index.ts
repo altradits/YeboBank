@@ -270,3 +270,15 @@ export interface AccessRequest {
   requestedAt: string; // ISO
   status: "requested" | "accepted" | "declined";
 }
+
+// Records each time the Mlinzi moves pool capital out to fund a new investment.
+export type DeployMethod = "mpesa" | "lightning";
+export interface PoolDeployment {
+  id: string;
+  method: DeployMethod;
+  amountSats: number;
+  amountKes: number;
+  destination: string; // M-Pesa phone number or Lightning invoice/address
+  notes?: string;
+  deployedAt: string; // ISO
+}

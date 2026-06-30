@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { fmtKESraw } from "@/lib/format";
 import { getIncomeSources, upsertIncomeSource, removeIncomeSource } from "@/lib/api";
 import type { IncomeSource, IncomeSourceType } from "@/types";
@@ -18,11 +19,21 @@ const EMPTY: IncomeSource = {
 };
 
 export default function IncomePage() {
+  const searchParams = useSearchParams();
   const [sources, setSources] = useState<IncomeSource[]>([]);
   const [editing, setEditing] = useState<IncomeSource | null>(null);
 
   function load() { getIncomeSources().then(setSources); }
   useEffect(load, []);
+
+  // If navigated here from Deploy Capital, open the add form pre-filled with the deployed amount.
+  useEffect(() => {
+    const prefilledKes = parseInt(searchParams.get("prefilledKes") ?? "0") || 0;
+    if (prefilledKes > 0) {
+      setEditing({ ...EMPTY, principalKes: prefilledKes });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function save() {
     if (!editing) return;

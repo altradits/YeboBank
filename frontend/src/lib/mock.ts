@@ -5,6 +5,7 @@ import type {
   User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest,
   ChamaGrowthPoint, SavingsGrowthPoint, SavingsDeposit, PendingInvite, LockMessage,
   IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
+  PoolDeployment,
 } from "@/types";
 
 export const mockUser: User = {
@@ -390,3 +391,6 @@ export const mockWithdrawalRequests: WithdrawalRequest[] = [
 
 // Notifications keyed by handle (mutable — API functions push to this array).
 export const mockNotifications: AppNotification[] = [];
+
+// Mutable — deployPoolCapital() pushes to this array.
+export const mockPoolDeployments: PoolDeployment[] = [];

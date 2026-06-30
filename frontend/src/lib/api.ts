@@ -14,7 +14,7 @@ import type {
   ChamaMessage, ChamaVote, JoinRequest,
   MyChamaStake, ChamaGrowthPoint, ChamaPortfolio, SavingsGrowthPoint, SavingsDeposit,
   IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
-  PendingInvite, LockMessage,
+  PendingInvite, LockMessage, PoolDeployment,
 } from "@/types";
 import {
   mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent,
@@ -22,7 +22,7 @@ import {
   mockGrowthData, mockSavingsGrowth, mockSavingsDeposits, mockPendingInvites,
   mockIncomeSources, mockInvestorPositions, mockAccessRequests, mockFIProfiles,
   mockWithdrawalRequests, mockNotifications,
-  mockLockMessages,
+  mockLockMessages, mockPoolDeployments,
 } from "@/lib/mock";
 
 const USE_MOCKS = true; // flip to false once the backend endpoints exist
@@ -764,6 +764,39 @@ export async function markRead(id: string): Promise<{ ok: boolean }> {
     return delay({ ok: true });
   }
   return req<{ ok: boolean }>(`/invest/notifications/${id}/read`, { method: "POST" });
+}
+
+// ── Pool capital deployment (Mlinzi) ─────────────────────────────────────────
+
+// TODO(backend): GET /steward/pool/deployments
+export async function getPoolDeployments(): Promise<PoolDeployment[]> {
+  if (USE_MOCKS) return delay([...mockPoolDeployments].reverse());
+  return req<PoolDeployment[]>("/steward/pool/deployments");
+}
+
+// Moves pool capital to an external destination so the Mlinzi can invest it.
+// M-Pesa: sends to the given phone; Lightning: pays the invoice or address.
+// TODO(backend): POST /steward/pool/deploy — debit pool_wallet ledger, record deployment,
+//   then fan-out the appropriate rails (M-Pesa B2C or Lightning payment).
+export async function deployPoolCapital(
+  method: "mpesa" | "lightning",
+  amountSats: number,
+  amountKes: number,
+  destination: string,
+  notes?: string,
+): Promise<PoolDeployment> {
+  if (USE_MOCKS) {
+    const dep: PoolDeployment = {
+      id: `pd_${Date.now()}`, method, amountSats, amountKes,
+      destination, notes, deployedAt: new Date().toISOString(),
+    };
+    mockPoolDeployments.push(dep);
+    return delay(dep);
+  }
+  return req<PoolDeployment>("/steward/pool/deploy", {
+    method: "POST",
+    body: JSON.stringify({ method, amountSats, amountKes, destination, notes }),
+  });
 }
 
 // ── Lock messages (activity / chat) ──────────────────────────────────────────

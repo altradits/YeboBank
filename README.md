@@ -41,7 +41,8 @@ Run the frontend (`cd frontend && npm install && npm run dev`) then navigate to 
 |-------|-----------|------|
 | `/invest` | Investor view — request access, see your position + projected growth, FI calculator, withdrawal requests | Friends & family investor |
 | `/steward` | Fund steward overview — total AUM, fees earned, pending access requests and withdrawals | Mlinzi (fund steward) |
-| `/steward/income` | Income sources — add / edit / remove real-estate, bonds, T-bills, funds, and other sources with yield tracking | Mlinzi |
+| `/steward/deploy` | Deploy pool capital — shows pool received vs. already deployed vs. available; M-Pesa or Lightning tabs to move funds out; success state links directly to adding an income source with the amount pre-filled | Mlinzi |
+| `/steward/income` | Income sources — add / edit / remove real-estate, bonds, T-bills, funds, and other sources with yield tracking; accepts `?prefilledKes=` from the deploy flow | Mlinzi |
 | `/steward/investors` | Investor positions — post monthly statements, track compounding returns per investor | Mlinzi |
 | `/steward/access` | Access request queue — accept or decline friends & family requests, assign relationship type | Mlinzi |
 | `/steward/withdrawals` | Withdrawal queue — approve or decline investor withdrawal requests, set expected delivery date | Mlinzi |
