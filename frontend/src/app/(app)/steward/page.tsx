@@ -3,21 +3,34 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { num, fmtKESraw } from "@/lib/format";
-import { getIncomeSources, getInvestorPositions, getAccessRequests, getWithdrawalRequests } from "@/lib/api";
-import type { IncomeSource, InvestorPosition, AccessRequest, WithdrawalRequest } from "@/types";
+import {
+  getIncomeSources, getInvestorPositions, getAccessRequests, getWithdrawalRequests,
+  getInvestorPositionForHandle, getMlinziFIProfile, setMlinziFIProfile,
+} from "@/lib/api";
+import type { IncomeSource, InvestorPosition, AccessRequest, WithdrawalRequest, FIProfile } from "@/types";
+import { FICalculator } from "@/components/app/FICalculator";
 
 export default function StewardPage() {
   const [income, setIncome] = useState<IncomeSource[]>([]);
   const [investors, setInvestors] = useState<InvestorPosition[]>([]);
   const [access, setAccess] = useState<AccessRequest[]>([]);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
+  const [myPosition, setMyPosition] = useState<InvestorPosition | null>(null);
+  const [myFi, setMyFi] = useState<FIProfile | null>(null);
 
   useEffect(() => {
     getIncomeSources().then(setIncome);
     getInvestorPositions().then(setInvestors);
     getAccessRequests().then(setAccess);
     getWithdrawalRequests().then(setWithdrawals);
+    getInvestorPositionForHandle("@stanley").then(setMyPosition);
+    getMlinziFIProfile().then(setMyFi);
   }, []);
+
+  async function onSaveMyFi(p: FIProfile) {
+    const saved = await setMlinziFIProfile(p);
+    setMyFi(saved);
+  }
 
   const totalAumKes = investors.reduce((s, p) => {
     const last = p.monthlyStatements[p.monthlyStatements.length - 1];
@@ -31,7 +44,7 @@ export default function StewardPage() {
     <>
       <div className="section-head">
         <div>
-          <h1 className="page-title">Mlinzi</h1>
+          <h1 className="page-title">Mlinzi Console</h1>
           <p className="page-sub">Stanley Thuita · Fund Steward</p>
         </div>
       </div>
@@ -74,6 +87,45 @@ export default function StewardPage() {
           </p>
         </Link>
       </div>
+
+      {/* Stanley's own investment position */}
+      {myPosition && (() => {
+        const last = myPosition.monthlyStatements[myPosition.monthlyStatements.length - 1];
+        const currentValueKes = last ? last.closingKes : myPosition.principalKesAtEntry;
+        return (
+          <div className="card" style={{ marginTop: 18 }}>
+            <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 14 }}>My position</h2>
+            <div className="grid-2">
+              <div className="stat"><span className="l">Principal</span><span className="v">{num(myPosition.principalSats)} sats</span><span className="note">≈ {fmtKESraw(myPosition.principalKesAtEntry, 0)} at entry</span></div>
+              <div className="stat"><span className="l">Current value</span><span className="v" style={{ color: "var(--emerald-deep)" }}>{fmtKESraw(currentValueKes, 0)}</span></div>
+            </div>
+            {myPosition.monthlyStatements.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Monthly statements</p>
+                {myPosition.monthlyStatements.slice().reverse().map((m) => (
+                  <div key={m.month} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--border-soft)", fontSize: 13 }}>
+                    <span>{m.month}</span>
+                    <span className="note">Open {fmtKESraw(m.openingKes, 0)}</span>
+                    <span style={{ color: m.returnKes >= 0 ? "var(--emerald-deep)" : "var(--red)" }}>{m.returnKes >= 0 ? "+" : ""}{fmtKESraw(m.returnKes, 0)}</span>
+                    <strong>{fmtKESraw(m.closingKes, 0)}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* FI calculator for Stanley — uses AUM if no personal position */}
+      {myFi && (
+        <FICalculator
+          fi={myFi}
+          currentValueKes={myPosition
+            ? (myPosition.monthlyStatements.slice(-1)[0]?.closingKes ?? myPosition.principalKesAtEntry)
+            : totalAumKes}
+          onSave={onSaveMyFi}
+        />
+      )}
     </>
   );
 }

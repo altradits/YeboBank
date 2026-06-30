@@ -547,6 +547,35 @@ export async function withdrawFromChama(chamaId: string, sats: number): Promise<
 export const CBK_DECLINE_MESSAGE =
   "Access isn't available yet. YeboBank's investment service is currently limited to the founder's family and friends while we complete Central Bank of Kenya (CBK) regulatory approval. Once we're licensed, this will open to the public — we'll let you know.";
 
+const MLINZI_HANDLE = "@stanley";
+
+export async function getInvestorPositionForHandle(handle: string): Promise<InvestorPosition | null> {
+  if (USE_MOCKS) {
+    const pos = mockInvestorPositions.find((p) => p.investorHandle === handle);
+    return delay(pos ? { ...pos } : null);
+  }
+  return req<InvestorPosition | null>(`/steward/investors/${encodeURIComponent(handle)}`);
+}
+
+export async function getMlinziFIProfile(): Promise<FIProfile> {
+  if (USE_MOCKS) {
+    const existing = mockFIProfiles[MLINZI_HANDLE];
+    if (existing) return delay({ ...existing });
+    const fresh: FIProfile = { handle: MLINZI_HANDLE, annualExpensesKes: 6_000_000, fiRule: 0.04, assumedReturnPctAnnual: 20 };
+    mockFIProfiles[MLINZI_HANDLE] = fresh;
+    return delay({ ...fresh });
+  }
+  return req<FIProfile>("/steward/fi");
+}
+
+export async function setMlinziFIProfile(profile: FIProfile): Promise<FIProfile> {
+  if (USE_MOCKS) {
+    mockFIProfiles[profile.handle] = profile;
+    return delay({ ...profile });
+  }
+  return req<FIProfile>("/steward/fi", { method: "POST", body: JSON.stringify(profile) });
+}
+
 function pushNotification(toHandle: string, kind: AppNotification["kind"], body: string): AppNotification {
   const n: AppNotification = { id: `nt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, toHandle, kind, body, createdAt: new Date().toISOString(), read: false };
   mockNotifications.push(n);

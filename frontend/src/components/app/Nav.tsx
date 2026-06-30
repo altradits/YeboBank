@@ -24,7 +24,7 @@ export function Sidebar() {
   const path = usePathname();
   const router = useRouter();
   const isActive = (h: string) => path === h || path.startsWith(h + "/");
-  // role-gated: the Mlinzi (Fund Steward) console is only for the steward role.
+  // role-gated: Mlinzi Console (fund steward admin tools) is only for the mlinzi role.
   const isMlinzi = mockUser.role === "mlinzi";
 
   async function onLogout() {
@@ -49,7 +49,7 @@ export function Sidebar() {
       ))}
       {isMlinzi && (
         <Link href="/steward" className={`side-link${isActive("/steward") ? " active" : ""}`}>
-          <i className="ti ti-shield-lock" /> Mlinzi
+          <i className="ti ti-shield-lock" /> Mlinzi Console
         </Link>
       )}
       <div className="side-sec">Account</div>
@@ -72,6 +72,7 @@ const BOTTOM = [
   { href: "/send", icon: "ti-send", label: "Send" },
   { href: "/savings", icon: "ti-lock", label: "Savings" },
   { href: "/chama", icon: "ti-users", label: "Chamas" },
+  { href: "/invest", icon: "ti-trending-up", label: "Invest" },
   { href: "/settings", icon: "ti-settings", label: "Account" },
 ];
 

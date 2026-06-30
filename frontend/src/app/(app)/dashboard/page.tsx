@@ -46,6 +46,29 @@ export default function DashboardPage() {
       </div>
 
       <div className="card" style={{ marginTop: 18 }}>
+        <div className="section-head"><h2>Grow your money</h2></div>
+        <p className="note" style={{ marginBottom: 14 }}>
+          Pool capital with people you trust, or invest alongside Mlinzi, to grow your savings and stay ahead of inflation.
+        </p>
+        <div className="grid-2">
+          <Link href="/chama" className="card" style={{ display: "block" }}>
+            <div className="stat">
+              <span className="l"><i className="ti ti-users" /> Chama</span>
+              <span className="v" style={{ fontSize: 16 }}>Pool savings with a group</span>
+            </div>
+            <p className="note" style={{ marginTop: 8 }}>Contribute together, vote on decisions, track shared growth.</p>
+          </Link>
+          <Link href="/invest" className="card" style={{ display: "block" }}>
+            <div className="stat">
+              <span className="l"><i className="ti ti-trending-up" /> Invest with Mlinzi</span>
+              <span className="v" style={{ fontSize: 16 }}>Friends &amp; family fund access</span>
+            </div>
+            <p className="note" style={{ marginTop: 8 }}>Request access to invest alongside Mlinzi&apos;s deployed capital.</p>
+          </Link>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginTop: 18 }}>
         <div className="section-head">
           <h2>Recent activity</h2>
           <Link href="/history" className="txtlink">View all <i className="ti ti-arrow-right" /></Link>

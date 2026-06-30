@@ -35,7 +35,7 @@ export default function InvestorsPage() {
       <div className="section-head">
         <div>
           <div style={{ marginBottom: 4 }}>
-            <Link href="/steward" style={{ color: "var(--soft)", fontSize: 14 }}><i className="ti ti-arrow-left" /> Mlinzi</Link>
+            <Link href="/steward" style={{ color: "var(--soft)", fontSize: 14 }}><i className="ti ti-arrow-left" /> Mlinzi Console</Link>
           </div>
           <h1 className="page-title">Investors</h1>
         </div>

@@ -293,9 +293,9 @@ h1.hero-h .grn{color:var(--emerald-deep)}
 @media(max-width:900px){
   .app-shell{grid-template-columns:1fr}
   .sidebar{display:none}
-  .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--surface);border-top:1px solid var(--border);justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
-  .bn-link{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--soft);padding:6px 10px;border-radius:12px;min-width:56px}
-  .bn-link i{font-size:22px}
+  .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--surface);border-top:1px solid var(--border);justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
+  .bn-link{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;color:var(--soft);padding:6px 6px;border-radius:12px;min-width:44px}
+  .bn-link i{font-size:20px}
   .bn-link.active{color:var(--emerald-deep)}
   .app-content{padding-bottom:110px}
 }
