@@ -558,3 +558,168 @@ h1.hero-h .grn{color:var(--emerald-deep)}
   @keyframes deposit-flash{0%,8%{background:rgba(17,166,91,.22)}100%{background:rgba(17,166,91,.1)}}
   .deposit-bubble.deposit-highlight{animation:deposit-flash 3s ease-out}
 }
+
+/* =========================================================================
+   DARK THEME — ATM card midnight-forest palette
+   Extends the ATM card's dark green / gold identity across the full UI.
+   ========================================================================= */
+
+[data-theme="dark"] {
+  /* ── Backgrounds ── */
+  --ivory:       #0c1a0c;    /* page bg — deep forest night */
+  --cream:       #152815;    /* element bg — inputs, segs, chips */
+  --surface:     #1d311d;    /* card / modal surfaces */
+
+  /* ── Borders ── */
+  --border:      rgba(255,255,255,.11);
+  --border-soft: rgba(255,255,255,.07);
+
+  /* ── Typography ── */
+  --text:        #eef5ec;
+  --muted:       rgba(210,238,206,.62);
+  --soft:        rgba(186,220,182,.42);
+
+  /* ── Shadows — elevated darkness ── */
+  --shadow-1: 0 1px 2px rgba(0,0,0,.28), 0 2px 8px rgba(0,0,0,.22);
+  --shadow-2: 0 6px 14px rgba(0,0,0,.4),  0 12px 30px rgba(0,0,0,.32);
+  --shadow-3: 0 14px 28px rgba(0,0,0,.6), 0 24px 60px rgba(0,0,0,.52);
+
+  /* ── Accent adjustments for dark backgrounds ── */
+  --emerald-deep: #2ABE6A;   /* lighter for readability on dark */
+  --gold-text:    #C9A84C;   /* ATM card gold, works on dark */
+  --terra-text:   #E07844;   /* lighter for contrast */
+  --red:          #E05A42;   /* lighter for contrast */
+}
+
+/* color-scheme so browser chrome (scrollbars, system UI) matches */
+[data-theme="dark"] { color-scheme: dark; }
+[data-theme="light"] { color-scheme: light; }
+
+/* ── Ghost button: hardcoded light-only border needs explicit override ── */
+[data-theme="dark"] .btn-ghost {
+  border-color: rgba(255,255,255,.22);
+  color: var(--text);
+}
+[data-theme="dark"] .btn-ghost:hover {
+  border-color: rgba(255,255,255,.42);
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+}
+
+/* ── Landing page nav (hardcoded light backdrop) ── */
+[data-theme="dark"] .nav {
+  background: rgba(12,26,12,.92);
+  border-color: rgba(255,255,255,.08);
+}
+[data-theme="dark"] .navlinks a { color: rgba(255,255,255,.7); }
+[data-theme="dark"] .navlinks a:hover { color: #fff; }
+
+/* ── App topbar ── */
+[data-theme="dark"] .topbar { border-color: rgba(255,255,255,.08); }
+
+/* ── Sidebar: stays forest but deepened so it reads as primary nav ── */
+[data-theme="dark"] .sidebar { background: #0f2a18; border-right: 1px solid rgba(255,255,255,.06); }
+[data-theme="dark"] .side-sec { color: rgba(255,255,255,.35); }
+
+/* ── Bottom nav ── */
+[data-theme="dark"] .bottom-nav { border-color: rgba(255,255,255,.08); }
+[data-theme="dark"] .bn-link { color: rgba(255,255,255,.45); }
+[data-theme="dark"] .bn-link.active { color: var(--emerald-deep); }
+
+/* ── Modal overlay: deeper scrim on dark ── */
+[data-theme="dark"] .modal-overlay { background: rgba(0,0,0,.75); }
+
+/* ── Chat bubbles ── */
+[data-theme="dark"] .msg .msg-bubble { background: #1d311d; }
+[data-theme="dark"] .msg.own .msg-bubble { background: #1e4030; color: #fff; }
+
+/* ── Textarea / composer ── */
+[data-theme="dark"] .composer-row textarea {
+  background: var(--cream);
+  border-color: rgba(255,255,255,.11);
+  color: var(--text);
+}
+
+/* ── Vote options ── */
+[data-theme="dark"] .vote-opt:hover:not(:disabled) {
+  border-color: var(--emerald-deep);
+  background: rgba(42,190,106,.08);
+}
+[data-theme="dark"] .add-opt { border-color: rgba(255,255,255,.18); color: var(--soft); }
+[data-theme="dark"] .add-opt:hover { border-color: var(--emerald-deep); color: var(--emerald-deep); }
+
+/* ── Pin cells ── */
+[data-theme="dark"] .pin-cell { background: var(--cream); border-color: rgba(255,255,255,.14); }
+
+/* ── Chama-lock options ── */
+[data-theme="dark"] .lock-chama-option { background: var(--cream); border-color: rgba(255,255,255,.1); }
+[data-theme="dark"] .lock-chama-option:hover:not(:disabled) { border-color: var(--emerald-deep); background: rgba(42,190,106,.06); }
+[data-theme="dark"] .lock-chama-invite { border-color: rgba(201,168,76,.35); background: rgba(201,168,76,.05); }
+
+/* ── Pending badge: hardcoded colour ── */
+[data-theme="dark"] .badge.pending { background: rgba(224,168,0,.2); color: #D49A20; }
+
+/* ── Auth gradient ── */
+[data-theme="dark"] .auth {
+  background: radial-gradient(circle at 50% -10%, rgba(201,168,76,.14), transparent 50%), var(--ivory);
+}
+
+/* ── QR code: invert for visibility on dark ── */
+[data-theme="dark"] .qr { filter: invert(1) hue-rotate(180deg); }
+
+/* ── Amount input ── */
+[data-theme="dark"] .amount-input { background: var(--cream); color: var(--text); }
+
+/* ── Trust cards (landing) ── */
+[data-theme="dark"] .tcard { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.1); }
+
+/* ── Chat expand button ── */
+[data-theme="dark"] .chat-expand-btn:hover { color: #fff; background: rgba(255,255,255,.08); }
+
+/* ── Topbar avatar stays gold ── */
+[data-theme="dark"] .topbar .avatar { background: var(--gold); color: #3a2c00; }
+
+/* ── Notif banner: slightly more visible on dark ── */
+[data-theme="dark"] .notif-banner { background: rgba(201,168,76,.1); border-color: rgba(201,168,76,.25); }
+
+/* ── Lock-kind badges ── */
+[data-theme="dark"] .lock-kind-badge { background: rgba(255,255,255,.07); color: var(--soft); }
+[data-theme="dark"] .lock-kind-badge.badge-group { background: rgba(42,190,106,.14); color: var(--emerald-deep); }
+[data-theme="dark"] .lock-kind-badge.badge-chama { background: rgba(201,168,76,.18); color: var(--gold-text); }
+
+/* ── Stake % label ── */
+[data-theme="dark"] .stake-pct { color: var(--emerald-deep); }
+[data-theme="dark"] .portfolio-chama-pct { color: var(--emerald-deep); }
+[data-theme="dark"] .portfolio-chama-row:hover .portfolio-chama-name { color: var(--emerald-deep); }
+
+/* ── Segment buttons (light on dark) ── */
+[data-theme="dark"] .seg button { color: var(--soft); }
+[data-theme="dark"] .seg button.on { background: var(--forest-mid); color: #fff; }
+
+/* ── Cmd error ── */
+[data-theme="dark"] .cmd-error { background: rgba(224,90,66,.12); }
+
+/* ── Bar-chart labels ── */
+[data-theme="dark"] .bar-label { color: var(--soft); }
+[data-theme="dark"] .bar-label b { color: var(--text); }
+
+/* ── Theme toggle button (in topbar) ── */
+.theme-toggle {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--soft);
+  font-size: 17px;
+  transition: border-color .2s, color .2s, background .2s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  border-color: var(--gold);
+  color: var(--gold-text);
+  background: rgba(201,168,76,.07);
+}
