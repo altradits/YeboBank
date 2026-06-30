@@ -8,6 +8,7 @@ import {
   getUser, requestAccess, getMyPosition, getFIProfile, setFIProfile,
   requestWithdrawal, getIncomeSources, CBK_DECLINE_MESSAGE,
 } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import type { User, InvestorPosition, FIProfile, IncomeSource } from "@/types";
 
 const PILOT_BANNER = "Friends & family pilot — figures are projections, not guarantees. Not a public offer.";
@@ -59,6 +60,7 @@ export default function InvestPage() {
     return (
       <>
         <div className="section-head"><div><h1 className="page-title">Invest with Mlinzi</h1></div></div>
+        <ATMCard variant="compact" />
         <div className="notif-banner"><i className="ti ti-shield-lock" /><span>{PILOT_BANNER}</span></div>
         <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
           <i className="ti ti-lock" style={{ fontSize: 30, color: "var(--gold-text)" }} />
@@ -82,6 +84,7 @@ export default function InvestPage() {
     return (
       <>
         <div className="section-head"><div><h1 className="page-title">Invest with Mlinzi</h1></div></div>
+        <ATMCard variant="compact" />
         <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
           <i className="ti ti-building-bank" style={{ fontSize: 30, color: "var(--terra-text)" }} />
           <h2 style={{ fontFamily: "var(--font-display)", marginTop: 10 }}>Not yet, but soon</h2>
@@ -100,6 +103,10 @@ export default function InvestPage() {
   return (
     <>
       <div className="section-head"><div><h1 className="page-title">My investment</h1><p className="page-sub">{user.relationship && user.relationship !== "none" ? `${user.relationship} of Mlinzi` : ""}</p></div></div>
+      <ATMCard variant="compact"
+        sats={currentValueKes ? Math.round(currentValueKes / rate.kesPerSat) : undefined}
+        balanceLabel="INVESTMENT VALUE"
+      />
       <div className="notif-banner"><i className="ti ti-shield-lock" /><span>{PILOT_BANNER}</span></div>
 
       {/* My position */}

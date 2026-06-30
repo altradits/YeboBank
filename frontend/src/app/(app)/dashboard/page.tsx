@@ -2,15 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import BalanceCard from "@/components/app/BalanceCard";
+import { ATMCard } from "@/components/app/ATMCard";
 import TransactionRow from "@/components/app/TransactionRow";
 import { getWallet, getHistory } from "@/lib/api";
-import { useRate } from "@/lib/rate-context";
-import { num } from "@/lib/format";
 import type { LedgerEntry } from "@/types";
 
 export default function DashboardPage() {
-  const rate = useRate();
   const [balance, setBalance] = useState(0);
   const [history, setHistory] = useState<LedgerEntry[]>([]);
 
@@ -24,25 +21,8 @@ export default function DashboardPage() {
       <h1 className="page-title">Habari, Wanjiku 👋</h1>
       <p className="page-sub">Here&apos;s how your money is doing today.</p>
 
-      <div style={{ marginTop: 24 }}>
-        <BalanceCard sats={balance} />
-      </div>
-
-      <div className="grid-2" style={{ marginTop: 18 }}>
-        <div className="card">
-          <div className="stat">
-            <span className="l">Locked in savings</span>
-            <span className="v">{num(400000)} sats</span>
-          </div>
-          <p className="note" style={{ marginTop: 8 }}>Earning ~5.2% target APY · ≈ KES {num(400000 * rate.kesPerSat)}</p>
-        </div>
-        <div className="card">
-          <div className="stat">
-            <span className="l">Interest earned (12 mo)</span>
-            <span className="v" style={{ color: "var(--emerald-deep)" }}>+{num(52000)} sats</span>
-          </div>
-          <p className="note" style={{ marginTop: 8 }}>Paid monthly from real treasury yield.</p>
-        </div>
+      <div style={{ marginTop: 18 }}>
+        <ATMCard sats={balance} variant="dashboard" />
       </div>
 
       <div className="card" style={{ marginTop: 18 }}>

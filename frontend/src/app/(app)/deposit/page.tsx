@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 import { depositMpesa, depositLightning } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 
 export default function DepositPage() {
   const rate = useRate();
@@ -30,6 +31,8 @@ export default function DepositPage() {
     <>
       <h1 className="page-title">Add money</h1>
       <p className="page-sub">Top up your savings in shillings or over Lightning.</p>
+
+      <ATMCard variant="full" balanceLabel="BALANCE BEFORE DEPOSIT" />
 
       <div className="seg" style={{ marginTop: 20 }}>
         <button className={tab === "mpesa" ? "on" : ""} onClick={() => setTab("mpesa")}>M-Pesa</button>

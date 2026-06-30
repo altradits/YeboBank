@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import TransactionRow from "@/components/app/TransactionRow";
 import { getHistory } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import type { LedgerEntry, LedgerDirection } from "@/types";
 
 type Filter = "all" | LedgerDirection;
@@ -19,6 +20,8 @@ export default function HistoryPage() {
     <>
       <h1 className="page-title">History</h1>
       <p className="page-sub">Every satoshi in and out, on the record.</p>
+
+      <ATMCard variant="compact" balanceLabel="CURRENT BALANCE" />
 
       <div className="seg" style={{ marginTop: 18 }}>
         {(["all", "credit", "debit"] as Filter[]).map((f) => (

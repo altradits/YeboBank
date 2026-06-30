@@ -7,6 +7,7 @@ import { num, fmtKES } from "@/lib/format";
 import { getChamaPortfolio, getChamaGrowth } from "@/lib/api";
 import type { ChamaPortfolio, ChamaGrowthPoint } from "@/types";
 import ChamaGrowthChart from "@/components/app/ChamaGrowthChart";
+import { ATMCard } from "@/components/app/ATMCard";
 
 const _MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function dateToLabel(date: string): string {
@@ -104,6 +105,11 @@ export default function PortfolioPage() {
           <p className="page-sub">Across {portfolio.stakes.length} chama{portfolio.stakes.length !== 1 ? "s" : ""}</p>
         </div>
       </div>
+
+      <ATMCard variant="compact"
+        sats={portfolio?.totalValueSats}
+        balanceLabel="PORTFOLIO VALUE"
+      />
 
       {/* Combined totals */}
       <div className="card portfolio-totals">

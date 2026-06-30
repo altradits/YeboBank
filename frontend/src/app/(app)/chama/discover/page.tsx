@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 import { getAllChamas, requestJoinChama } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import type { Chama } from "@/types";
 
 export default function DiscoverPage() {
@@ -44,6 +45,8 @@ export default function DiscoverPage() {
           <Button variant="ghost"><i className="ti ti-arrow-left" /> My chamas</Button>
         </Link>
       </div>
+
+      <ATMCard variant="compact" />
 
       {loading && (
         <p className="note" style={{ marginTop: 24 }}>Loading chamas…</p>
