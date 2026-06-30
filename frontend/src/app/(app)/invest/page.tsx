@@ -64,7 +64,7 @@ export default function InvestPage() {
           <i className="ti ti-lock" style={{ fontSize: 30, color: "var(--gold-text)" }} />
           <h2 style={{ fontFamily: "var(--font-display)", marginTop: 10 }}>Friends &amp; family investing</h2>
           <p className="note" style={{ marginTop: 8, maxWidth: 440, marginInline: "auto" }}>
-            Stanley invests his own and verified family/friends&apos; capital and pays a compounded monthly
+            Mlinzi invests their own and verified family/friends&apos; capital and pays a compounded monthly
             return. Request access and Mlinzi will review you personally.
           </p>
           {user.accessStatus === "requested" ? (
