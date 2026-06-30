@@ -934,11 +934,12 @@ export default function ChamaDashboard() {
               <ChamaGrowthChart
                 title="Your growth over time"
                 defaultSeriesKey="value"
+                currencyMode="KES"
                 series={[
                   {
                     key: "value",
                     label: "Your value",
-                    color: "var(--emerald)",
+                    color: "var(--gold)",
                     points: growthPoints.map((p) => ({
                       label: dateToLabel(p.date),
                       valueSats: p.valueSats,
@@ -947,7 +948,7 @@ export default function ChamaDashboard() {
                   {
                     key: "contributed",
                     label: "Contributed",
-                    color: "var(--forest)",
+                    color: "var(--forest-mid)",
                     points: growthPoints.map((p) => ({
                       label: dateToLabel(p.date),
                       valueSats: p.contributedSats,

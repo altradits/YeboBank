@@ -14,7 +14,7 @@ function dateToLabel(date: string): string {
   return _MONTHS[(parseInt(m, 10) - 1) % 12] ?? date;
 }
 
-const CHAMA_COLORS = ["var(--emerald)", "var(--terra)", "var(--gold-text)"];
+const CHAMA_COLORS = ["var(--emerald)", "var(--gold-soft)", "var(--forest-mid)"];
 
 export default function PortfolioPage() {
   const rate = useRate();
@@ -166,6 +166,7 @@ export default function PortfolioPage() {
           <ChamaGrowthChart
             title="Combined growth across all chamas"
             defaultSeriesKey="all"
+            currencyMode="KES"
             series={[
               // One series per chama (my value over time)
               ...portfolio.stakes
@@ -183,7 +184,7 @@ export default function PortfolioPage() {
               {
                 key: "all",
                 label: "All chamas",
-                color: "var(--forest)",
+                color: "var(--gold)",
                 points: combinedGrowth.map((p) => ({
                   label: dateToLabel(p.date),
                   valueSats: p.valueSats,

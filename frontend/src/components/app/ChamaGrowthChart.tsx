@@ -18,26 +18,21 @@ interface ChamaGrowthChartProps {
   showRange?: boolean;
 }
 
-// Format a display-unit value compactly for bar-top labels (includes unit prefix/suffix).
-function compact(val: number, unit: "KES" | "USD" | "sats"): string {
-  const prefix = unit === "KES" ? "KES " : unit === "USD" ? "$" : "";
-  const suffix = unit === "sats" ? " sats" : "";
-  const abs = Math.abs(val);
-  let body: string;
-  if (abs >= 1_000_000_000) body = `${(val / 1_000_000_000).toFixed(1)}B`;
-  else if (abs >= 1_000_000) body = `${(val / 1_000_000).toFixed(1)}M`;
-  else if (abs >= 1_000)     body = `${(val / 1_000).toFixed(1)}K`;
-  else                       body = `${Math.round(val)}`;
-  return `${prefix}${body}${suffix}`;
-}
-
-// Short form for y-axis tick labels (no unit prefix, no sats suffix).
+// Compact form for y-axis tick labels (no unit prefix, no sats suffix).
 function axisLabel(val: number): string {
   const abs = Math.abs(val);
   if (abs >= 1_000_000_000) return `${(val / 1_000_000_000).toFixed(1)}B`;
   if (abs >= 1_000_000)     return `${(val / 1_000_000).toFixed(1)}M`;
   if (abs >= 1_000)         return `${(val / 1_000).toFixed(0)}K`;
   return `${Math.round(val)}`;
+}
+
+// Exact (no abbreviation) form for hover tooltips — uses en-KE locale comma grouping.
+function exact(val: number, unit: "KES" | "USD" | "sats"): string {
+  const body = Math.round(val).toLocaleString("en-KE");
+  if (unit === "sats") return `${body} sats`;
+  if (unit === "USD")  return `$${body}`;
+  return `KES ${body}`;
 }
 
 // Round up to a visually clean axis max.
@@ -54,12 +49,13 @@ export default function ChamaGrowthChart({
   currencyMode = "KES",
   showRange: showRangeProp = true,
 }: ChamaGrowthChartProps) {
-  const rate = useRate();
+  const rate    = useRate();
   const chartId = useId();
 
-  const [activeKey, setActiveKey] = useState(defaultSeriesKey ?? series[0]?.key ?? "");
-  const [unit, setUnit] = useState<"KES" | "USD" | "sats">(currencyMode);
-  const [range, setRange] = useState<"6M" | "1Y" | "All">("1Y");
+  const [activeKey,    setActiveKey]    = useState(defaultSeriesKey ?? series[0]?.key ?? "");
+  const [unit,         setUnit]         = useState<"KES" | "USD" | "sats">(currencyMode);
+  const [range,        setRange]        = useState<"6M" | "1Y" | "All">("1Y");
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const currentSeries = series.find((s) => s.key === activeKey) ?? series[0];
 
@@ -88,23 +84,23 @@ export default function ChamaGrowthChart({
 
   const displayVals = pts.map((p) => toDisplay(p.valueSats));
   const maxVal = Math.max(...displayVals, 1);
-  const axMax = niceMax(maxVal);
+  const axMax  = niceMax(maxVal);
 
   // SVG layout
-  const W = 480;
-  const padL = 36;   // y-axis labels (short form — no prefix)
-  const padR = 10;
-  const padT = 24;   // space above bars for value labels
-  const padB = 24;   // space below for x-axis labels
-  const H = 180;
+  const W      = 480;
+  const padL   = 36;  // y-axis labels
+  const padR   = 10;
+  const padT   = 10;  // minimal top margin — no persistent bar labels
+  const padB   = 24;  // x-axis labels
+  const H      = 180;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
 
-  const n = pts.length;
+  const n       = pts.length;
   const spacing = innerW / n;
-  const barW = Math.max(6, spacing * 0.6);
+  const barW    = Math.max(6, spacing * 0.6);
 
-  function bx(i: number) { return padL + i * spacing + (spacing - barW) / 2; }
+  function bx(i: number)   { return padL + i * spacing + (spacing - barW) / 2; }
   function bh(val: number) { return val === 0 ? 0 : Math.max(2, (val / axMax) * innerH); }
   function by(val: number) { return padT + innerH - bh(val); }
 
@@ -129,7 +125,7 @@ export default function ChamaGrowthChart({
   }
 
   const GRID_COUNT = 4;
-  const gridLines = Array.from({ length: GRID_COUNT + 1 }, (_, i) => (i / GRID_COUNT) * axMax);
+  const gridLines  = Array.from({ length: GRID_COUNT + 1 }, (_, i) => (i / GRID_COUNT) * axMax);
 
   // Skip x labels when too many bars to keep them legible
   const labelStep = n > 14 ? 3 : n > 9 ? 2 : 1;
@@ -196,10 +192,10 @@ export default function ChamaGrowthChart({
         aria-label={title ?? "Bar chart"}
       >
         {/* Gridlines + y-axis labels */}
-        {gridLines.map((g, i) => {
+        {gridLines.map((g, gi) => {
           const gy = padT + innerH - (g / axMax) * innerH;
           return (
-            <g key={`grid-${chartId}-${i}`}>
+            <g key={`grid-${chartId}-${gi}`}>
               <line
                 x1={padL} y1={gy}
                 x2={padL + innerW} y2={gy}
@@ -217,14 +213,25 @@ export default function ChamaGrowthChart({
           );
         })}
 
-        {/* Bars */}
+        {/* Bars + hit targets + labels */}
         {pts.map((pt, i) => {
-          const dv = displayVals[i];
+          const dv     = displayVals[i];
           const barTop = by(dv);
-          const d = barPath(i, dv);
+          const d      = barPath(i, dv);
           if (!d) return null;
+
+          const isHovered = hoveredIndex === i;
+          const bMid      = bx(i) + barW / 2;
+
+          // Approximate natural text width at fontSize 7.5 (~4.4px per char).
+          // Only apply textLength compression when the text would overflow the bar.
+          const tipLabel = exact(dv, unit);
+          const approxW  = tipLabel.length * 4.4;
+          const labelY   = Math.max(8, barTop - 3);
+
           return (
             <g key={`bar-${chartId}-${i}`}>
+              {/* Bar */}
               <path
                 d={d}
                 fill={barColor}
@@ -233,17 +240,36 @@ export default function ChamaGrowthChart({
                 className="barchart-bar"
                 style={{ animationDelay: `${i * 0.04}s` }}
               />
-              {/* Value label above bar */}
-              <text
-                x={bx(i) + barW / 2}
-                y={barTop - 4}
-                textAnchor="middle"
-                fontSize="8"
-                fontWeight="600"
-                fill="var(--text)"
-              >
-                {compact(dv, unit)}
-              </text>
+
+              {/* Full-column hit target — easier to hover than the bar on dense charts */}
+              <rect
+                x={padL + i * spacing}
+                y={padT}
+                width={spacing}
+                height={innerH}
+                fill="transparent"
+                style={{ cursor: "default" }}
+                onMouseEnter={() => setHoveredIndex(i)}
+                onMouseLeave={() => setHoveredIndex(null)}
+              />
+
+              {/* Hover label — no frame, compresses to fit bar width when needed */}
+              {isHovered && (
+                <text
+                  x={bMid}
+                  y={labelY}
+                  textAnchor="middle"
+                  fontSize="7.5"
+                  fontWeight="500"
+                  fill="var(--muted)"
+                  style={{ pointerEvents: "none" }}
+                  {...(approxW > barW - 2
+                    ? { textLength: barW - 2, lengthAdjust: "spacingAndGlyphs" as const }
+                    : {})}
+                >
+                  {tipLabel}
+                </text>
+              )}
             </g>
           );
         })}

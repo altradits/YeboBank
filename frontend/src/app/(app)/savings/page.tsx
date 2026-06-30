@@ -107,7 +107,8 @@ export default function SavingsPage() {
         <ChamaGrowthChart
           title="Deposits over time"
           showRange={false}
-          series={[{ key: "deposits", label: "Deposits", color: "var(--forest)", points }]}
+          currencyMode="KES"
+          series={[{ key: "deposits", label: "Deposits", color: "var(--gold)", points }]}
         />
       </div>
 
