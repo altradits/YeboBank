@@ -49,13 +49,14 @@ export const mockLocks: SavingsLock[] = [
     ],
   },
   {
-    id: "s4", principalSats: 500000, accruedSats: 8750, lockYears: 7, status: "active",
+    id: "s4", principalSats: 650000, accruedSats: 11375, lockYears: 7, status: "active",
     lockedAt: iso(-60 * 86400e3), maturesAt: iso(2495 * 86400e3),
     kind: "chama", title: "Mama Mboga savings", chamaId: "c1",
     participants: [
-      { handle: "@wanjiku", name: "Wanjiku Kamau", contributedSats: 150000 },
-      { handle: "@jane", name: "Jane Muthoni", contributedSats: 200000 },
-      { handle: "@akinyi", name: "Akinyi Otieno", contributedSats: 150000 },
+      { handle: "@wanjiku", name: "Wanjiku Kamau",      contributedSats: 150000 },
+      { handle: "@jane",    name: "Jane Muthoni",        contributedSats: 200000 },
+      { handle: "@akinyi",  name: "Akinyi Otieno",       contributedSats: 150000 },
+      { handle: "@stanley", name: "Stanley Chege Thuita", contributedSats: 150000 },
     ],
   },
 ];
@@ -63,7 +64,7 @@ export const mockLocks: SavingsLock[] = [
 export const mockChamas: Chama[] = [
   {
     id: "c1", name: "Mama Mboga Chama", description: "Market traders saving weekly",
-    balanceSats: 4_250_000, contributionSats: 25_000, memberCount: 12, maxMembers: 30,
+    balanceSats: 4_250_000, contributionSats: 25_000, memberCount: 13, maxMembers: 30,
     myContributionSats: 250_000, poolContributionsSats: 4_100_000, poolValueSats: 4_250_000,
   },
   {
@@ -87,15 +88,17 @@ export const mockAgent: Agent = {
 // (isMember: true) and people without a YeboBank account who just want a
 // cash-only transaction relayed through the agent (isMember: false).
 export const mockCustomerDirectory: { phone: string; name: string; isMember: boolean }[] = [
-  { phone: "+254712345678", name: "Wanjiku Kamau",  isMember: true },
-  { phone: "+254722333444", name: "Akinyi Otieno",  isMember: true },
-  { phone: "+254733444555", name: "Jane Muthoni",   isMember: true },
-  { phone: "+254700111222", name: "Peter Mwangi",   isMember: false },
+  { phone: "+254707172370", name: "Stanley Chege Thuita", isMember: true },
+  { phone: "+254712345678", name: "Wanjiku Kamau",        isMember: true },
+  { phone: "+254722333444", name: "Akinyi Otieno",        isMember: true },
+  { phone: "+254733444555", name: "Jane Muthoni",         isMember: true },
+  { phone: "+254700111222", name: "Peter Mwangi",         isMember: false },
 ];
 
 export const mockAgentLedger: LedgerEntry[] = [
-  { id: "al1", type: "agent_cash_in",  direction: "credit", amountSats: 410, balanceAfter: 184_000, note: "Cash in for +254711222333 · commission",  createdAt: iso(-5  * 3600e3), status: "confirmed" },
-  { id: "al2", type: "agent_cash_out", direction: "credit", amountSats: 290, balanceAfter: 183_590, note: "Cash out for +254722333444 · commission", createdAt: iso(-26 * 3600e3), status: "confirmed" },
+  { id: "al1", type: "agent_cash_in",  direction: "credit", amountSats: 750, balanceAfter: 184_000, note: "Cash in for Stanley Chege Thuita · commission",   createdAt: iso(-1  * 3600e3),  status: "confirmed" },
+  { id: "al2", type: "agent_cash_in",  direction: "credit", amountSats: 410, balanceAfter: 183_250, note: "Cash in for +254711222333 · commission",           createdAt: iso(-5  * 3600e3),  status: "confirmed" },
+  { id: "al3", type: "agent_cash_out", direction: "credit", amountSats: 290, balanceAfter: 182_840, note: "Cash out for +254722333444 · commission",          createdAt: iso(-26 * 3600e3),  status: "confirmed" },
 ];
 
 function iso(offsetMs: number): string {
@@ -106,18 +109,19 @@ function iso(offsetMs: number): string {
 
 export const mockChamaMembers: Record<string, ChamaMember[]> = {
   c1: [
-    { id: "m1",  name: "Wanjiku Kamau",   handle: "@wanjiku",  role: "admin",  balanceSats: 45_000 },
-    { id: "m2",  name: "Akinyi Otieno",   handle: "@akinyi",   role: "member", balanceSats: 38_000 },
-    { id: "m3",  name: "Jane Muthoni",    handle: "@jane",     role: "member", balanceSats: 52_000 },
-    { id: "m4",  name: "Grace Njeri",     handle: "@grace",    role: "member", balanceSats: 29_000 },
-    { id: "m5",  name: "Beatrice Waweru", handle: "@beatrice", role: "member", balanceSats: 41_000 },
-    { id: "m6",  name: "Mary Achieng",    handle: "@mary",     role: "member", balanceSats: 35_000 },
-    { id: "m7",  name: "Lucy Chebet",     handle: "@lucy",     role: "member", balanceSats: 48_000 },
-    { id: "m8",  name: "Faith Njoki",     handle: "@faith",    role: "member", balanceSats: 27_000 },
-    { id: "m9",  name: "Esther Wanja",    handle: "@esther",   role: "member", balanceSats: 55_000 },
-    { id: "m10", name: "Rose Mutua",      handle: "@rose",     role: "member", balanceSats: 31_000 },
-    { id: "m11", name: "Ann Karimi",      handle: "@ann",      role: "member", balanceSats: 44_000 },
-    { id: "m12", name: "Carol Ndung'u",   handle: "@carol",    role: "member", balanceSats: 39_000 },
+    { id: "m1",  name: "Wanjiku Kamau",        handle: "@wanjiku",  role: "admin",  balanceSats: 45_000 },
+    { id: "m2",  name: "Akinyi Otieno",         handle: "@akinyi",   role: "member", balanceSats: 38_000 },
+    { id: "m3",  name: "Jane Muthoni",           handle: "@jane",     role: "member", balanceSats: 52_000 },
+    { id: "m4",  name: "Grace Njeri",            handle: "@grace",    role: "member", balanceSats: 29_000 },
+    { id: "m5",  name: "Beatrice Waweru",        handle: "@beatrice", role: "member", balanceSats: 41_000 },
+    { id: "m6",  name: "Mary Achieng",           handle: "@mary",     role: "member", balanceSats: 35_000 },
+    { id: "m7",  name: "Lucy Chebet",            handle: "@lucy",     role: "member", balanceSats: 48_000 },
+    { id: "m8",  name: "Faith Njoki",            handle: "@faith",    role: "member", balanceSats: 27_000 },
+    { id: "m9",  name: "Esther Wanja",           handle: "@esther",   role: "member", balanceSats: 55_000 },
+    { id: "m10", name: "Rose Mutua",             handle: "@rose",     role: "member", balanceSats: 31_000 },
+    { id: "m11", name: "Ann Karimi",             handle: "@ann",      role: "member", balanceSats: 44_000 },
+    { id: "m12", name: "Carol Ndung'u",          handle: "@carol",    role: "member", balanceSats: 39_000 },
+    { id: "m13", name: "Stanley Chege Thuita",   handle: "@stanley",  role: "member", balanceSats: 63_000 },
   ],
   c2: [
     { id: "n1", name: "Kamau Njoroge",  handle: "@kamau",   role: "admin",  balanceSats: 22_000 },
@@ -144,7 +148,7 @@ export const mockAllChamas: Chama[] = [
   {
     id: "c1", name: "Mama Mboga Chama",
     description: "Market traders saving weekly",
-    balanceSats: 4_250_000, contributionSats: 25_000, memberCount: 12, maxMembers: 30,
+    balanceSats: 4_250_000, contributionSats: 25_000, memberCount: 13, maxMembers: 30,
     isMember: true, pendingJoin: false,
     members: mockChamaMembers.c1,
     myContributionSats: 250_000, poolContributionsSats: 4_100_000, poolValueSats: 4_250_000,
@@ -286,6 +290,9 @@ export const mockLockMessages: Record<string, LockMessage[]> = {
     { id: "lm7", lockId: "s4", kind: "deposit", authorHandle: "@akinyi",  authorName: "Akinyi Otieno",
       body: "Akinyi Otieno deposited KES 11,850 (~150,000 sats).",
       createdAt: iso(-50 * 86400e3), meta: { sats: 150000 } },
+    { id: "lm8", lockId: "s4", kind: "deposit", authorHandle: "@stanley", authorName: "Stanley Chege Thuita",
+      body: "Stanley Chege Thuita deposited KES 11,850 (~150,000 sats).",
+      createdAt: iso(-45 * 86400e3), meta: { sats: 150000 } },
   ],
 };
 
@@ -357,7 +364,7 @@ export const mockIncomeSources: IncomeSource[] = [
 
 export const mockInvestorPositions: InvestorPosition[] = [
   {
-    id: "ip_stanley", investorHandle: "@stanley", investorName: "Stanley Thuita",
+    id: "ip_stanley", investorHandle: "@stanley", investorName: "Stanley Chege Thuita",
     relationship: "self",
     principalSats: Math.round(2_000_000 * SATS_PER_KES_SEED),
     principalKesAtEntry: 2_000_000,

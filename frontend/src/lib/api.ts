@@ -274,7 +274,8 @@ export async function lookupAgentCustomer(
   phone: string,
 ): Promise<{ phone: string; name: string | null; isMember: boolean }> {
   if (USE_MOCKS) {
-    const found = mockCustomerDirectory.find((c) => c.phone === phone);
+    const norm = (p: string) => p.startsWith("0") ? "+254" + p.slice(1) : p;
+    const found = mockCustomerDirectory.find((c) => norm(c.phone) === norm(phone));
     return delay(found ? { ...found } : { phone, name: null, isMember: false });
   }
   return req(`/agent/customer/${encodeURIComponent(phone)}`);
