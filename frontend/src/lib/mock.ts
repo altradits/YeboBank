@@ -12,14 +12,13 @@ export const mockUser: User = {
   id: "u_demo",
   phone: "+254712345678",
   fullName: "Wanjiku Kamau",
-  role: "customer",
+  role: "mlinzi",
   lightningAddress: "wanjiku@yebobank.com",
   language: "en",
   isAgent: true,
-  // She's a friend of the Mlinzi who hasn't yet requested investor access.
-  relationship: "none",
-  ffVerified: false,
-  accessStatus: "none",
+  relationship: "self",
+  ffVerified: true,
+  accessStatus: "accepted",
 };
 
 export const mockWallet: Wallet = {
@@ -390,6 +389,15 @@ export const mockIncomeSources: IncomeSource[] = [
 
 export const mockInvestorPositions: InvestorPosition[] = [
   {
+    id: "ip_wanjiku", investorHandle: "@wanjiku", investorName: "Wanjiku Kamau",
+    relationship: "self",
+    principalSats: Math.round(1_200_000 * SATS_PER_KES_SEED),
+    principalKesAtEntry: 1_200_000,
+    entryDate: iso(-150 * 86400e3),
+    realizedReturnPctAnnual: 20, compounding: true,
+    monthlyStatements: buildStatements(1_200_000, MONTHLY_PCT_20Y, "2026-02", 5),
+  },
+  {
     id: "ip_stanley", investorHandle: "@stanley", investorName: "Stanley Chege Thuita",
     relationship: "self",
     principalSats: Math.round(2_000_000 * SATS_PER_KES_SEED),
@@ -425,6 +433,7 @@ export const mockAccessRequests: AccessRequest[] = [
 ];
 
 export const mockFIProfiles: Record<string, FIProfile> = {
+  "@wanjiku": { handle: "@wanjiku", annualExpensesKes: 3_600_000, fiRule: 0.04, assumedReturnPctAnnual: 20 },
   "@stanley": { handle: "@stanley", annualExpensesKes: 6_000_000, fiRule: 0.04, assumedReturnPctAnnual: 20 },
   "@prudence": { handle: "@prudence", annualExpensesKes: 1_800_000, fiRule: 0.04, assumedReturnPctAnnual: 20 },
   "@charity": { handle: "@charity", annualExpensesKes: 900_000, fiRule: 0.04, assumedReturnPctAnnual: 20 },

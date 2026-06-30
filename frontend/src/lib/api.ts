@@ -804,7 +804,7 @@ export async function withdrawFromChama(chamaId: string, sats: number): Promise<
 export const CBK_DECLINE_MESSAGE =
   "Access isn't available yet. YeboBank's investment service is currently limited to the founder's family and friends while we complete Central Bank of Kenya (CBK) regulatory approval. Once we're licensed, this will open to the public — we'll let you know.";
 
-const MLINZI_HANDLE = "@stanley";
+const MLINZI_HANDLE = MOCK_HANDLE;
 
 export async function getInvestorPositionForHandle(handle: string): Promise<InvestorPosition | null> {
   if (USE_MOCKS) {
