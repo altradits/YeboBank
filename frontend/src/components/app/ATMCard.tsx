@@ -8,7 +8,7 @@ import { getWallet, getUser } from "@/lib/api";
 
 const LAST4  = "2370";
 const EXPIRY = "12/29";
-const BG     = "linear-gradient(135deg, #0c1c0c 0%, #172b17 45%, #2d2008 100%)";
+const BG     = "linear-gradient(135deg, #050A06 0%, #0A2016 50%, #1C1200 100%)";
 
 interface Props {
   /** Pre-loaded balance in sats. If omitted the component fetches it. */
