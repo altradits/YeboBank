@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/Button";
 import QRScanner from "@/components/ui/QRScanner";
 import TransactionRow from "@/components/app/TransactionRow";
@@ -11,58 +11,47 @@ import {
   agentCashTransact, agentFiatSwap, agentTopUpFloat, confirmAgentTopUp,
   lookupAgentCustomer, requestAgentAccessCode, verifyAgentAccessCode, agentAssistService,
   agentGenerateInvoice, agentPayInvoice,
+  requestReserveRelease, claimReserve, moveToReserve,
+  triggerPanic, submitReactivationCode, saveEmergencyContacts,
 } from "@/lib/api";
 import type { AccessChannel, AgentServiceKind } from "@/lib/api";
-import type { Agent, LedgerEntry } from "@/types";
+import type { Agent, LedgerEntry, EmergencyContact, ContactTier, PanicLevel } from "@/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Constants & types
+// Constants
 // ─────────────────────────────────────────────────────────────────────────────
-const LOW_FLOAT      = 2_000_000;
-const CRITICAL_FLOAT = 500_000;
+const LOW_FLOAT      = 500_000;
+const CRITICAL_FLOAT = 150_000;
 const KE_PHONE_RE    = /^(\+254|0)\d{9}$/;
 
-/** Top-level customer mode the agent is in */
 type Mode = null | "guest" | "member";
-
-/** Verified member context — persists across multiple transactions */
 interface MemberCtx { phone: string; name: string | null; verified: boolean }
 
-/**
- * Discriminated union of every transaction the agent can perform.
- * Each variant carries exactly what it needs.
- */
 type Tx =
-  // ── Guest (no YeboBank wallet) ────────────────────────────────────────────
-  | { t: "g_cash_mpesa" }                         // 1. Cash → M-Pesa
-  | { t: "g_mpesa_cash" }                         // 2. M-Pesa → Cash
-  | { t: "g_cash_ln" }                            // 3. Cash → Lightning (via agent wallet)
-  | { t: "g_mpesa_ln" }                           // 4. M-Pesa → Lightning (via agent wallet)
-  | { t: "g_ln_cash" }                            // 5. Lightning → Cash (via agent wallet)
-  | { t: "g_ln_mpesa" }                           // 6. Lightning → M-Pesa (via agent wallet)
-  // ── Member deposits (no verification required — money goes IN) ─────────
-  | { t: "m_dep_cash" }                           // 7. Cash → member wallet
-  | { t: "m_dep_mpesa" }                          // 8. M-Pesa → member wallet
-  | { t: "m_dep_ln" }                             // 9. Lightning → member wallet
-  // ── Member withdrawals (verification required — money goes OUT) ────────
-  | { t: "m_wdraw_cash" }                         // 10. Member wallet → Cash
-  | { t: "m_wdraw_mpesa" }                        // 11. Member wallet → M-Pesa
-  | { t: "m_wdraw_ln" }                           // 12. Member wallet → Lightning
-  // ── Member services (verification required) ────────────────────────────
-  | { t: "m_svc"; kind: AgentServiceKind }        // 13-16. Savings / Chama / Withdrawal / LN send
-  // ── Agent own ──────────────────────────────────────────────────────────
-  | { t: "topup" }                                // 17. Agent float top-up
-  // ── Post-deposit forwarding ────────────────────────────────────────────
-  | { t: "post_dep"; sats: number };              // after deposit: keep / forward options
+  | { t: "g_cash_mpesa" } | { t: "g_mpesa_cash" } | { t: "g_cash_ln" }
+  | { t: "g_mpesa_ln" }   | { t: "g_ln_cash" }    | { t: "g_ln_mpesa" }
+  | { t: "m_dep_cash" }   | { t: "m_dep_mpesa" }  | { t: "m_dep_ln" }
+  | { t: "m_wdraw_cash" } | { t: "m_wdraw_mpesa" }| { t: "m_wdraw_ln" }
+  | { t: "m_svc"; kind: AgentServiceKind }
+  | { t: "topup" }
+  | { t: "post_dep"; sats: number }
+  | { t: "reserve_release" }
+  | { t: "move_to_reserve" };
 
 const CHANNELS: { id: AccessChannel; label: string; icon: string; hint: string }[] = [
   { id: "sms",     label: "SMS code",   icon: "ti-message", hint: "One-time code sent to their phone." },
   { id: "email",   label: "Email code", icon: "ti-mail",    hint: "One-time code sent to their email." },
-  { id: "offline", label: "Saved code", icon: "ti-key",     hint: "A code the customer memorized or wrote down." },
+  { id: "offline", label: "Saved code", icon: "ti-key",     hint: "A code the customer memorized." },
 ];
 
+const TIER_META: Record<ContactTier, { label: string; tapCount: number; color: string; icon: string; desc: string }> = {
+  personal:   { label: "Personal",       tapCount: 2, color: "#E6A817", icon: "ti-user-heart",  desc: "Closest trusted person — alerted by 2 taps on Confirm" },
+  legal:      { label: "Legal / Police", tapCount: 3, color: "#D06000", icon: "ti-shield-lock", desc: "Law enforcement — alerted by 3 taps" },
+  life_death: { label: "Life & Death",   tapCount: 4, color: "#C23B22", icon: "ti-urgent",      desc: "Emergency response — ALL must confirm after 4 taps" },
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Tiny UI helpers
+// UI helpers
 // ─────────────────────────────────────────────────────────────────────────────
 function ErrNote({ msg }: { msg: string }) {
   if (!msg) return null;
@@ -105,12 +94,10 @@ function ScanRow({ value, onChange, onScan, placeholder = "Paste invoice / Light
   );
 }
 
-function UnitToggle({ useKes, onToggle, satLabel = "Sats" }: {
-  useKes: boolean; onToggle: (b: boolean) => void; satLabel?: string;
-}) {
+function UnitToggle({ useKes, onToggle }: { useKes: boolean; onToggle: (b: boolean) => void }) {
   return (
     <div style={{ display: "flex", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", overflow: "hidden" }}>
-      {[{ id: true, label: "KES" }, { id: false, label: satLabel }].map(({ id, label }) => (
+      {[{ id: true, label: "KES" }, { id: false, label: "Sats" }].map(({ id, label }) => (
         <button key={String(id)} onClick={() => onToggle(id)} style={{
           flex: 1, padding: "9px 0", textAlign: "center", border: "none",
           background: useKes === id ? "var(--forest)" : "transparent",
@@ -123,45 +110,58 @@ function UnitToggle({ useKes, onToggle, satLabel = "Sats" }: {
   );
 }
 
-function InvoiceQR({ invoice, amountSats, onCopy }: { invoice: string; amountSats: number; onCopy?: () => void }) {
+function InvoiceQR({ invoice, amountSats }: { invoice: string; amountSats: number }) {
+  const [copied, setCopied] = useState(false);
+  function copy() { navigator.clipboard.writeText(invoice); setCopied(true); setTimeout(() => setCopied(false), 2000); }
   return (
     <div style={{ textAlign: "center", background: "var(--ivory)", borderRadius: "var(--r-sm)", padding: 16 }}>
       <i className="ti ti-qrcode" style={{ fontSize: 56, color: "var(--forest)" }} />
-      <p className="note" style={{ marginTop: 8, wordBreak: "break-all", fontFamily: "var(--font-mono)", fontSize: 10 }}>
-        {invoice}
-      </p>
-      <p className="note" style={{ marginTop: 6 }}>
-        Customer pays <strong>{num(amountSats)} sats</strong> by scanning this QR with their Lightning wallet.
-      </p>
-      {onCopy && (
-        <button onClick={onCopy} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--soft)", fontSize: 12, marginTop: 4 }}>
-          <i className="ti ti-copy" /> Copy invoice
-        </button>
-      )}
+      <p className="note" style={{ marginTop: 8, wordBreak: "break-all", fontFamily: "var(--font-mono)", fontSize: 10 }}>{invoice}</p>
+      <p className="note" style={{ marginTop: 6 }}>Customer pays <strong>{num(amountSats)} sats</strong> from their Lightning wallet.</p>
+      <button onClick={copy} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--soft)", fontSize: 12, marginTop: 4 }}>
+        <i className="ti ti-copy" /> {copied ? "Copied!" : "Copy invoice"}
+      </button>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Verify step (reused for member withdrawals / services)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Tap-count aware confirm button ────────────────────────────────────────────
+// 1 tap = normal (Level 0) · 2 taps = personal alert · 3 = police · 4+ = life & death
+// The 900ms debounce shows a natural "Confirming…" to anyone watching.
+function ConfirmButton({ label, disabled, onConfirm }: {
+  label: string; disabled?: boolean; onConfirm: (level: 0 | 1 | 2 | 3) => void;
+}) {
+  const tapRef   = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  function tap() {
+    if (disabled || busy) return;
+    tapRef.current += 1;
+    setBusy(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      const n = tapRef.current;
+      tapRef.current = 0;
+      setBusy(false);
+      onConfirm(Math.min(n - 1, 3) as 0 | 1 | 2 | 3);
+    }, 900);
+  }
+
+  return <Button disabled={disabled} onClick={tap}>{busy ? "Confirming…" : label}</Button>;
+}
+
+// ── Member identity verification step ─────────────────────────────────────────
 function VerifyStep({ member, channel, codeSent, code, error, verifying, onSendCode, onCodeChange, onVerify, onCancel }: {
-  member: MemberCtx;
-  channel: AccessChannel | null;
-  codeSent: boolean;
-  code: string;
-  error: string;
-  verifying: boolean;
-  onSendCode: (ch: AccessChannel) => void;
-  onCodeChange: (v: string) => void;
-  onVerify: () => void;
-  onCancel: () => void;
+  member: MemberCtx; channel: AccessChannel | null; codeSent: boolean; code: string;
+  error: string; verifying: boolean;
+  onSendCode: (ch: AccessChannel) => void; onCodeChange: (v: string) => void;
+  onVerify: () => void; onCancel: () => void;
 }) {
   return (
     <>
       <p className="modal-sub">
-        <strong>{member.name ?? member.phone}</strong> has a YeboBank account.
-        Confirm they&apos;re physically present before touching their wallet.
+        <strong>{member.name ?? member.phone}</strong> — confirm they&apos;re physically present before touching their wallet.
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {CHANNELS.map((c) => (
@@ -176,7 +176,7 @@ function VerifyStep({ member, channel, codeSent, code, error, verifying, onSendC
         ))}
         {channel && codeSent && (
           <input className="input"
-            placeholder={channel === "offline" ? "Code the customer reads out" : "One-time code from SMS / email"}
+            placeholder={channel === "offline" ? "Code the customer reads out" : "One-time code"}
             value={code} onChange={(e) => onCodeChange(e.target.value)} />
         )}
         {error && <ErrNote msg={error} />}
@@ -192,73 +192,90 @@ function VerifyStep({ member, channel, codeSent, code, error, verifying, onSendC
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Main page
+// Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function AgentPage() {
   const rate = useRate();
 
-  // ── page data ──
   const [agent,   setAgent]   = useState<Agent | null>(null);
   const [history, setHistory] = useState<LedgerEntry[]>([]);
   function load() { getAgent().then(setAgent); getAgentHistory().then(setHistory); }
   useEffect(load, []);
 
-  // ── customer context ──
-  const [mode,   setMode]   = useState<Mode>(null);
-  const [member, setMember] = useState<MemberCtx | null>(null);
+  // Reserve countdown
+  const [reserveSecsLeft, setReserveSecsLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (!agent?.reserveUnlockAt) { setReserveSecsLeft(null); return; }
+    function tick() {
+      const secs = Math.ceil((new Date(agent!.reserveUnlockAt!).getTime() - Date.now()) / 1000);
+      setReserveSecsLeft(secs > 0 ? secs : 0);
+    }
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [agent?.reserveUnlockAt]);
 
-  // member lookup state
-  const [phone,    setPhone]    = useState("");
-  const [looking,  setLooking]  = useState(false);
-  const [lookErr,  setLookErr]  = useState("");
+  // Customer context
+  const [mode,    setMode]    = useState<Mode>(null);
+  const [member,  setMember]  = useState<MemberCtx | null>(null);
+  const [phone,   setPhone]   = useState("");
+  const [looking, setLooking] = useState(false);
+  const [lookErr, setLookErr] = useState("");
 
-  // verification state (for withdrawals / services)
+  // Member verification
   const [channel,   setChannel]   = useState<AccessChannel | null>(null);
   const [codeSent,  setCodeSent]  = useState(false);
   const [code,      setCode]      = useState("");
   const [verifying, setVerifying] = useState(false);
 
-  // ── active transaction ──
+  // Active transaction
   const [tx, setTx] = useState<Tx | null>(null);
 
-  // form fields (shared across tx types)
+  // Form fields
   const [rawAmount,  setRawAmount]  = useState("");
   const [useKes,     setUseKes]     = useState(true);
-  const [mpesaDest,  setMpesaDest]  = useState("");  // outgoing M-Pesa #
-  const [mpesaRef,   setMpesaRef]   = useState("");  // incoming M-Pesa reference code
+  const [mpesaDest,  setMpesaDest]  = useState("");
+  const [mpesaRef,   setMpesaRef]   = useState("");
   const [lnInvoice,  setLnInvoice]  = useState<string | null>(null);
   const [lnBusy,     setLnBusy]     = useState(false);
   const [lnDest,     setLnDest]     = useState("");
   const [scanning,   setScanning]   = useState(false);
-  const [receiptOk,  setReceiptOk]  = useState(false);  // agent confirms M-Pesa receipt
+  const [receiptOk,  setReceiptOk]  = useState(false);
   const [topupInv,   setTopupInv]   = useState<string | null>(null);
   const [topupBusy,  setTopupBusy]  = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [txErr,      setTxErr]      = useState("");
-
-  // verification pending for current tx
   const [needsVerify, setNeedsVerify] = useState(false);
+
+  // Security / panic
+  const [panicExecuting, setPanicExecuting] = useState(false);
+  const [reactivation,   setReactivation]   = useState<Record<string, string>>({});
+  const [reactivErr,     setReactivErr]     = useState<Record<string, string>>({});
+  const [reactivOk,      setReactivOk]      = useState<Record<string, boolean>>({});
+  const [reservePin,     setReservePin]     = useState("");
+  const [reservePinErr,  setReservePinErr]  = useState("");
+  const [moveAmount,     setMoveAmount]     = useState("");
+  const [showSecurity,   setShowSecurity]   = useState(false);
+  const [draftContacts,  setDraftContacts]  = useState<EmergencyContact[] | null>(null);
+  const [savingContacts, setSavingContacts] = useState(false);
 
   // ── helpers ──
   function toSats(val: string): number {
     const n = Number(val) || 0;
     return useKes ? Math.round(n / rate.kesPerSat) : Math.round(n);
   }
-  function toKes(val: string): number { return Number(val) || 0; }
-
   function preview(): string {
     if (!rawAmount || Number(rawAmount) <= 0 || !agent) return "";
     if (useKes) {
-      const sats = toSats(rawAmount);
-      return `≈ ${num(sats)} sats · commission ≈ ${fmtKESraw(toKes(rawAmount) * agent.commissionRate, 0)}`;
+      return `≈ ${num(toSats(rawAmount))} sats · commission ≈ ${fmtKESraw(Number(rawAmount) * agent.commissionRate, 0)}`;
     }
-    const kes = Math.round(Number(rawAmount) * rate.kesPerSat);
-    return `≈ KES ${num(kes)} · commission ≈ ${num(Math.round(Number(rawAmount) * agent.commissionRate))} sats`;
+    return `≈ KES ${num(Math.round(Number(rawAmount) * rate.kesPerSat))} · commission ≈ ${num(Math.round(Number(rawAmount) * agent.commissionRate))} sats`;
   }
-
   function phoneErr(p: string): string | null {
-    if (!p) return null;
-    return KE_PHONE_RE.test(p.trim()) ? null : "Enter a valid Kenyan number — +254712345678 or 0712345678.";
+    return !p ? null : KE_PHONE_RE.test(p.trim()) ? null : "Use +254712345678 or 0712345678.";
+  }
+  function fmtCountdown(secs: number): string {
+    return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
   }
 
   function resetTxFields() {
@@ -267,18 +284,16 @@ export default function AgentPage() {
     setLnInvoice(null); setLnBusy(false); setLnDest(""); setScanning(false);
     setTopupInv(null); setTopupBusy(false);
     setSubmitting(false); setTxErr("");
-    setNeedsVerify(false);
-    setChannel(null); setCodeSent(false); setCode(""); setVerifying(false);
+    setNeedsVerify(false); setChannel(null); setCodeSent(false); setCode(""); setVerifying(false);
+    setReservePin(""); setReservePinErr(""); setMoveAmount("");
   }
 
   function openTx(t: Tx) {
     resetTxFields();
-    // withdrawals and services require verification if not yet done
     const needsV = !member?.verified && (
       t.t === "m_wdraw_cash" || t.t === "m_wdraw_mpesa" || t.t === "m_wdraw_ln" || t.t === "m_svc"
     );
     setNeedsVerify(needsV);
-    // sats-native tx default to sats input
     if (t.t === "g_ln_cash" || t.t === "g_ln_mpesa" || t.t === "m_dep_ln" || t.t === "m_wdraw_ln") setUseKes(false);
     setTx(t);
   }
@@ -289,7 +304,7 @@ export default function AgentPage() {
     setChannel(null); setCodeSent(false); setCode(""); setVerifying(false);
   }
 
-  // ── member lookup ──
+  // Member lookup
   async function doLookup() {
     const pe = phoneErr(phone);
     if (pe) { setLookErr(pe); return; }
@@ -299,48 +314,100 @@ export default function AgentPage() {
     if (c.isMember) {
       setMember({ phone: c.phone, name: c.name, verified: false });
     } else {
-      setLookErr("No YeboBank account found for that number. You can serve them as a guest, or help them register at yebobank.com.");
+      setLookErr("No YeboBank account found. Serve as guest or help them register at yebobank.com.");
     }
   }
 
-  // ── verification (lazy — only when tx requires it) ──
+  // Member verification
   async function sendCode(ch: AccessChannel) {
     if (!member) return;
     setChannel(ch); setTxErr("");
     await requestAgentAccessCode(member.phone, ch);
     setCodeSent(true);
   }
-
   async function doVerify() {
     if (!member || !code) return;
     setVerifying(true); setTxErr("");
     const r = await verifyAgentAccessCode(member.phone, code.trim());
     setVerifying(false);
-    if (r.verified) {
-      setMember({ ...member, verified: true });
-      setNeedsVerify(false);
+    if (r.verified) { setMember({ ...member, verified: true }); setNeedsVerify(false); }
+    else setTxErr("Code didn't match — check with the customer.");
+  }
+
+  // Panic
+  async function executePanic(level: 1 | 2 | 3) {
+    setPanicExecuting(true);
+    if (level < 3) await new Promise(r => setTimeout(r, 2200));
+    try {
+      const result = await triggerPanic(level);
+      setAgent(prev => prev ? {
+        ...prev, panicLevel: level,
+        panicLockedAt: new Date().toISOString(),
+        contactsRequired: result.contactsRequired,
+        contactsConfirmed: [],
+      } : prev);
+    } catch {
+      setAgent(prev => prev ? { ...prev, panicLevel: level, panicLockedAt: new Date().toISOString() } : prev);
+    }
+    setPanicExecuting(false);
+    closeTx();
+  }
+
+  async function handleConfirmWithLevel(level: 0 | 1 | 2 | 3) {
+    if (level === 0) await handleSubmit();
+    else await executePanic(level as 1 | 2 | 3);
+  }
+
+  // Reactivation codes
+  async function submitCode(contactId: string) {
+    const c = reactivation[contactId]?.trim();
+    if (!c) { setReactivErr(e => ({ ...e, [contactId]: "Enter the code." })); return; }
+    setReactivErr(e => ({ ...e, [contactId]: "" }));
+    const r = await submitReactivationCode(contactId, c);
+    if (r.accepted) {
+      setReactivOk(o => ({ ...o, [contactId]: true }));
+      setAgent(r.agent);
+      if (r.allConfirmed) { setReactivation({}); setReactivOk({}); setReactivErr({}); }
     } else {
-      setTxErr("Code didn't match — double-check with the customer and try again.");
+      setReactivErr(e => ({ ...e, [contactId]: "Incorrect code — try again." }));
     }
   }
 
-  // ── submit logic per tx type ──
+  // Reserve
+  async function handleReserveRelease() {
+    setReservePinErr(""); setSubmitting(true);
+    const r = await requestReserveRelease(reservePin);
+    setSubmitting(false);
+    if (!r.ok) { setReservePinErr("Incorrect PIN."); return; }
+    setAgent(prev => prev ? { ...prev, reserveUnlockAt: r.unlocksAt! } : prev);
+    closeTx();
+  }
+  async function handleClaimReserve() {
+    setSubmitting(true);
+    const updated = await claimReserve();
+    setAgent(updated); setSubmitting(false); closeTx();
+  }
+  async function handleMoveToReserve() {
+    const n = Number(moveAmount);
+    if (!n || n <= 0) { setTxErr("Enter an amount."); return; }
+    setSubmitting(true);
+    const updated = await moveToReserve(Math.round(n));
+    setAgent(updated); setSubmitting(false); closeTx(); load();
+  }
+
+  // Main submit
   async function handleSubmit() {
     if (!tx || !agent) return;
-
-    // Quick field validations
     const n = Number(rawAmount);
     if (!rawAmount || n <= 0) { setTxErr("Enter an amount greater than zero."); return; }
-
     const sats = toSats(rawAmount);
     const kes  = useKes ? n : Math.round(n * rate.kesPerSat);
 
-    // Destination / receipt checks
     if ((tx.t === "g_cash_mpesa" || tx.t === "g_ln_mpesa" || tx.t === "m_wdraw_mpesa") && !mpesaDest.trim()) {
       setTxErr("Enter the destination M-Pesa number."); return;
     }
     if (mpesaDest && !KE_PHONE_RE.test(mpesaDest.trim())) {
-      setTxErr("M-Pesa number format looks wrong — use +254... or 07..."); return;
+      setTxErr("M-Pesa number format looks wrong."); return;
     }
     if ((tx.t === "g_cash_ln" || tx.t === "g_mpesa_ln" || tx.t === "m_wdraw_ln" ||
          (tx.t === "m_svc" && tx.kind === "lightning_send")) && !lnDest.trim()) {
@@ -350,73 +417,39 @@ export default function AgentPage() {
       setTxErr("Confirm you have received the M-Pesa before proceeding."); return;
     }
     if ((tx.t === "g_ln_cash" || tx.t === "g_ln_mpesa" || tx.t === "m_dep_ln") && !lnInvoice) {
-      setTxErr("Generate the invoice QR and wait for the customer to pay first."); return;
+      setTxErr("Generate the invoice QR first, wait for the customer to pay."); return;
     }
-    if (tx.t === "m_wdraw_cash" && sats > agent.floatLimitSats) {
-      setTxErr(`Amount exceeds your sats float (${num(agent.floatLimitSats)} sats ≈ KES ${num(Math.round(agent.floatLimitSats * rate.kesPerSat))}). Top up first.`); return;
+    if (tx.t === "m_wdraw_cash" && sats > agent.workingFloatSats) {
+      setTxErr(`Exceeds working float (${num(agent.workingFloatSats)} sats). Release reserve first if needed.`); return;
     }
 
     setTxErr(""); setSubmitting(true);
     try {
       switch (tx.t) {
-        // ── Guest fiat swaps ──────────────────────────────────────────────────
-        case "g_cash_mpesa":
-          await agentFiatSwap("cash", "mpesa", kes, mpesaDest);
-          break;
-        case "g_mpesa_cash":
-          await agentFiatSwap("mpesa", "cash", kes, mpesaRef || undefined);
-          break;
-        // ── Guest Lightning via agent wallet ─────────────────────────────────
-        case "g_cash_ln":
-        case "g_mpesa_ln":
-          // Agent's wallet sends to customer's external Lightning address
-          await agentPayInvoice(lnDest, sats);
-          if (tx.t === "g_mpesa_ln") {
-            await agentFiatSwap("mpesa", "cash", kes, mpesaRef || undefined); // log M-Pesa receipt
-          }
-          break;
-        case "g_ln_cash":
-          // Invoice already generated and paid; just log the cash-out
-          await agentCashTransact("in", "guest", sats);
-          break;
-        case "g_ln_mpesa":
-          // Invoice paid; agent sends M-Pesa to dest
-          await agentCashTransact("in", "guest", sats);
-          break;
-        // ── Member deposits ───────────────────────────────────────────────────
+        case "g_cash_mpesa":  await agentFiatSwap("cash",  "mpesa", kes, mpesaDest); break;
+        case "g_mpesa_cash":  await agentFiatSwap("mpesa", "cash",  kes, mpesaRef || undefined); break;
+        case "g_cash_ln":     await agentPayInvoice(lnDest, sats); break;
+        case "g_mpesa_ln":    await agentPayInvoice(lnDest, sats); break;
+        case "g_ln_cash":     await agentCashTransact("in", "guest", sats); break;
+        case "g_ln_mpesa":    await agentCashTransact("in", "guest", sats); break;
         case "m_dep_cash":
           await agentCashTransact("in", member!.phone, sats);
-          setTx({ t: "post_dep", sats });
-          setSubmitting(false);
-          return;
+          setTx({ t: "post_dep", sats }); setSubmitting(false); return;
         case "m_dep_mpesa":
           await agentCashTransact("in", member!.phone, Math.round(kes / rate.kesPerSat));
-          setTx({ t: "post_dep", sats: Math.round(kes / rate.kesPerSat) });
-          setSubmitting(false);
-          return;
+          setTx({ t: "post_dep", sats: Math.round(kes / rate.kesPerSat) }); setSubmitting(false); return;
         case "m_dep_ln":
           await agentCashTransact("in", member!.phone, sats);
-          setTx({ t: "post_dep", sats });
-          setSubmitting(false);
-          return;
-        // ── Member withdrawals ────────────────────────────────────────────────
-        case "m_wdraw_cash":
-          await agentCashTransact("out", member!.phone, sats);
-          break;
-        case "m_wdraw_mpesa":
-          await agentCashTransact("out", member!.phone, sats);
-          break;
+          setTx({ t: "post_dep", sats }); setSubmitting(false); return;
+        case "m_wdraw_cash":  await agentCashTransact("out", member!.phone, sats); break;
+        case "m_wdraw_mpesa": await agentCashTransact("out", member!.phone, sats); break;
         case "m_wdraw_ln":
           await agentCashTransact("out", member!.phone, sats);
-          await agentPayInvoice(lnDest, sats);
-          break;
-        // ── Member services ────────────────────────────────────────────────────
+          await agentPayInvoice(lnDest, sats); break;
         case "m_svc":
           if (tx.kind === "lightning_send") await agentPayInvoice(lnDest, sats);
-          await agentAssistService(member!.phone, tx.kind, sats);
-          break;
-        default:
-          break;
+          await agentAssistService(member!.phone, tx.kind, sats); break;
+        default: break;
       }
       closeTx(); load();
     } catch {
@@ -431,7 +464,6 @@ export default function AgentPage() {
     const res = await agentGenerateInvoice(toSats(rawAmount));
     setLnBusy(false); setLnInvoice(res.invoice);
   }
-
   async function genTopup() {
     const n = Number(rawAmount);
     if (!n || n <= 0) { setTxErr("Enter sats amount."); return; }
@@ -439,14 +471,28 @@ export default function AgentPage() {
     const res = await agentTopUpFloat(Math.round(n));
     setTopupBusy(false); setTopupInv(res.invoice);
   }
-
   async function confirmTopup() {
     const n = Number(rawAmount);
     if (!n) return;
     setSubmitting(true);
     const updated = await confirmAgentTopUp(Math.round(n));
-    setAgent(updated);
-    setSubmitting(false); closeTx(); load();
+    setAgent(updated); setSubmitting(false); closeTx(); load();
+  }
+
+  // Contacts editing
+  function startEditContacts() { setDraftContacts(agent ? [...agent.emergencyContacts] : []); }
+  async function saveContacts() {
+    if (!draftContacts) return;
+    setSavingContacts(true);
+    const updated = await saveEmergencyContacts(draftContacts);
+    setAgent(updated); setSavingContacts(false); setDraftContacts(null);
+  }
+  function addContact(tier: ContactTier) {
+    setDraftContacts(cs => [...(cs ?? []), { id: `ec_${Date.now()}`, name: "", phone: "", tier, priority: (cs?.length ?? 0) + 1 }]);
+  }
+  function removeContact(id: string) { setDraftContacts(cs => (cs ?? []).filter(c => c.id !== id)); }
+  function updateContact(id: string, field: keyof EmergencyContact, value: string | number) {
+    setDraftContacts(cs => (cs ?? []).map(c => c.id === id ? { ...c, [field]: value } : c));
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -454,14 +500,14 @@ export default function AgentPage() {
   // ─────────────────────────────────────────────────────────────────────────
   if (!agent) return <p className="note">Loading…</p>;
 
-  const floatKes       = Math.round(agent.floatLimitSats * rate.kesPerSat);
-  const criticalFloat  = agent.floatLimitSats < CRITICAL_FLOAT;
-  const lowFloat       = agent.floatLimitSats < LOW_FLOAT;
+  const criticalWorking = agent.workingFloatSats < CRITICAL_FLOAT;
+  const lowWorking      = agent.workingFloatSats < LOW_FLOAT;
+  const reserveReady    = !!agent.reserveUnlockAt && (reserveSecsLeft ?? 1) === 0;
+  const reservePending  = !!agent.reserveUnlockAt && (reserveSecsLeft ?? 0) > 0;
+  const panicked        = agent.panicLevel > 0;
 
-  // ── tile helper ──
   function Tile({ icon, color, label, sub, onClick, warn }: {
-    icon: string; color: string; label: string; sub?: string;
-    onClick: () => void; warn?: boolean;
+    icon: string; color: string; label: string; sub?: string; onClick: () => void; warn?: boolean;
   }) {
     return (
       <button onClick={onClick} style={{
@@ -477,9 +523,19 @@ export default function AgentPage() {
     );
   }
 
+  // ── Panic overlay ─────────────────────────────────────────────────────────
+  const PANIC_META: Record<1 | 2 | 3, { icon: string; title: string; subtitle: string; accentColor: string }> = {
+    1: { icon: "ti-lock",       accentColor: "#E6A817", title: "Transaction Authorization Required",
+         subtitle: "The system requires verification from your emergency contact before this transaction can proceed." },
+    2: { icon: "ti-shield-lock", accentColor: "#D06000", title: "Legal Verification Required",
+         subtitle: "This transaction has triggered a compliance check. The responding officer will provide a verification code." },
+    3: { icon: "ti-urgent",     accentColor: "#C23B22", title: "EMERGENCY — ALL OPERATIONS FROZEN",
+         subtitle: "Emergency response teams have been notified. All operations are locked until every contact confirms safety." },
+  };
+
   return (
     <>
-      {/* ── Stats row ──────────────────────────────────────────────────────── */}
+      {/* Stats ─────────────────────────────────────────────────────────────── */}
       <div className="section-head" style={{ marginBottom: 0 }}>
         <div>
           <h1 className="page-title">Agent</h1>
@@ -488,39 +544,163 @@ export default function AgentPage() {
         <span className="badge agent">{agent.status}</span>
       </div>
 
-      <div className="grid-2" style={{ marginTop: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
+        {/* Working float */}
         <div className="card">
           <div className="stat">
-            <span className="l">Sats float</span>
-            <span className="v" style={{ color: criticalFloat ? "var(--terra-text)" : undefined }}>
-              {num(agent.floatLimitSats)} sats
+            <span className="l">Working float</span>
+            <span className="v" style={{ color: criticalWorking ? "var(--terra-text)" : undefined }}>
+              {num(agent.workingFloatSats)} sats
             </span>
           </div>
-          <p className="note" style={{ marginTop: 5 }}>≈ KES {num(floatKes)}</p>
-          {criticalFloat && <p className="note" style={{ color: "var(--terra-text)", fontWeight: 600, marginTop: 5 }}><i className="ti ti-alert-triangle" /> Critical — top up now.</p>}
-          {lowFloat && !criticalFloat && <p className="note" style={{ color: "var(--terra-text)", marginTop: 5 }}><i className="ti ti-alert-triangle" /> Float running low.</p>}
-          <Button variant="ghost" style={{ marginTop: 10, width: "100%", fontSize: 13 }} onClick={() => openTx({ t: "topup" })}>
-            <i className="ti ti-bolt" /> Top up float
+          <p className="note" style={{ marginTop: 4 }}>≈ KES {num(Math.round(agent.workingFloatSats * rate.kesPerSat))}</p>
+          {criticalWorking && <p className="note" style={{ color: "var(--terra-text)", fontWeight: 600, marginTop: 5 }}><i className="ti ti-alert-triangle" /> Critical — top up now.</p>}
+          {lowWorking && !criticalWorking && <p className="note" style={{ color: "#D06000", marginTop: 5 }}><i className="ti ti-alert-triangle" /> Float low.</p>}
+          <Button variant="ghost" style={{ marginTop: 10, width: "100%", fontSize: 12 }} onClick={() => openTx({ t: "topup" })}>
+            <i className="ti ti-bolt" /> Top up
           </Button>
         </div>
-        <div className="card">
+
+        {/* Reserve float */}
+        <div className="card" style={{ borderColor: "rgba(17,166,91,.25)" }}>
           <div className="stat">
-            <span className="l">Commission earned</span>
-            <span className="v" style={{ color: "var(--emerald-deep)" }}>+{num(agent.totalEarnedSats)} sats</span>
+            <span className="l">Reserve <i className="ti ti-lock" style={{ fontSize: 11, marginLeft: 4, color: "var(--emerald-deep)" }} /></span>
+            <span className="v" style={{ color: "var(--emerald-deep)" }}>{num(agent.reserveSats)} sats</span>
           </div>
-          <p className="note" style={{ marginTop: 5 }}>{(agent.commissionRate * 100).toFixed(1)}% per transaction · held in sats</p>
-          <p className="note" style={{ marginTop: 5 }}>M-Pesa till: <strong>{agent.mpesaTillNumber}</strong></p>
+          <p className="note" style={{ marginTop: 4 }}>≈ KES {num(Math.round(agent.reserveSats * rate.kesPerSat))}</p>
+          {reservePending && (
+            <p className="note" style={{ marginTop: 6, color: "#D06000", fontWeight: 500 }}>
+              <i className="ti ti-clock" /> Unlocks in {fmtCountdown(reserveSecsLeft!)}
+            </p>
+          )}
+          {reserveReady && (
+            <Button style={{ marginTop: 8, width: "100%", fontSize: 12 }} onClick={() => openTx({ t: "reserve_release" })}>
+              <i className="ti ti-lock-open" /> Claim reserve
+            </Button>
+          )}
+          {!reservePending && !reserveReady && (
+            <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+              <Button variant="ghost" style={{ flex: 1, fontSize: 11 }} onClick={() => openTx({ t: "reserve_release" })}>
+                <i className="ti ti-lock-open" /> Release
+              </Button>
+              <Button variant="ghost" style={{ flex: 1, fontSize: 11 }} onClick={() => openTx({ t: "move_to_reserve" })}>
+                <i className="ti ti-lock" /> Add
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          HOME — choose who to serve
-          ══════════════════════════════════════════════════════════════════════ */}
+      {/* Commission row */}
+      <div className="card" style={{ marginTop: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <p className="note">Total earned</p>
+            <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--emerald-deep)", marginTop: 2 }}>
+              +{num(agent.totalEarnedSats)} sats
+            </p>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <p className="note">Rate · Till</p>
+            <p style={{ marginTop: 2, fontWeight: 500 }}>{(agent.commissionRate * 100).toFixed(1)}% · {agent.mpesaTillNumber}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── PANIC OVERLAY ──────────────────────────────────────────────────── */}
+      {panicked && (() => {
+        const lvl  = agent.panicLevel as 1 | 2 | 3;
+        const meta = PANIC_META[lvl];
+        const required = agent.emergencyContacts.filter(c => agent.contactsRequired.includes(c.id));
+        return (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 500,
+            background: lvl === 3 ? "rgba(30,0,0,.97)" : "rgba(20,20,20,.93)",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          }}>
+            <div style={{
+              width: "100%", maxWidth: 480,
+              background: lvl === 3 ? "rgba(255,255,255,.04)" : "var(--ivory)",
+              borderRadius: "var(--r-md)",
+              border: `2px solid ${meta.accentColor}55`,
+              padding: 28, display: "flex", flexDirection: "column", gap: 16,
+              maxHeight: "92dvh", overflowY: "auto",
+            }}>
+              <div style={{ textAlign: "center" }}>
+                <i className={`ti ${meta.icon}`} style={{ fontSize: 52, color: meta.accentColor }} />
+                <h2 style={{ marginTop: 10, color: lvl === 3 ? "white" : undefined }}>{meta.title}</h2>
+                <p className="note" style={{ marginTop: 6, color: lvl === 3 ? "rgba(255,255,255,.75)" : undefined }}>
+                  {meta.subtitle}
+                </p>
+                {agent.panicLockedAt && (
+                  <p className="note" style={{ marginTop: 4, color: "rgba(255,255,255,.4)", fontSize: 11 }}>
+                    Locked at {new Date(agent.panicLockedAt).toLocaleTimeString()}
+                  </p>
+                )}
+              </div>
+
+              {/* Reactivation codes */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {required.map(contact => {
+                  const confirmed = reactivOk[contact.id] || agent.contactsConfirmed.includes(contact.id);
+                  const tm = TIER_META[contact.tier];
+                  return (
+                    <div key={contact.id} style={{
+                      padding: 14,
+                      background: confirmed ? "rgba(17,166,91,.08)" : lvl === 3 ? "rgba(255,255,255,.06)" : "white",
+                      border: `1.5px solid ${confirmed ? "var(--emerald-deep)" : `${tm.color}66`}`,
+                      borderRadius: "var(--r-sm)",
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                        <i className={`ti ${tm.icon}`} style={{ color: confirmed ? "var(--emerald-deep)" : tm.color }} />
+                        <strong style={{ color: lvl === 3 ? "white" : undefined }}>{contact.name}</strong>
+                        <span className="note" style={{ marginLeft: "auto", fontSize: 11, color: lvl === 3 ? "rgba(255,255,255,.5)" : undefined }}>
+                          {contact.phone}
+                        </span>
+                      </div>
+                      {confirmed
+                        ? <GoodNote msg="Confirmed — situation cleared by this contact." />
+                        : (
+                          <>
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <input className="input" style={{ flex: 1 }}
+                                placeholder={`Code from ${contact.name.split(" ")[0]}`}
+                                value={reactivation[contact.id] ?? ""}
+                                onChange={e => setReactivation(r => ({ ...r, [contact.id]: e.target.value }))} />
+                              <Button onClick={() => submitCode(contact.id)}>Submit</Button>
+                            </div>
+                            {reactivErr[contact.id] && <ErrNote msg={reactivErr[contact.id]} />}
+                          </>
+                        )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Mock codes hint */}
+              <div style={{ background: "rgba(255,255,255,.06)", borderRadius: "var(--r-sm)", padding: "8px 12px" }}>
+                <p className="note" style={{ fontSize: 11, color: "rgba(255,255,255,.4)" }}>
+                  <i className="ti ti-info-circle" style={{ marginRight: 6 }} />
+                  Test codes (mock only):&nbsp;
+                  {required.map((c, i) => (
+                    <span key={c.id}>
+                      {i > 0 && " · "}
+                      {c.name.split(" ")[0]}: <strong style={{ fontFamily: "var(--font-mono)" }}>
+                        {c.id === "ec1" ? "SAFE-1111" : c.id === "ec2" ? "CLEAR-2222" : c.id === "ec3" ? "SECURE-3333" : "OK-4444"}
+                      </strong>
+                    </span>
+                  ))}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── HOME ────────────────────────────────────────────────────────────── */}
       {mode === null && (
         <div className="card" style={{ marginTop: 14, textAlign: "center" }}>
-          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 16 }}>
-            Who are you serving?
-          </p>
+          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 16 }}>Who are you serving?</p>
           <div className="grid-2" style={{ gap: 10 }}>
             <button onClick={() => setMode("guest")} style={{
               padding: 20, cursor: "pointer", background: "var(--ivory)", border: "1.5px solid var(--border)",
@@ -542,43 +722,26 @@ export default function AgentPage() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          GUEST DASHBOARD
-          ══════════════════════════════════════════════════════════════════════ */}
+      {/* ── GUEST ───────────────────────────────────────────────────────────── */}
       {mode === "guest" && (
         <div className="card" style={{ marginTop: 14 }}>
           <div className="section-head" style={{ marginBottom: 14 }}>
-            <div>
-              <h2>Guest transactions</h2>
-              <p className="note">No YeboBank account needed for any of these.</p>
-            </div>
-            <button onClick={() => setMode(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--soft)", fontSize: 13 }}>
-              ← Back
-            </button>
+            <div><h2>Guest transactions</h2><p className="note">No YeboBank account needed.</p></div>
+            <button onClick={() => setMode(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--soft)", fontSize: 13 }}>← Back</button>
           </div>
-
-          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13, marginBottom: 8, color: "var(--soft)" }}>CASH & M-PESA EXCHANGE</p>
+          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 12, marginBottom: 8, color: "var(--soft)" }}>CASH & M-PESA</p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
-            <Tile icon="ti-cash" color="var(--gold)" label="Cash → M-Pesa"
-              sub="Give cash, receive M-Pesa" onClick={() => openTx({ t: "g_cash_mpesa" })} />
-            <Tile icon="ti-device-mobile" color="var(--emerald-deep)" label="M-Pesa → Cash"
-              sub="Send M-Pesa, receive cash" onClick={() => openTx({ t: "g_mpesa_cash" })} />
+            <Tile icon="ti-cash" color="var(--gold)" label="Cash → M-Pesa" sub="Give cash, send M-Pesa" onClick={() => openTx({ t: "g_cash_mpesa" })} />
+            <Tile icon="ti-device-mobile" color="var(--emerald-deep)" label="M-Pesa → Cash" sub="Receive M-Pesa, give cash" onClick={() => openTx({ t: "g_mpesa_cash" })} />
           </div>
-
-          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13, marginBottom: 8, color: "var(--soft)" }}>BITCOIN / LIGHTNING (via agent wallet)</p>
+          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 12, marginBottom: 8, color: "var(--soft)" }}>LIGHTNING (via agent wallet)</p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
-            <Tile icon="ti-cash" color="var(--gold)" label="Cash → Lightning"
-              sub="Give cash, receive sats to their wallet" onClick={() => openTx({ t: "g_cash_ln" })} />
-            <Tile icon="ti-device-mobile" color="var(--emerald-deep)" label="M-Pesa → Lightning"
-              sub="Send M-Pesa, receive sats" onClick={() => openTx({ t: "g_mpesa_ln" })} />
-            <Tile icon="ti-currency-bitcoin" color="#F7931A" label="Lightning → Cash"
-              sub="Pay Lightning invoice, receive cash" onClick={() => openTx({ t: "g_ln_cash" })} warn={criticalFloat} />
-            <Tile icon="ti-currency-bitcoin" color="#F7931A" label="Lightning → M-Pesa"
-              sub="Pay Lightning invoice, receive M-Pesa" onClick={() => openTx({ t: "g_ln_mpesa" })} />
+            <Tile icon="ti-cash" color="var(--gold)" label="Cash → Lightning" sub="Give cash, receive sats" onClick={() => openTx({ t: "g_cash_ln" })} />
+            <Tile icon="ti-device-mobile" color="var(--emerald-deep)" label="M-Pesa → Lightning" sub="Send M-Pesa, receive sats" onClick={() => openTx({ t: "g_mpesa_ln" })} />
+            <Tile icon="ti-currency-bitcoin" color="#F7931A" label="Lightning → Cash" sub="Pay invoice, receive cash" onClick={() => openTx({ t: "g_ln_cash" })} warn={criticalWorking} />
+            <Tile icon="ti-currency-bitcoin" color="#F7931A" label="Lightning → M-Pesa" sub="Pay invoice, receive M-Pesa" onClick={() => openTx({ t: "g_ln_mpesa" })} />
           </div>
-
           <div style={{ borderTop: "1px solid var(--border-soft)", paddingTop: 14 }}>
-            <p className="note">No account yet?</p>
             <a href="/register" style={{ color: "var(--gold)", fontSize: 13, fontWeight: 600 }}>
               <i className="ti ti-arrow-right" /> Help them open a YeboBank account →
             </a>
@@ -586,24 +749,17 @@ export default function AgentPage() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          MEMBER — lookup screen (before verification)
-          ══════════════════════════════════════════════════════════════════════ */}
+      {/* ── MEMBER LOOKUP ───────────────────────────────────────────────────── */}
       {mode === "member" && !member && (
         <div className="card" style={{ marginTop: 14 }}>
           <div className="section-head" style={{ marginBottom: 14 }}>
             <h2>Member lookup</h2>
-            <button onClick={() => setMode(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--soft)", fontSize: 13 }}>
-              ← Back
-            </button>
+            <button onClick={() => setMode(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--soft)", fontSize: 13 }}>← Back</button>
           </div>
-          <p className="note" style={{ marginBottom: 12 }}>
-            Enter the customer&apos;s phone number to find their YeboBank account.
-            Deposits don&apos;t require verification — only withdrawals and services do.
-          </p>
+          <p className="note" style={{ marginBottom: 12 }}>Deposits don&apos;t require verification. Withdrawals and services do.</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <input className="input" placeholder="Phone (+254712... or 0712...)"
-              value={phone} onChange={(e) => { setPhone(e.target.value); setLookErr(""); }} />
+              value={phone} onChange={e => { setPhone(e.target.value); setLookErr(""); }} />
             {phone && phoneErr(phone) && <ErrNote msg={phoneErr(phone)!} />}
             {lookErr && <ErrNote msg={lookErr} />}
           </div>
@@ -618,19 +774,16 @@ export default function AgentPage() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          MEMBER DASHBOARD (after lookup)
-          ══════════════════════════════════════════════════════════════════════ */}
+      {/* ── MEMBER DASHBOARD ────────────────────────────────────────────────── */}
       {mode === "member" && member && (
         <div className="card" style={{ marginTop: 14 }}>
           <div className="section-head" style={{ marginBottom: 4 }}>
             <div>
               <h2>{member.name ?? "Member"}</h2>
-              <p className="note">
-                {member.phone}
+              <p className="note">{member.phone}
                 {member.verified
                   ? <span style={{ color: "var(--emerald-deep)", marginLeft: 8 }}><i className="ti ti-shield-check" /> Verified</span>
-                  : <span style={{ color: "var(--soft)", marginLeft: 8 }}><i className="ti ti-shield" /> Not yet verified</span>}
+                  : <span style={{ color: "var(--soft)", marginLeft: 8 }}><i className="ti ti-shield" /> Not verified</span>}
               </p>
             </div>
             <button onClick={() => { resetMember(); setMode(null); }}
@@ -639,91 +792,184 @@ export default function AgentPage() {
             </button>
           </div>
 
-          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13, margin: "16px 0 8px", color: "var(--soft)" }}>
-            ADD MONEY TO WALLET <span style={{ fontSize: 11, fontWeight: 400 }}>(no verification required)</span>
+          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 12, margin: "16px 0 8px", color: "var(--soft)" }}>
+            ADD MONEY <span style={{ fontSize: 11, fontWeight: 400 }}>(no verification required)</span>
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
-            <Tile icon="ti-cash" color="var(--gold)" label="Cash" sub="Agent receives cash" onClick={() => openTx({ t: "m_dep_cash" })} />
-            <Tile icon="ti-device-mobile" color="var(--emerald-deep)" label="M-Pesa" sub="Agent receives M-Pesa" onClick={() => openTx({ t: "m_dep_mpesa" })} />
-            <Tile icon="ti-currency-bitcoin" color="#F7931A" label="Lightning" sub="Customer pays invoice" onClick={() => openTx({ t: "m_dep_ln" })} />
+            <Tile icon="ti-cash" color="var(--gold)" label="Cash" sub="Agent receives" onClick={() => openTx({ t: "m_dep_cash" })} />
+            <Tile icon="ti-device-mobile" color="var(--emerald-deep)" label="M-Pesa" sub="Via agent till" onClick={() => openTx({ t: "m_dep_mpesa" })} />
+            <Tile icon="ti-currency-bitcoin" color="#F7931A" label="Lightning" sub="Customer pays QR" onClick={() => openTx({ t: "m_dep_ln" })} />
           </div>
 
-          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13, margin: "0 0 8px", color: "var(--soft)" }}>
-            WITHDRAW FROM WALLET <span style={{ fontSize: 11, fontWeight: 400 }}>(verification required)</span>
+          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 12, margin: "0 0 8px", color: "var(--soft)" }}>
+            WITHDRAW <span style={{ fontSize: 11, fontWeight: 400 }}>(verification required)</span>
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
-            <Tile icon="ti-cash" color="var(--gold)" label="Cash" sub="Agent gives cash"
-              onClick={() => openTx({ t: "m_wdraw_cash" })} warn={criticalFloat} />
-            <Tile icon="ti-device-mobile" color="var(--emerald-deep)" label="M-Pesa" sub="Agent sends M-Pesa"
-              onClick={() => openTx({ t: "m_wdraw_mpesa" })} />
-            <Tile icon="ti-currency-bitcoin" color="#F7931A" label="Lightning" sub="Pay their invoice"
-              onClick={() => openTx({ t: "m_wdraw_ln" })} />
+            <Tile icon="ti-cash" color="var(--gold)" label="Cash" sub="Agent gives cash" onClick={() => openTx({ t: "m_wdraw_cash" })} warn={criticalWorking} />
+            <Tile icon="ti-device-mobile" color="var(--emerald-deep)" label="M-Pesa" sub="Agent sends M-Pesa" onClick={() => openTx({ t: "m_wdraw_mpesa" })} />
+            <Tile icon="ti-currency-bitcoin" color="#F7931A" label="Lightning" sub="Pay their invoice" onClick={() => openTx({ t: "m_wdraw_ln" })} />
           </div>
 
-          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13, margin: "0 0 8px", color: "var(--soft)" }}>
-            YEBOBANK SERVICES <span style={{ fontSize: 11, fontWeight: 400 }}>(verification required)</span>
+          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 12, margin: "0 0 8px", color: "var(--soft)" }}>
+            SERVICES <span style={{ fontSize: 11, fontWeight: 400 }}>(verification required)</span>
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-            <Tile icon="ti-lock" color="var(--forest)" label="Savings deposit" sub="Add to a locked savings goal"
-              onClick={() => openTx({ t: "m_svc", kind: "savings_deposit" })} />
-            <Tile icon="ti-users" color="var(--forest)" label="Chama contribution" sub="Pay into a chama pool"
-              onClick={() => openTx({ t: "m_svc", kind: "chama_contribution" })} />
-            <Tile icon="ti-file-invoice" color="var(--soft)" label="Withdrawal request" sub="File a request for Mlinzi"
-              onClick={() => openTx({ t: "m_svc", kind: "withdrawal_request" })} />
-            <Tile icon="ti-bolt" color="#F7931A" label="Lightning send" sub="Send sats for the customer"
-              onClick={() => openTx({ t: "m_svc", kind: "lightning_send" })} />
+            <Tile icon="ti-lock" color="var(--forest)" label="Savings deposit" sub="Add to a savings goal" onClick={() => openTx({ t: "m_svc", kind: "savings_deposit" })} />
+            <Tile icon="ti-users" color="var(--forest)" label="Chama contribution" sub="Pay into a chama" onClick={() => openTx({ t: "m_svc", kind: "chama_contribution" })} />
+            <Tile icon="ti-file-invoice" color="var(--soft)" label="Withdrawal request" sub="Request from Mlinzi" onClick={() => openTx({ t: "m_svc", kind: "withdrawal_request" })} />
+            <Tile icon="ti-bolt" color="#F7931A" label="Lightning send" sub="Send sats for them" onClick={() => openTx({ t: "m_svc", kind: "lightning_send" })} />
           </div>
-
           <div style={{ borderTop: "1px solid var(--border-soft)", paddingTop: 12 }}>
-            <p className="note" style={{ marginBottom: 6 }}>Customer doesn&apos;t have their phone today?</p>
             <button onClick={() => { resetMember(); setMode("guest"); }}
               style={{ background: "none", border: "none", cursor: "pointer", color: "var(--gold)", fontSize: 13, fontWeight: 600 }}>
-              <i className="ti ti-arrow-right" /> Serve as guest using agent wallet
+              <i className="ti ti-arrow-right" /> Serve as guest instead
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Recent activity ──────────────────────────────────────────────────── */}
+      {/* ── RECENT ACTIVITY ─────────────────────────────────────────────────── */}
       <div className="card" style={{ marginTop: 10 }}>
         <div className="section-head"><h2>Recent activity</h2></div>
-        {history.length === 0 && <p className="note">No transactions yet today.</p>}
-        {history.slice(0, 8).map((tx) => <TransactionRow key={tx.id} tx={tx} />)}
+        {history.length === 0 && <p className="note">No transactions yet.</p>}
+        {history.slice(0, 8).map((t) => <TransactionRow key={t.id} tx={t} />)}
       </div>
 
-      {/* ════════════════════════════════════════════════════════════════════════
-          TRANSACTION MODAL
-         ════════════════════════════════════════════════════════════════════════ */}
+      {/* ── SECURITY SETTINGS ───────────────────────────────────────────────── */}
+      <div className="card" style={{ marginTop: 10 }}>
+        <button onClick={() => setShowSecurity(v => !v)} style={{
+          width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer",
+          display: "flex", alignItems: "center", gap: 10, padding: 0,
+        }}>
+          <i className="ti ti-shield-lock" style={{ fontSize: 18, color: "var(--forest)" }} />
+          <div style={{ flex: 1 }}>
+            <strong>Security settings</strong>
+            <p className="note" style={{ marginTop: 2 }}>Reserve float · Panic contacts · PIN</p>
+          </div>
+          <i className={`ti ti-chevron-${showSecurity ? "up" : "down"}`} style={{ color: "var(--soft)" }} />
+        </button>
+
+        {showSecurity && (
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Reserve explanation */}
+            <div style={{ background: "var(--ivory)", borderRadius: "var(--r-sm)", padding: 14 }}>
+              <p style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
+                <i className="ti ti-lock" style={{ color: "var(--emerald-deep)", marginRight: 8 }} />Reserve float protection
+              </p>
+              <p className="note">
+                Keep your <strong>working float</strong> small — only what you need for today.
+                Lock the rest in the <strong>reserve</strong>.
+                If robbed, attackers can only take the working float. The reserve requires your PIN
+                and a <strong>60-second countdown</strong> (15 min in production) — long enough for a robber to give up.
+              </p>
+              <p className="note" style={{ marginTop: 6 }}>
+                Mock reserve PIN: <strong style={{ fontFamily: "var(--font-mono)" }}>1234</strong>
+              </p>
+            </div>
+
+            {/* Panic system */}
+            <div>
+              <p style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
+                <i className="ti ti-urgent" style={{ color: "var(--terra-text)", marginRight: 8 }} />Panic escalation system
+              </p>
+              <p className="note" style={{ marginBottom: 12 }}>
+                Tap the <strong>Confirm</strong> button multiple times rapidly during any transaction.
+                Each extra tap escalates to the next level — without any visible change to the robber watching.
+              </p>
+
+              {(Object.entries(TIER_META) as [ContactTier, typeof TIER_META[ContactTier]][]).map(([tier, meta]) => {
+                const contacts = (draftContacts ?? agent.emergencyContacts).filter(c => c.tier === tier);
+                return (
+                  <div key={tier} style={{
+                    borderLeft: `3px solid ${meta.color}`, paddingLeft: 14,
+                    marginBottom: 16,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <i className={`ti ${meta.icon}`} style={{ color: meta.color }} />
+                      <strong style={{ fontSize: 13 }}>{meta.tapCount}× tap — {meta.label}</strong>
+                    </div>
+                    <p className="note" style={{ marginBottom: 8 }}>{meta.desc}</p>
+                    {contacts.map(c => (
+                      <div key={c.id} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
+                        {draftContacts
+                          ? (
+                            <>
+                              <input className="input" style={{ flex: 2, fontSize: 12 }} placeholder="Name"
+                                value={c.name} onChange={e => updateContact(c.id, "name", e.target.value)} />
+                              <input className="input" style={{ flex: 2, fontSize: 12 }} placeholder="Phone"
+                                value={c.phone} onChange={e => updateContact(c.id, "phone", e.target.value)} />
+                              <button onClick={() => removeContact(c.id)} style={{
+                                background: "none", border: "none", cursor: "pointer", color: "var(--terra-text)", flexShrink: 0,
+                              }}><i className="ti ti-trash" /></button>
+                            </>
+                          )
+                          : (
+                            <p className="note" style={{ fontSize: 12 }}>
+                              <i className="ti ti-user" style={{ marginRight: 6 }} />{c.name} · {c.phone}
+                            </p>
+                          )}
+                      </div>
+                    ))}
+                    {draftContacts && (
+                      <button onClick={() => addContact(tier)} style={{
+                        background: "none", border: `1px dashed ${meta.color}55`,
+                        cursor: "pointer", borderRadius: "var(--r-sm)",
+                        padding: "5px 12px", fontSize: 12, color: "var(--soft)",
+                      }}>
+                        <i className="ti ti-plus" /> Add {meta.label} contact
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+
+              <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                {draftContacts
+                  ? (
+                    <>
+                      <Button disabled={savingContacts} onClick={saveContacts}>{savingContacts ? "Saving…" : "Save contacts"}</Button>
+                      <Button variant="ghost" onClick={() => setDraftContacts(null)}>Cancel</Button>
+                    </>
+                  )
+                  : <Button variant="ghost" onClick={startEditContacts}><i className="ti ti-edit" /> Edit contacts</Button>
+                }
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── TRANSACTION MODAL ────────────────────────────────────────────────── */}
       {tx && (
         <div className="modal-overlay" onClick={closeTx}>
           <div className="modal" style={{ maxHeight: "90dvh", overflowY: "auto" }}
-            onClick={(e) => e.stopPropagation()}>
+            onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={closeTx}>&times;</button>
 
-            {/* ── VERIFICATION GATE (for withdrawals/services if not yet verified) ── */}
+            {/* VERIFICATION GATE */}
             {needsVerify && member && (
               <>
                 <h2>Verify identity</h2>
                 <VerifyStep member={member} channel={channel} codeSent={codeSent} code={code}
                   error={txErr} verifying={verifying}
-                  onSendCode={sendCode} onCodeChange={(v) => { setCode(v); setTxErr(""); }}
+                  onSendCode={sendCode} onCodeChange={v => { setCode(v); setTxErr(""); }}
                   onVerify={doVerify} onCancel={closeTx} />
               </>
             )}
 
-            {/* ── POST-DEPOSIT FORWARD ─────────────────────────────────────── */}
+            {/* POST-DEPOSIT FORWARD */}
             {!needsVerify && tx.t === "post_dep" && member && (
               <>
                 <h2><i className="ti ti-circle-check" style={{ color: "var(--emerald-deep)", marginRight: 8 }} />Deposit complete</h2>
                 <GoodNote msg={`${num(tx.sats)} sats added to ${member.name ?? member.phone}'s wallet.`} />
-                <p className="modal-sub" style={{ marginTop: 12 }}>What would they like to do next?</p>
+                <p className="modal-sub" style={{ marginTop: 12 }}>What next?</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
                   {[
-                    { icon: "ti-wallet", label: "Keep in wallet", sub: "Done — sats stay in their account", action: () => { closeTx(); load(); } },
-                    { icon: "ti-bolt", label: "Send via Lightning", sub: "Immediately send sats to another wallet", action: () => openTx({ t: "m_wdraw_ln" }) },
-                    { icon: "ti-lock", label: "Deposit to savings", sub: "Move into a locked savings goal", action: () => openTx({ t: "m_svc", kind: "savings_deposit" }) },
-                    { icon: "ti-users", label: "Contribute to chama", sub: "Pay into a group savings pool", action: () => openTx({ t: "m_svc", kind: "chama_contribution" }) },
-                  ].map((o) => (
+                    { icon: "ti-wallet",  label: "Keep in wallet",     sub: "Done — sats stay in account",       action: () => { closeTx(); load(); } },
+                    { icon: "ti-bolt",    label: "Send via Lightning",  sub: "Send to another wallet immediately", action: () => openTx({ t: "m_wdraw_ln" }) },
+                    { icon: "ti-lock",    label: "Deposit to savings",  sub: "Move into a locked savings goal",    action: () => openTx({ t: "m_svc", kind: "savings_deposit" }) },
+                    { icon: "ti-users",   label: "Contribute to chama", sub: "Pay into a group savings pool",      action: () => openTx({ t: "m_svc", kind: "chama_contribution" }) },
+                  ].map(o => (
                     <button key={o.label} onClick={o.action} style={{
                       textAlign: "left", padding: 12, cursor: "pointer", background: "var(--ivory)",
                       border: "1.5px solid var(--border)", borderRadius: "var(--r-sm)",
@@ -736,15 +982,90 @@ export default function AgentPage() {
               </>
             )}
 
-            {/* ── FLOAT TOP-UP ─────────────────────────────────────────────── */}
+            {/* RESERVE RELEASE / CLAIM */}
+            {!needsVerify && tx.t === "reserve_release" && (
+              <>
+                <h2>
+                  <i className={`ti ${reserveReady ? "ti-lock-open" : "ti-lock"}`}
+                    style={{ color: "var(--emerald-deep)", marginRight: 8 }} />
+                  {reserveReady ? "Claim reserve funds" : reservePending ? "Release in progress" : "Release reserve float"}
+                </h2>
+                {reserveReady && (
+                  <>
+                    <GoodNote msg={`${num(agent.reserveSats)} sats ready to move to your working float.`} />
+                    <div className="modal-actions">
+                      <Button disabled={submitting} onClick={handleClaimReserve}>{submitting ? "Claiming…" : "Claim reserve"}</Button>
+                      <Button variant="ghost" onClick={closeTx}>Cancel</Button>
+                    </div>
+                  </>
+                )}
+                {reservePending && (
+                  <>
+                    <p className="modal-sub">Security countdown: <strong>{fmtCountdown(reserveSecsLeft!)}</strong></p>
+                    <p className="note" style={{ marginTop: 8 }}>
+                      Under duress: do not share your PIN. Let the timer run — most robbers leave rather than wait.
+                      Your reserve is safe until you actively claim it after the countdown.
+                    </p>
+                    <div className="modal-actions"><Button variant="ghost" onClick={closeTx}>Close</Button></div>
+                  </>
+                )}
+                {!reserveReady && !reservePending && (
+                  <>
+                    <p className="modal-sub">
+                      Enter your reserve PIN to start the security countdown.
+                      The timer is visible on screen — you can tell a robber &ldquo;the system is making me wait.&rdquo;
+                    </p>
+                    <input className="input" type="password" placeholder="Reserve PIN"
+                      value={reservePin} onChange={e => { setReservePin(e.target.value); setReservePinErr(""); }} />
+                    {reservePinErr && <ErrNote msg={reservePinErr} />}
+                    <p className="note" style={{ marginTop: 6 }}>Mock PIN: <strong style={{ fontFamily: "var(--font-mono)" }}>1234</strong></p>
+                    <div className="modal-actions">
+                      <Button disabled={!reservePin || submitting} onClick={handleReserveRelease}>
+                        {submitting ? "Verifying…" : "Start release"}
+                      </Button>
+                      <Button variant="ghost" onClick={closeTx}>Cancel</Button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {/* MOVE TO RESERVE */}
+            {!needsVerify && tx.t === "move_to_reserve" && (
+              <>
+                <h2><i className="ti ti-lock" style={{ color: "var(--forest)", marginRight: 8 }} />Add to reserve</h2>
+                <p className="modal-sub">
+                  Lock sats away from your working float. Recommended working float: KES {num(Math.round(LOW_FLOAT * rate.kesPerSat))} or less.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <input className="input" type="number" min="1" placeholder="Amount (sats)"
+                    value={moveAmount} onChange={e => { setMoveAmount(e.target.value); setTxErr(""); }} />
+                  {moveAmount && Number(moveAmount) > 0 && (
+                    <p className="note">
+                      ≈ KES {num(Math.round(Number(moveAmount) * rate.kesPerSat))} ·
+                      Working float after: {num(Math.max(0, agent.workingFloatSats - Number(moveAmount)))} sats
+                    </p>
+                  )}
+                  {txErr && <ErrNote msg={txErr} />}
+                </div>
+                <div className="modal-actions">
+                  <Button disabled={!moveAmount || Number(moveAmount) <= 0 || submitting} onClick={handleMoveToReserve}>
+                    {submitting ? "Moving…" : "Move to reserve"}
+                  </Button>
+                  <Button variant="ghost" onClick={closeTx}>Cancel</Button>
+                </div>
+              </>
+            )}
+
+            {/* FLOAT TOP-UP */}
             {!needsVerify && tx.t === "topup" && (
               <>
-                <h2><i className="ti ti-bolt" style={{ color: "#F7931A", marginRight: 8 }} />Top up sats float</h2>
-                <p className="modal-sub">Generate a Lightning invoice and pay it from your personal wallet to replenish your agent float.</p>
+                <h2><i className="ti ti-bolt" style={{ color: "#F7931A", marginRight: 8 }} />Top up working float</h2>
+                <p className="modal-sub">Generate a Lightning invoice and pay it from your personal wallet.</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   <div>
                     <input className="input" type="number" min="1" placeholder="Amount (sats)"
-                      value={rawAmount} onChange={(e) => { setRawAmount(e.target.value); setTopupInv(null); setTxErr(""); }} />
+                      value={rawAmount} onChange={e => { setRawAmount(e.target.value); setTopupInv(null); setTxErr(""); }} />
                     {rawAmount && Number(rawAmount) > 0 && (
                       <p className="note" style={{ marginTop: 5 }}>≈ KES {num(Math.round(Number(rawAmount) * rate.kesPerSat))}</p>
                     )}
@@ -758,54 +1079,49 @@ export default function AgentPage() {
                 </div>
                 <div className="modal-actions">
                   <Button disabled={!topupInv || submitting} onClick={confirmTopup}>
-                    {submitting ? "Confirming…" : "Confirm — I've paid the invoice"}
+                    {submitting ? "Confirming…" : "Confirm — I've paid"}
                   </Button>
                   <Button variant="ghost" onClick={closeTx}>Cancel</Button>
                 </div>
               </>
             )}
 
-            {/* ── TRANSACTION FORMS ────────────────────────────────────────── */}
-            {!needsVerify && tx.t !== "post_dep" && tx.t !== "topup" && (
+            {/* ALL TRANSACTION FORMS */}
+            {!needsVerify && tx.t !== "post_dep" && tx.t !== "topup" &&
+             tx.t !== "reserve_release" && tx.t !== "move_to_reserve" && (
               <>
-                {/* Dynamic title */}
                 <h2>{txTitle(tx, member)}</h2>
-
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
-                  {/* ── M-Pesa incoming: show agent till ── */}
                   {(tx.t === "g_mpesa_cash" || tx.t === "g_mpesa_ln" || tx.t === "m_dep_mpesa") && (
-                    <GoodNote msg={`Ask the customer to send M-Pesa to your till: ${agent.mpesaTillNumber}`} />
+                    <GoodNote msg={`Ask customer to send M-Pesa to your till: ${agent.mpesaTillNumber}`} />
                   )}
 
-                  {/* ── Unit toggle (for Sats corridors that allow KES) ── */}
                   {(tx.t === "g_cash_ln" || tx.t === "g_mpesa_ln" || tx.t === "m_dep_cash" ||
                     tx.t === "m_wdraw_cash" || tx.t === "m_wdraw_mpesa" || tx.t === "m_wdraw_ln" ||
                     (tx.t === "m_svc" && tx.kind !== "lightning_send")) && (
-                    <UnitToggle useKes={useKes} onToggle={(b) => { setUseKes(b); setRawAmount(""); setTxErr(""); }} />
+                    <UnitToggle useKes={useKes} onToggle={b => { setUseKes(b); setRawAmount(""); setTxErr(""); }} />
                   )}
 
-                  {/* ── Amount ── */}
                   {tx.t !== "g_ln_cash" && tx.t !== "g_ln_mpesa" && tx.t !== "m_dep_ln" && (
                     <div>
                       <input className="input" type="number" min="0"
                         placeholder={
-                          tx.t === "g_cash_mpesa" || tx.t === "g_mpesa_cash" || tx.t === "m_dep_mpesa" ? "Amount (KES)"
-                          : useKes ? "Amount (KES)" : "Amount (sats)"
+                          tx.t === "g_cash_mpesa" || tx.t === "g_mpesa_cash" || tx.t === "m_dep_mpesa"
+                            ? "Amount (KES)" : useKes ? "Amount (KES)" : "Amount (sats)"
                         }
                         value={rawAmount}
-                        onChange={(e) => { setRawAmount(e.target.value); setLnInvoice(null); setTxErr(""); }} />
+                        onChange={e => { setRawAmount(e.target.value); setLnInvoice(null); setTxErr(""); }} />
                       {rawAmount && Number(rawAmount) > 0 && <p className="note" style={{ marginTop: 5 }}>{preview()}</p>}
                     </div>
                   )}
 
-                  {/* ── Lightning → Cash/M-Pesa: enter sats, then generate QR ── */}
                   {(tx.t === "g_ln_cash" || tx.t === "g_ln_mpesa" || tx.t === "m_dep_ln") && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       <div>
                         <input className="input" type="number" min="1" placeholder="Amount (sats)"
                           value={rawAmount}
-                          onChange={(e) => { setRawAmount(e.target.value); setLnInvoice(null); setTxErr(""); }} />
+                          onChange={e => { setRawAmount(e.target.value); setLnInvoice(null); setTxErr(""); }} />
                         {rawAmount && Number(rawAmount) > 0 && (
                           <p className="note" style={{ marginTop: 5 }}>≈ KES {num(Math.round(Number(rawAmount) * rate.kesPerSat))}</p>
                         )}
@@ -818,42 +1134,29 @@ export default function AgentPage() {
                     </div>
                   )}
 
-                  {/* ── Outgoing M-Pesa destination ── */}
                   {(tx.t === "g_cash_mpesa" || tx.t === "g_ln_mpesa" || tx.t === "m_wdraw_mpesa") && (
-                    <div>
-                      <input className="input" placeholder="Destination M-Pesa number (+254... or 07...)"
-                        value={mpesaDest} onChange={(e) => { setMpesaDest(e.target.value); setTxErr(""); }} />
-                      <p className="note" style={{ marginTop: 4 }}>You will send M-Pesa to this number after confirming.</p>
-                    </div>
+                    <input className="input" placeholder="Destination M-Pesa number (+254... or 07...)"
+                      value={mpesaDest} onChange={e => { setMpesaDest(e.target.value); setTxErr(""); }} />
                   )}
 
-                  {/* ── Incoming M-Pesa: reference code field ── */}
                   {(tx.t === "g_mpesa_cash" || tx.t === "g_mpesa_ln" || tx.t === "m_dep_mpesa") && (
-                    <input className="input" placeholder="M-Pesa reference code (optional, e.g. QHJ89NKPXY)"
-                      value={mpesaRef} onChange={(e) => setMpesaRef(e.target.value)} />
+                    <input className="input" placeholder="M-Pesa reference code (optional)"
+                      value={mpesaRef} onChange={e => setMpesaRef(e.target.value)} />
                   )}
 
-                  {/* ── Lightning destination (paste/scan) ── */}
                   {(tx.t === "g_cash_ln" || tx.t === "g_mpesa_ln" || tx.t === "m_wdraw_ln" ||
                     (tx.t === "m_svc" && tx.kind === "lightning_send")) && (
-                    <ScanRow value={lnDest} onChange={(v) => { setLnDest(v); setTxErr(""); }}
+                    <ScanRow value={lnDest} onChange={v => { setLnDest(v); setTxErr(""); }}
                       onScan={() => setScanning(true)}
                       placeholder="Customer's Lightning invoice or address" />
                   )}
 
-                  {/* ── Cash → Sats (Cash→Ln guest): destination address ── */}
-                  {tx.t === "g_cash_ln" && (
-                    <p className="note"><i className="ti ti-info-circle" /> Agent sends from their own Lightning wallet to the customer&apos;s address.</p>
+                  {tx.t === "m_wdraw_cash" && lowWorking && (
+                    <ErrNote msg={`Working float low (${num(agent.workingFloatSats)} sats). Consider releasing reserve first.`} />
                   )}
 
-                  {/* ── Low float warning ── */}
-                  {tx.t === "m_wdraw_cash" && lowFloat && (
-                    <ErrNote msg={`Sats float is low (${num(agent.floatLimitSats)} sats). Ensure you have enough cash on hand.`} />
-                  )}
-
-                  {/* ── M-Pesa receipt confirm checkbox ── */}
                   {(tx.t === "g_mpesa_cash" || tx.t === "g_mpesa_ln" || tx.t === "m_dep_mpesa") && (
-                    <button onClick={() => setReceiptOk((v) => !v)} style={{
+                    <button onClick={() => setReceiptOk(v => !v)} style={{
                       textAlign: "left", padding: "10px 14px", cursor: "pointer",
                       background: receiptOk ? "rgba(17,166,91,.08)" : "var(--ivory)",
                       border: `1.5px solid ${receiptOk ? "var(--emerald-deep)" : "var(--border)"}`,
@@ -862,38 +1165,32 @@ export default function AgentPage() {
                       <i className={`ti ${receiptOk ? "ti-checkbox" : "ti-square"}`}
                         style={{ marginRight: 8, color: receiptOk ? "var(--emerald-deep)" : "var(--soft)" }} />
                       <strong>I have received the M-Pesa</strong>
-                      <p className="note" style={{ marginTop: 3 }}>Only confirm after you see the credit in your M-Pesa app.</p>
+                      <p className="note" style={{ marginTop: 3 }}>Only confirm after you see the credit in your M-Pesa.</p>
                     </button>
                   )}
 
-                  {/* ── Service kind label (m_svc) ── */}
-                  {tx.t === "m_svc" && (
-                    <p className="note" style={{ color: "var(--emerald-deep)", fontWeight: 500 }}>
-                      <i className="ti ti-bookmark" style={{ marginRight: 6 }} />
-                      {tx.kind === "savings_deposit" ? "Savings deposit"
-                       : tx.kind === "chama_contribution" ? "Chama contribution"
-                       : tx.kind === "withdrawal_request" ? "Withdrawal request"
-                       : "Lightning send"}
-                    </p>
-                  )}
-
                   {txErr && <ErrNote msg={txErr} />}
+
+                  <p className="note" style={{ fontSize: 10, color: "var(--border-soft)" }}>
+                    1 tap = confirm · 2 taps = personal alert · 3 = police · 4 = emergency lock
+                  </p>
                 </div>
 
                 <div className="modal-actions">
-                  {/* Lightning receive: wait for invoice before confirm */}
-                  {(tx.t === "g_ln_cash" || tx.t === "g_ln_mpesa" || tx.t === "m_dep_ln") ? (
-                    <Button disabled={!lnInvoice || submitting} onClick={handleSubmit}>
-                      {submitting ? "Confirming…"
-                        : tx.t === "g_ln_mpesa" ? "Confirm received — send M-Pesa"
-                        : tx.t === "m_dep_ln" ? "Confirm received — credit wallet"
-                        : "Confirm received — give cash"}
-                    </Button>
-                  ) : (
-                    <Button disabled={submitting} onClick={handleSubmit}>
-                      {submitting ? "Processing…" : txConfirmLabel(tx)}
-                    </Button>
-                  )}
+                  <ConfirmButton
+                    disabled={
+                      submitting || panicExecuting ||
+                      ((tx.t === "g_ln_cash" || tx.t === "g_ln_mpesa" || tx.t === "m_dep_ln") && !lnInvoice)
+                    }
+                    label={
+                      submitting || panicExecuting ? "Processing…"
+                      : tx.t === "g_ln_mpesa"   ? "Confirm — send M-Pesa"
+                      : tx.t === "m_dep_ln"      ? "Confirm — credit wallet"
+                      : tx.t === "g_ln_cash"     ? "Confirm — give cash"
+                      : txConfirmLabel(tx)
+                    }
+                    onConfirm={handleConfirmWithLevel}
+                  />
                   <Button variant="ghost" onClick={closeTx}>Cancel</Button>
                 </div>
               </>
@@ -903,17 +1200,14 @@ export default function AgentPage() {
       )}
 
       {scanning && (
-        <QRScanner
-          onScan={(val) => { setLnDest(val); setScanning(false); }}
-          onClose={() => setScanning(false)}
-        />
+        <QRScanner onScan={val => { setLnDest(val); setScanning(false); }} onClose={() => setScanning(false)} />
       )}
     </>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Label helpers (keep them out of the render body)
+// Label helpers
 // ─────────────────────────────────────────────────────────────────────────────
 function txTitle(tx: Tx, member: MemberCtx | null): string {
   const m = member?.name ?? "member";
