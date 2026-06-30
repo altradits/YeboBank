@@ -4,21 +4,23 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ATMCard } from "@/components/app/ATMCard";
 import TransactionRow from "@/components/app/TransactionRow";
-import { getWallet, getHistory } from "@/lib/api";
+import { getWallet, getHistory, getUser } from "@/lib/api";
 import type { LedgerEntry } from "@/types";
 
 export default function DashboardPage() {
   const [balance, setBalance] = useState(0);
   const [history, setHistory] = useState<LedgerEntry[]>([]);
+  const [firstName, setFirstName] = useState("Wanjiku");
 
   useEffect(() => {
     getWallet().then((w) => setBalance(w.balanceSats));
     getHistory().then(setHistory);
+    getUser().then((u) => setFirstName(u.fullName.split(" ")[0]));
   }, []);
 
   return (
     <>
-      <h1 className="page-title">Habari, Wanjiku 👋</h1>
+      <h1 className="page-title">Habari, {firstName} 👋</h1>
       <p className="page-sub">Here&apos;s how your money is doing today.</p>
 
       <div style={{ marginTop: 18 }}>

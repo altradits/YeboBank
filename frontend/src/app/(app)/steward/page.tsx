@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { num, fmtKESraw } from "@/lib/format";
 import {
-  getIncomeSources, getInvestorPositions, getAccessRequests, getWithdrawalRequests,
-  getInvestorPositionForHandle, getMlinziFIProfile, setMlinziFIProfile,
+  getUser, getIncomeSources, getInvestorPositions, getAccessRequests, getWithdrawalRequests,
+  getMyPosition, getMlinziFIProfile, setMlinziFIProfile,
 } from "@/lib/api";
-import type { IncomeSource, InvestorPosition, AccessRequest, WithdrawalRequest, FIProfile } from "@/types";
+import type { IncomeSource, InvestorPosition, AccessRequest, WithdrawalRequest, FIProfile, User } from "@/types";
 import { FICalculator } from "@/components/app/FICalculator";
 
 export default function StewardPage() {
+  const [user, setUser] = useState<User | null>(null);
   const [income, setIncome] = useState<IncomeSource[]>([]);
   const [investors, setInvestors] = useState<InvestorPosition[]>([]);
   const [access, setAccess] = useState<AccessRequest[]>([]);
@@ -19,11 +20,12 @@ export default function StewardPage() {
   const [myFi, setMyFi] = useState<FIProfile | null>(null);
 
   useEffect(() => {
+    getUser().then(setUser);
     getIncomeSources().then(setIncome);
     getInvestorPositions().then(setInvestors);
     getAccessRequests().then(setAccess);
     getWithdrawalRequests().then(setWithdrawals);
-    getInvestorPositionForHandle("@stanley").then(setMyPosition);
+    getMyPosition().then(setMyPosition);
     getMlinziFIProfile().then(setMyFi);
   }, []);
 
@@ -45,7 +47,7 @@ export default function StewardPage() {
       <div className="section-head">
         <div>
           <h1 className="page-title">Mlinzi Console</h1>
-          <p className="page-sub">Stanley Thuita · Fund Steward</p>
+          <p className="page-sub">{user?.fullName ?? "—"} · Fund Steward</p>
         </div>
       </div>
 
