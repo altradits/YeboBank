@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
+import QRScanner from "@/components/ui/QRScanner";
 import TransactionRow from "@/components/app/TransactionRow";
 import { useRate } from "@/lib/rate-context";
 import { num, fmtKESraw } from "@/lib/format";
@@ -53,6 +54,7 @@ export default function AgentPage() {
   const [lnInvoice, setLnInvoice] = useState<string | null>(null);
   const [lnBusy, setLnBusy] = useState(false);
   const [lnDest, setLnDest] = useState("");
+  const [scanning, setScanning] = useState(false);
   const [serviceKind, setServiceKind] = useState<AgentServiceKind>("savings_deposit");
   const [serviceNote, setServiceNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -72,7 +74,7 @@ export default function AgentPage() {
   function openFlow(m: Mode) {
     setMode(m); setStep("phone"); setPhone(""); setCustomer(null);
     setChannel(null); setCodeSent(false); setCode("");
-    setUnit("kes"); setAmount(""); setLnInvoice(null); setLnBusy(false); setLnDest("");
+    setUnit("kes"); setAmount(""); setLnInvoice(null); setLnBusy(false); setLnDest(""); setScanning(false);
     setServiceKind("savings_deposit"); setServiceNote("");
     setSubmitting(false); setError("");
   }
@@ -328,9 +330,23 @@ export default function AgentPage() {
 
                   {unit === "sats" && mode === "cash_out" && (
                     <>
-                      <input className="input" placeholder="Scan QR or paste invoice / Lightning address" value={lnDest}
-                        onChange={(e) => setLnDest(e.target.value)} />
-                      <p className="note"><i className="ti ti-scan" /> Tap to scan the customer&apos;s QR with your camera, or enter it manually.</p>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <input className="input" style={{ flex: 1 }}
+                          placeholder="Paste invoice / Lightning address"
+                          value={lnDest} onChange={(e) => setLnDest(e.target.value)} />
+                        <button
+                          onClick={() => setScanning(true)}
+                          title="Scan QR"
+                          style={{
+                            background: "var(--ivory)", border: "1px solid var(--border)",
+                            borderRadius: "var(--r-sm)", padding: "0 14px",
+                            cursor: "pointer", color: "var(--forest)", fontSize: 18,
+                            display: "flex", alignItems: "center",
+                          }}
+                        >
+                          <i className="ti ti-qrcode-scan" />
+                        </button>
+                      </div>
                     </>
                   )}
                 </div>
@@ -378,11 +394,23 @@ export default function AgentPage() {
                   <input className="input" type="number" placeholder={unit === "kes" ? "Amount (KES)" : "Amount (sats)"} value={amount}
                     onChange={(e) => setAmount(e.target.value)} />
                   {serviceKind === "lightning_send" && unit === "sats" && (
-                    <>
-                      <input className="input" placeholder="Scan QR or paste destination invoice / Lightning address" value={lnDest}
-                        onChange={(e) => setLnDest(e.target.value)} />
-                      <p className="note"><i className="ti ti-scan" /> Tap to scan with your camera, or enter the address manually.</p>
-                    </>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input className="input" style={{ flex: 1 }}
+                        placeholder="Paste invoice / Lightning address"
+                        value={lnDest} onChange={(e) => setLnDest(e.target.value)} />
+                      <button
+                        onClick={() => setScanning(true)}
+                        title="Scan QR"
+                        style={{
+                          background: "var(--ivory)", border: "1px solid var(--border)",
+                          borderRadius: "var(--r-sm)", padding: "0 14px",
+                          cursor: "pointer", color: "var(--forest)", fontSize: 18,
+                          display: "flex", alignItems: "center",
+                        }}
+                      >
+                        <i className="ti ti-qrcode-scan" />
+                      </button>
+                    </div>
                   )}
                   <input className="input" placeholder="Note (optional — e.g. lock or chama name)" value={serviceNote}
                     onChange={(e) => setServiceNote(e.target.value)} />
@@ -408,6 +436,13 @@ export default function AgentPage() {
             )}
           </div>
         </div>
+      )}
+
+      {scanning && (
+        <QRScanner
+          onScan={(val) => { setLnDest(val); setScanning(false); }}
+          onClose={() => setScanning(false)}
+        />
       )}
     </>
   );
