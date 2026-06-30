@@ -5,7 +5,7 @@ import type {
   User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, ChamaMember, ChamaMessage, ChamaVote, JoinRequest,
   ChamaGrowthPoint, SavingsGrowthPoint, SavingsDeposit, PendingInvite, LockMessage,
   IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
-  PoolDeployment,
+  PoolDeployment, VirtualCard,
 } from "@/types";
 
 export const mockUser: User = {
@@ -443,3 +443,59 @@ export const mockNotifications: AppNotification[] = [];
 
 // Mutable — deployPoolCapital() pushes to this array.
 export const mockPoolDeployments: PoolDeployment[] = [];
+
+// ── Virtual payment card ──────────────────────────────────────────────────────
+// Null until Mlinzi generates one. The CVV rotates server-side automatically
+// whenever it expires. In mock mode the rotation period is short for testing.
+
+export function generateMockCvv(): string {
+  return String(100 + Math.floor(Math.random() * 900));
+}
+
+// Generates a deterministic-looking 16-digit card number with a fictional BIN.
+// The number format follows Luhn-adjacent aesthetics but is not network-issued.
+export function generateMockCardNumber(): string {
+  const prefix = "5899"; // fictional BIN — not registered with any network
+  let n = prefix;
+  for (let i = 0; i < 12; i++) n += Math.floor(Math.random() * 10);
+  return n;
+}
+
+export let mockVirtualCard: VirtualCard | null = null;
+
+export function createMockCard(rotationPeriodSecs = 900): VirtualCard {
+  const card: VirtualCard = {
+    id: `vc_${Date.now()}`,
+    number: generateMockCardNumber(),
+    cardholder: "MLINZI",
+    expiryMonth: 9,
+    expiryYear: 2028,
+    cvv: generateMockCvv(),
+    cvvRotatesAt: new Date(Date.now() + rotationPeriodSecs * 1000).toISOString(),
+    cvvRotationPeriodSecs: rotationPeriodSecs,
+    status: "active",
+    billingLine1: "P.O. Box 58629",
+    billingCity: "Nairobi",
+    billingPostalCode: "00100",
+    billingCountry: "KE",
+    limitSats: null,
+    totalDeployedSats: 0,
+    createdAt: new Date().toISOString(),
+    lastUsedAt: null,
+  };
+  mockVirtualCard = card;
+  return card;
+}
+
+// Auto-rotate CVV if the current one has expired — called inside getVirtualCard().
+export function clearMockVirtualCard(): void { mockVirtualCard = null; }
+
+export function rotateMockCvvIfExpired(): void {
+  if (!mockVirtualCard) return;
+  if (new Date(mockVirtualCard.cvvRotatesAt) <= new Date()) {
+    mockVirtualCard.cvv = generateMockCvv();
+    mockVirtualCard.cvvRotatesAt = new Date(
+      Date.now() + mockVirtualCard.cvvRotationPeriodSecs * 1000,
+    ).toISOString();
+  }
+}

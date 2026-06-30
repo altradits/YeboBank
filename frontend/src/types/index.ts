@@ -298,6 +298,30 @@ export interface AccessRequest {
   status: "requested" | "accepted" | "declined";
 }
 
+// ── Virtual payment card (Mlinzi deployment card) ────────────────────────────
+// One-time-CVV virtual card for deploying capital to investment platforms that
+// only accept bank cards. CVV rotates on a timer so auto-renewals and
+// subscriptions can never charge after the intended transaction completes.
+export interface VirtualCard {
+  id: string;
+  number: string;                // 16 digits — stable; mask first 12 in UI
+  cardholder: string;            // always "MLINZI" — never the real name
+  expiryMonth: number;           // 1–12
+  expiryYear: number;            // full year, e.g. 2028
+  cvv: string;                   // 3-digit rotating security code
+  cvvRotatesAt: string;          // ISO — when the CVV next changes
+  cvvRotationPeriodSecs: number; // configurable, default 900 (15 min)
+  status: "active" | "frozen";
+  billingLine1: string;
+  billingCity: string;
+  billingPostalCode: string;
+  billingCountry: string;        // ISO-3166 alpha-2, e.g. "KE"
+  limitSats: number | null;      // per-transaction cap; null = no hard limit
+  totalDeployedSats: number;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
 // Records each time the Mlinzi moves pool capital out to fund a new investment.
 export type DeployMethod = "mpesa" | "lightning";
 export interface PoolDeployment {
