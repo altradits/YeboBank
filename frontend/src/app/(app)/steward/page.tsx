@@ -86,6 +86,10 @@ export default function StewardPage() {
             {pendingWithdrawals > 0 ? <span className="badge pending">{pendingWithdrawals} in queue</span> : "All caught up"}
           </p>
         </Link>
+        <Link href="/steward/card" className="card" style={{ display: "block" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16 }}>Payment Card</h2>
+          <p className="note" style={{ marginTop: 6 }}>Virtual deployment card · rotating CVV</p>
+        </Link>
       </div>
 
       {/* Stanley's own investment position */}

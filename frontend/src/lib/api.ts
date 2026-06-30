@@ -14,7 +14,7 @@ import type {
   ChamaMessage, ChamaVote, JoinRequest,
   MyChamaStake, ChamaGrowthPoint, ChamaPortfolio, SavingsGrowthPoint, SavingsDeposit,
   IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
-  PendingInvite, LockMessage, PoolDeployment,
+  PendingInvite, LockMessage, PoolDeployment, VirtualCard,
 } from "@/types";
 import {
   mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent, mockAgentLedger, mockCustomerDirectory,
@@ -24,6 +24,7 @@ import {
   mockWithdrawalRequests, mockNotifications,
   mockLockMessages, mockPoolDeployments,
   MOCK_RESERVE_PIN, MOCK_REACTIVATION_CODES,
+  mockVirtualCard, createMockCard, rotateMockCvvIfExpired, generateMockCvv, clearMockVirtualCard,
 } from "@/lib/mock";
 
 const USE_MOCKS = true; // flip to false once the backend endpoints exist
@@ -1082,6 +1083,70 @@ export async function deployPoolCapital(
     method: "POST",
     body: JSON.stringify({ method, amountSats, amountKes, destination, notes }),
   });
+}
+
+// ── Virtual payment card ──────────────────────────────────────────────────────
+// One-time-CVV card for deploying capital to platforms that only accept cards.
+// CVV rotates on a timer — prevents subscriptions and auto-renewals.
+
+// TODO(backend): GET /steward/card
+export async function getVirtualCard(): Promise<VirtualCard | null> {
+  if (USE_MOCKS) {
+    if (!mockVirtualCard) return delay(null);
+    rotateMockCvvIfExpired();
+    return delay({ ...mockVirtualCard });
+  }
+  return req<VirtualCard | null>("/steward/card");
+}
+
+// TODO(backend): POST /steward/card — creates or replaces the card
+export async function generateVirtualCard(
+  rotationPeriodSecs = 900,
+  limitSats: number | null = null,
+): Promise<VirtualCard> {
+  if (USE_MOCKS) {
+    const card = createMockCard(rotationPeriodSecs);
+    card.limitSats = limitSats;
+    return delay({ ...card });
+  }
+  return req<VirtualCard>("/steward/card", {
+    method: "POST",
+    body: JSON.stringify({ rotationPeriodSecs, limitSats }),
+  });
+}
+
+// TODO(backend): POST /steward/card/cvv — rotate CVV immediately on demand
+export async function rotateCvvNow(): Promise<VirtualCard> {
+  if (USE_MOCKS) {
+    if (!mockVirtualCard) throw new Error("No card");
+    mockVirtualCard.cvv = generateMockCvv();
+    mockVirtualCard.cvvRotatesAt = new Date(
+      Date.now() + mockVirtualCard.cvvRotationPeriodSecs * 1000,
+    ).toISOString();
+    return delay({ ...mockVirtualCard });
+  }
+  return req<VirtualCard>("/steward/card/cvv", { method: "POST" });
+}
+
+// TODO(backend): PATCH /steward/card
+export async function updateVirtualCard(
+  patch: Partial<Pick<VirtualCard, "status" | "limitSats" | "cvvRotationPeriodSecs">>,
+): Promise<VirtualCard> {
+  if (USE_MOCKS) {
+    if (!mockVirtualCard) throw new Error("No card");
+    Object.assign(mockVirtualCard, patch);
+    return delay({ ...mockVirtualCard });
+  }
+  return req<VirtualCard>("/steward/card", { method: "PATCH", body: JSON.stringify(patch) });
+}
+
+// TODO(backend): DELETE /steward/card
+export async function deleteVirtualCard(): Promise<{ deleted: boolean }> {
+  if (USE_MOCKS) {
+    clearMockVirtualCard();
+    return delay({ deleted: true });
+  }
+  return req<{ deleted: boolean }>("/steward/card", { method: "DELETE" });
 }
 
 // ── Lock messages (activity / chat) ──────────────────────────────────────────
