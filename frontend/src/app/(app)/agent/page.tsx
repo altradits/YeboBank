@@ -8,6 +8,7 @@ import { num, fmtKESraw } from "@/lib/format";
 import {
   getAgent, getAgentHistory, agentCashTransact,
   lookupAgentCustomer, requestAgentAccessCode, verifyAgentAccessCode, agentAssistService,
+  agentGenerateInvoice, agentPayInvoice,
 } from "@/lib/api";
 import type { AccessChannel, AgentServiceKind } from "@/lib/api";
 import type { Agent, LedgerEntry } from "@/types";
@@ -49,6 +50,9 @@ export default function AgentPage() {
 
   const [unit, setUnit] = useState<Unit>("kes");
   const [amount, setAmount] = useState("");
+  const [lnInvoice, setLnInvoice] = useState<string | null>(null);
+  const [lnBusy, setLnBusy] = useState(false);
+  const [lnDest, setLnDest] = useState("");
   const [serviceKind, setServiceKind] = useState<AgentServiceKind>("savings_deposit");
   const [serviceNote, setServiceNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -68,7 +72,8 @@ export default function AgentPage() {
   function openFlow(m: Mode) {
     setMode(m); setStep("phone"); setPhone(""); setCustomer(null);
     setChannel(null); setCodeSent(false); setCode("");
-    setUnit("kes"); setAmount(""); setServiceKind("savings_deposit"); setServiceNote("");
+    setUnit("kes"); setAmount(""); setLnInvoice(null); setLnBusy(false); setLnDest("");
+    setServiceKind("savings_deposit"); setServiceNote("");
     setSubmitting(false); setError("");
   }
   function closeFlow() { setMode(null); }
@@ -116,6 +121,42 @@ export default function AgentPage() {
     setSubmitting(true);
     const amountSats = toSats(amount, unit);
     await agentAssistService(phone, serviceKind, amountSats, serviceNote || undefined);
+    setSubmitting(false);
+    closeFlow(); load();
+  }
+
+  async function generateInvoice() {
+    if (!amount) return;
+    setLnBusy(true);
+    const res = await agentGenerateInvoice(toSats(amount, unit));
+    setLnBusy(false);
+    setLnInvoice(res.invoice);
+  }
+
+  async function confirmLightningCashIn() {
+    if (!lnInvoice || !amount) return;
+    setSubmitting(true);
+    await agentCashTransact("in", phone, toSats(amount, unit));
+    setSubmitting(false);
+    closeFlow(); load();
+  }
+
+  async function payAndCashOut() {
+    if (!lnDest || !amount) return;
+    setSubmitting(true);
+    const amountSats = toSats(amount, unit);
+    await agentPayInvoice(lnDest, amountSats);
+    await agentCashTransact("out", phone, amountSats);
+    setSubmitting(false);
+    closeFlow(); load();
+  }
+
+  async function payAndAssistLightning() {
+    if (!lnDest || !amount) return;
+    setSubmitting(true);
+    const amountSats = toSats(amount, unit);
+    await agentPayInvoice(lnDest, amountSats);
+    await agentAssistService(phone, "lightning_send", amountSats, `to ${lnDest}`);
     setSubmitting(false);
     closeFlow(); load();
   }
@@ -270,11 +311,43 @@ export default function AgentPage() {
                   {amount && unit === "sats" && (
                     <p className="note">≈ KES {num(Math.round(Number(amount) * rate.kesPerSat))} · commission ≈ {num(Math.round(Number(amount) * agent.commissionRate))} sats</p>
                   )}
+
+                  {unit === "sats" && mode === "cash_in" && (
+                    lnInvoice ? (
+                      <div style={{ textAlign: "center" }}>
+                        <div className="qr" />
+                        <p className="note" style={{ marginTop: 10, wordBreak: "break-all" }}>{lnInvoice}</p>
+                        <p className="note" style={{ marginTop: 6 }}>Have the customer scan this to pay {num(toSats(amount, unit))} sats over Lightning.</p>
+                      </div>
+                    ) : (
+                      <Button variant="ghost" disabled={!amount || lnBusy} onClick={generateInvoice}>
+                        <i className="ti ti-qrcode" /> {lnBusy ? "Generating…" : "Generate QR to receive"}
+                      </Button>
+                    )
+                  )}
+
+                  {unit === "sats" && mode === "cash_out" && (
+                    <>
+                      <input className="input" placeholder="Scan QR or paste invoice / Lightning address" value={lnDest}
+                        onChange={(e) => setLnDest(e.target.value)} />
+                      <p className="note"><i className="ti ti-scan" /> Tap to scan the customer&apos;s QR with your camera, or enter it manually.</p>
+                    </>
+                  )}
                 </div>
                 <div className="modal-actions">
-                  <Button disabled={!amount || submitting} onClick={submitCash}>
-                    {submitting ? "Processing…" : `Confirm ${mode === "cash_in" ? "cash in" : "cash out"}`}
-                  </Button>
+                  {unit === "sats" && mode === "cash_in" ? (
+                    <Button disabled={!lnInvoice || submitting} onClick={confirmLightningCashIn}>
+                      {submitting ? "Confirming…" : "Confirm payment received"}
+                    </Button>
+                  ) : unit === "sats" && mode === "cash_out" ? (
+                    <Button disabled={!lnDest || !amount || submitting} onClick={payAndCashOut}>
+                      {submitting ? "Paying…" : "Pay & confirm cash out"}
+                    </Button>
+                  ) : (
+                    <Button disabled={!amount || submitting} onClick={submitCash}>
+                      {submitting ? "Processing…" : `Confirm ${mode === "cash_in" ? "cash in" : "cash out"}`}
+                    </Button>
+                  )}
                   <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
                 </div>
               </>
@@ -304,6 +377,13 @@ export default function AgentPage() {
                   </div>
                   <input className="input" type="number" placeholder={unit === "kes" ? "Amount (KES)" : "Amount (sats)"} value={amount}
                     onChange={(e) => setAmount(e.target.value)} />
+                  {serviceKind === "lightning_send" && unit === "sats" && (
+                    <>
+                      <input className="input" placeholder="Scan QR or paste destination invoice / Lightning address" value={lnDest}
+                        onChange={(e) => setLnDest(e.target.value)} />
+                      <p className="note"><i className="ti ti-scan" /> Tap to scan with your camera, or enter the address manually.</p>
+                    </>
+                  )}
                   <input className="input" placeholder="Note (optional — e.g. lock or chama name)" value={serviceNote}
                     onChange={(e) => setServiceNote(e.target.value)} />
                   {amount && (
@@ -313,9 +393,15 @@ export default function AgentPage() {
                   )}
                 </div>
                 <div className="modal-actions">
-                  <Button disabled={!amount || submitting} onClick={submitService}>
-                    {submitting ? "Processing…" : "Confirm & assist"}
-                  </Button>
+                  {serviceKind === "lightning_send" && unit === "sats" ? (
+                    <Button disabled={!lnDest || !amount || submitting} onClick={payAndAssistLightning}>
+                      {submitting ? "Paying…" : "Pay & confirm"}
+                    </Button>
+                  ) : (
+                    <Button disabled={!amount || submitting} onClick={submitService}>
+                      {submitting ? "Processing…" : "Confirm & assist"}
+                    </Button>
+                  )}
                   <Button variant="ghost" onClick={closeFlow}>Cancel</Button>
                 </div>
               </>
