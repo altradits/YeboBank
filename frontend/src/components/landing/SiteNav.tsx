@@ -21,6 +21,7 @@ export default function SiteNav() {
         </div>
         <div className="navactions">
           <Link className="login" href="/login">Log in</Link>
+          <Link className="demo-btn" href="/dashboard">Try demo <i className="ti ti-arrow-right" /></Link>
           <Button onClick={() => router.push("/register")}>Open account</Button>
         </div>
       </div>

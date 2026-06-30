@@ -25,7 +25,6 @@ export default function Converter() {
     <section className="sec" id="convert">
       <div className="wrap conv-wrap">
         <div className="reveal">
-          <div className="kicker"><i className="ti ti-refresh" /> Live converter</div>
           <h2 className="h2">See it in <span className="grow">your money.</span></h2>
           <p className="lead">
             Sats, shillings, Bitcoin — same money, three ways to read it. Type any
