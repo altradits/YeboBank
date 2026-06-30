@@ -328,6 +328,21 @@ export async function agentAssistService(
   return req("/agent/service", { method: "POST", body: JSON.stringify({ phone, kind, amountSats, note }) });
 }
 
+// ── Agent-side Lightning facilitation ────────────────────────────────────────
+// TODO(backend): POST /agent/invoice → lnd.AddInvoice({ value: amountSats }), return payment_request
+export async function agentGenerateInvoice(amountSats: number): Promise<{ invoice: string }> {
+  if (USE_MOCKS) {
+    return delay({ invoice: `lnbc${amountSats}n1p` + Math.random().toString(36).slice(2, 12) + "agentinvoice" });
+  }
+  return req("/agent/invoice", { method: "POST", body: JSON.stringify({ amountSats }) });
+}
+
+// TODO(backend): POST /agent/pay → lnd.SendPaymentV2({ payment_request | dest })
+export async function agentPayInvoice(invoiceOrAddress: string, amountSats: number): Promise<{ ok: boolean }> {
+  if (USE_MOCKS) return delay({ ok: true });
+  return req("/agent/pay", { method: "POST", body: JSON.stringify({ invoiceOrAddress, amountSats }) });
+}
+
 // ── Chama feature (new endpoints) ────────────────────────────────────────────
 // Current user handle used by mock layer only. Backend derives from session.
 const MOCK_HANDLE = "@wanjiku";
