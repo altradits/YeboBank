@@ -74,14 +74,40 @@ export const mockChamas: Chama[] = [
   },
 ];
 
+// Reserve PIN the agent uses to initiate a reserve release (mock: "1234")
+export const MOCK_RESERVE_PIN = "1234";
+
+// Codes sent to each emergency contact when a panic is triggered.
+// In production these are server-generated OTPs sent via SMS/call.
+export const MOCK_REACTIVATION_CODES: Record<string, string> = {
+  ec1: "SAFE-1111",
+  ec2: "CLEAR-2222",
+  ec3: "SECURE-3333",
+  ec4: "OK-4444",
+};
+
 export const mockAgent: Agent = {
   id: "a1",
   locationName: "Gikomba Market, Nairobi",
   status: "active",
-  floatLimitSats: 10_000_000,
+  // Float is split: keep working float small to limit robbery exposure.
+  // Reserve requires PIN + 15-min delay (60s in mock) to access.
+  workingFloatSats: 2_000_000,
+  reserveSats:      8_000_000,
+  reserveUnlockAt:  null,
   commissionRate: 0.005,
   totalEarnedSats: 184_000,
   mpesaTillNumber: "0712 000 001",
+  panicLevel: 0,
+  panicLockedAt: null,
+  contactsRequired: [],
+  contactsConfirmed: [],
+  emergencyContacts: [
+    { id: "ec1", name: "Stanley Chege Thuita",  phone: "+254707172370", tier: "personal",   priority: 1 },
+    { id: "ec2", name: "Gikomba Police Post",    phone: "+254733222333", tier: "legal",      priority: 2 },
+    { id: "ec3", name: "Nairobi Emergency 999",  phone: "999",           tier: "life_death", priority: 3 },
+    { id: "ec4", name: "YeboBank Security Desk", phone: "+254700000001", tier: "life_death", priority: 4 },
+  ],
 };
 
 // Anyone the agent might serve at the counter — registered YeboBank members

@@ -10,7 +10,7 @@
 // =============================================================================
 
 import type {
-  User, Wallet, LedgerEntry, SavingsLock, Chama, Agent,
+  User, Wallet, LedgerEntry, SavingsLock, Chama, Agent, EmergencyContact,
   ChamaMessage, ChamaVote, JoinRequest,
   MyChamaStake, ChamaGrowthPoint, ChamaPortfolio, SavingsGrowthPoint, SavingsDeposit,
   IncomeSource, InvestorPosition, FIProfile, WithdrawalRequest, AppNotification, AccessRequest,
@@ -23,6 +23,7 @@ import {
   mockIncomeSources, mockInvestorPositions, mockAccessRequests, mockFIProfiles,
   mockWithdrawalRequests, mockNotifications,
   mockLockMessages, mockPoolDeployments,
+  MOCK_RESERVE_PIN, MOCK_REACTIVATION_CODES,
 } from "@/lib/mock";
 
 const USE_MOCKS = true; // flip to false once the backend endpoints exist
@@ -243,8 +244,8 @@ export async function agentCashTransact(
   if (USE_MOCKS) {
     const commission = Math.round(amountSats * mockAgent.commissionRate);
     mockAgent.totalEarnedSats += commission;
-    if (direction === "in") mockAgent.floatLimitSats -= amountSats;
-    else mockAgent.floatLimitSats += amountSats;
+    if (direction === "in") mockAgent.workingFloatSats -= amountSats;
+    else mockAgent.workingFloatSats += amountSats;
     const entry: LedgerEntry = {
       id: `l_agent_${Date.now()}`,
       type: direction === "in" ? "agent_cash_in" : "agent_cash_out",
@@ -380,13 +381,116 @@ export async function agentTopUpFloat(amountSats: number): Promise<{ invoice: st
 }
 
 // Agent confirms the top-up payment was received (in production this fires via webhook).
-// TODO(backend): POST /agent/float/confirm → verify payment_hash, credit float
+// TODO(backend): POST /agent/float/confirm → verify payment_hash, credit working float
 export async function confirmAgentTopUp(amountSats: number): Promise<Agent> {
   if (USE_MOCKS) {
-    mockAgent.floatLimitSats += amountSats;
+    mockAgent.workingFloatSats += amountSats;
     return delay({ ...mockAgent });
   }
   return req<Agent>("/agent/float/confirm", { method: "POST", body: JSON.stringify({ amountSats }) });
+}
+
+// ── Reserve float security ────────────────────────────────────────────────────
+// Reserve release: requires PIN + a time delay before funds become accessible.
+// This limits robbery impact — a robber can only take the working float.
+// Mock uses 60s delay; production uses 15 minutes.
+const RESERVE_DELAY_MS = USE_MOCKS ? 60_000 : 15 * 60_000;
+
+// TODO(backend): POST /agent/reserve/release — verifies PIN, sets unlock timestamp
+export async function requestReserveRelease(pin: string): Promise<{ ok: boolean; unlocksAt: string | null }> {
+  if (USE_MOCKS) {
+    if (pin.trim() !== MOCK_RESERVE_PIN) return delay({ ok: false, unlocksAt: null });
+    const unlocksAt = new Date(Date.now() + RESERVE_DELAY_MS).toISOString();
+    mockAgent.reserveUnlockAt = unlocksAt;
+    return delay({ ok: true, unlocksAt });
+  }
+  return req("/agent/reserve/release", { method: "POST", body: JSON.stringify({ pin }) });
+}
+
+// TODO(backend): POST /agent/reserve/claim — moves reserve into working float
+export async function claimReserve(): Promise<Agent> {
+  if (USE_MOCKS) {
+    if (!mockAgent.reserveUnlockAt || new Date(mockAgent.reserveUnlockAt) > new Date()) {
+      throw new Error("Reserve not yet unlocked");
+    }
+    mockAgent.workingFloatSats += mockAgent.reserveSats;
+    mockAgent.reserveSats = 0;
+    mockAgent.reserveUnlockAt = null;
+    return delay({ ...mockAgent });
+  }
+  return req<Agent>("/agent/reserve/claim", { method: "POST" });
+}
+
+// Move sats from working float into reserve (agent voluntarily locks excess).
+// TODO(backend): POST /agent/reserve/add
+export async function moveToReserve(sats: number): Promise<Agent> {
+  if (USE_MOCKS) {
+    const amount = Math.min(sats, mockAgent.workingFloatSats);
+    mockAgent.workingFloatSats -= amount;
+    mockAgent.reserveSats += amount;
+    return delay({ ...mockAgent });
+  }
+  return req<Agent>("/agent/reserve/add", { method: "POST", body: JSON.stringify({ sats }) });
+}
+
+// ── Panic / security lock ─────────────────────────────────────────────────────
+// Level 1: personal contact alerted — requires their code to unlock
+// Level 2: police alerted — requires officer code (+ level 1 contact)
+// Level 3: all response contacts alerted — ALL codes required to unlock
+// TODO(backend): POST /agent/panic — logs incident, sends OTPs via SMS/call
+export async function triggerPanic(
+  level: 1 | 2 | 3,
+  context?: string,
+): Promise<{ level: 1 | 2 | 3; contactsRequired: string[] }> {
+  if (USE_MOCKS) {
+    const cs = mockAgent.emergencyContacts;
+    const required =
+      level === 1 ? cs.filter(c => c.tier === "personal").map(c => c.id)
+      : level === 2 ? cs.filter(c => c.tier === "personal" || c.tier === "legal").map(c => c.id)
+      : cs.map(c => c.id);
+    mockAgent.panicLevel      = level;
+    mockAgent.panicLockedAt   = new Date().toISOString();
+    mockAgent.contactsRequired = required;
+    mockAgent.contactsConfirmed = [];
+    return delay({ level, contactsRequired: required });
+  }
+  return req("/agent/panic", { method: "POST", body: JSON.stringify({ level, context }) });
+}
+
+// Each notified contact calls in and provides the code they received.
+// For level 3, ALL contacts must confirm before the lock lifts.
+// TODO(backend): POST /agent/reactivate — checks OTP, removes contact from required list
+export async function submitReactivationCode(
+  contactId: string,
+  code: string,
+): Promise<{ accepted: boolean; allConfirmed: boolean; agent: Agent }> {
+  if (USE_MOCKS) {
+    const expected = MOCK_REACTIVATION_CODES[contactId];
+    const accepted = !!expected && code.trim().toUpperCase() === expected.toUpperCase();
+    if (accepted && !mockAgent.contactsConfirmed.includes(contactId)) {
+      mockAgent.contactsConfirmed.push(contactId);
+    }
+    const allConfirmed = mockAgent.contactsRequired.every(id =>
+      mockAgent.contactsConfirmed.includes(id),
+    );
+    if (allConfirmed) {
+      mockAgent.panicLevel       = 0;
+      mockAgent.panicLockedAt    = null;
+      mockAgent.contactsRequired = [];
+      mockAgent.contactsConfirmed = [];
+    }
+    return delay({ accepted, allConfirmed, agent: { ...mockAgent } });
+  }
+  return req("/agent/reactivate", { method: "POST", body: JSON.stringify({ contactId, code }) });
+}
+
+// TODO(backend): PUT /agent/security/contacts
+export async function saveEmergencyContacts(contacts: EmergencyContact[]): Promise<Agent> {
+  if (USE_MOCKS) {
+    mockAgent.emergencyContacts = contacts;
+    return delay({ ...mockAgent });
+  }
+  return req<Agent>("/agent/security/contacts", { method: "PUT", body: JSON.stringify({ contacts }) });
 }
 
 // ── Chama feature (new endpoints) ────────────────────────────────────────────

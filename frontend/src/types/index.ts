@@ -132,14 +132,40 @@ export interface ChamaPortfolio {
   totalGainSats: number;
 }
 
+// 0 = normal operation
+// 1 = personal contact alerted, awaiting their code
+// 2 = legal (police) alerted, awaiting officer code
+// 3 = life & death — all response contacts alerted, ALL codes required
+export type PanicLevel = 0 | 1 | 2 | 3;
+
+export type ContactTier =
+  | "personal"    // closest trusted person — activated by 2 taps
+  | "legal"       // police / law enforcement — activated by 3 taps
+  | "life_death"; // life and death response team — ALL must confirm on 4 taps
+
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  phone: string;
+  tier: ContactTier;
+  priority: number; // lower = higher priority; 1 is contacted first
+}
+
 export interface Agent {
   id: string;
   locationName: string;
   status: "pending" | "active" | "suspended";
-  floatLimitSats: number;
-  commissionRate: number;     // e.g. 0.005
+  workingFloatSats: number;       // immediately spendable — agent keeps this small
+  reserveSats: number;            // locked; requires PIN + time delay to access
+  reserveUnlockAt: string | null; // ISO — set when a release was requested
+  commissionRate: number;         // e.g. 0.005
   totalEarnedSats: number;
-  mpesaTillNumber: string;   // agent's M-Pesa business number customers send to
+  mpesaTillNumber: string;
+  panicLevel: PanicLevel;
+  panicLockedAt: string | null;
+  contactsRequired: string[];     // contact IDs whose codes are still needed
+  contactsConfirmed: string[];    // contact IDs who confirmed situation is safe
+  emergencyContacts: EmergencyContact[];
 }
 
 export type ChamaMessageKind = "text" | "system" | "deposit" | "withdrawal" | "transfer" | "vote" | "join_request";
