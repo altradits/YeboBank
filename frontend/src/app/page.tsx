@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useRevealAll } from "@/components/ui/useReveal";
 import Ticker from "@/components/landing/Ticker";
 import SiteNav from "@/components/landing/SiteNav";
@@ -12,7 +13,7 @@ import { ClosingCTA, SiteFooter } from "@/components/landing/Footer";
 export default function HomePage() {
   useRevealAll();
   return (
-    <>
+    <div style={{ '--maxw': '1400px' } as React.CSSProperties}>
       <Ticker />
       <SiteNav />
       <Hero />
@@ -22,6 +23,6 @@ export default function HomePage() {
       <Converter />
       <ClosingCTA />
       <SiteFooter />
-    </>
+    </div>
   );
 }
