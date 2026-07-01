@@ -259,11 +259,6 @@ export default function Hero() {
           <p className="hero-sub reveal d1">
             Earn interest in sats. Top up and cash out through M-Pesa.
           </p>
-          <div className="hero-stats reveal d2">
-            <div className="hstat"><span className="hn">12,000+</span><span className="nl">Kenyans saving</span></div>
-            <div className="hstat"><span className="hn">~5.2%</span><span className="nl">Target APY in sats</span></div>
-            <div className="hstat"><span className="hn">KES 0</span><span className="nl">Account fees</span></div>
-          </div>
         </div>
 
         {/* ── Phone frame ── */}
