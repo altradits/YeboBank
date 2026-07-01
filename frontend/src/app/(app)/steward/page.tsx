@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { num, fmtKESraw } from "@/lib/format";
 import {
   getUser, getIncomeSources, getInvestorPositions, getAccessRequests, getWithdrawalRequests,
@@ -9,33 +8,7 @@ import {
 } from "@/lib/api";
 import type { IncomeSource, InvestorPosition, AccessRequest, WithdrawalRequest, FIProfile, User } from "@/types";
 import { FICalculator } from "@/components/app/FICalculator";
-
-function NavCard({
-  href, icon, title, count, badge, note,
-}: {
-  href: string;
-  icon: string;
-  title: string;
-  count?: string;
-  badge?: string;
-  note?: string;
-}) {
-  return (
-    <Link href={href} className="card" style={{ display: "block" }}>
-      <div className="stat">
-        <span className="l">
-          <i className={`ti ${icon}`} style={{ marginRight: 7 }} />
-          {title}
-        </span>
-        <span className="v" style={{ fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}>
-          {count}
-          {badge && <span className="badge pending">{badge}</span>}
-        </span>
-      </div>
-      {note && <p className="note" style={{ marginTop: 8 }}>{note}</p>}
-    </Link>
-  );
-}
+import { MlinziCard } from "@/components/app/MlinziCard";
 
 export default function StewardPage() {
   const [user,        setUser]        = useState<User | null>(null);
@@ -61,12 +34,12 @@ export default function StewardPage() {
     setMyFi(saved);
   }
 
-  const totalAumKes      = investors.reduce((s, p) => {
+  const totalAumKes = investors.reduce((s, p) => {
     const last = p.monthlyStatements[p.monthlyStatements.length - 1];
     return s + (last ? last.closingKes : p.principalKesAtEntry);
   }, 0);
-  const totalFeeKes      = investors.reduce((s, p) => s + p.monthlyStatements.reduce((a, m) => a + m.feeKes, 0), 0);
-  const pendingAccess    = access.filter((a) => a.status === "requested").length;
+  const totalFeeKes       = investors.reduce((s, p) => s + p.monthlyStatements.reduce((a, m) => a + m.feeKes, 0), 0);
+  const pendingAccess      = access.filter((a) => a.status === "requested").length;
   const pendingWithdrawals = withdrawals.filter((w) => w.status === "requested" || w.status === "approved").length;
 
   return (
@@ -83,64 +56,17 @@ export default function StewardPage() {
         <span>Friends &amp; family pilot — figures are projections, not guarantees. Not a public offer.</span>
       </div>
 
-      {/* AUM + fee summary */}
-      <div className="grid-2">
-        <div className="card">
-          <div className="stat">
-            <span className="l">Assets under management</span>
-            <span className="v">{fmtKESraw(totalAumKes, 0)}</span>
-          </div>
-        </div>
-        <div className="card">
-          <div className="stat">
-            <span className="l">Fee earned (2% of profit)</span>
-            <span className="v" style={{ color: "var(--emerald-deep)" }}>{fmtKESraw(totalFeeKes, 0)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Primary action */}
-      <div className="chama-actions" style={{ marginTop: 18 }}>
-        <Link href="/steward/deploy" className="btn btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <i className="ti ti-arrow-bar-up" /> Deploy capital
-        </Link>
-      </div>
-
-      {/* Nav cards — styled like dashboard */}
-      <div className="card" style={{ marginTop: 18 }}>
-        <div className="section-head"><h2>Console</h2></div>
-        <div className="grid-2" style={{ marginTop: 14 }}>
-          <NavCard
-            href="/steward/income"
-            icon="ti-trending-up"
-            title="Income sources"
-            count={`${income.length} stream${income.length !== 1 ? "s" : ""} tracked`}
-            note="Capital deployed to income-generating investments."
-          />
-          <NavCard
-            href="/steward/investors"
-            icon="ti-users"
-            title="Investors"
-            count={`${investors.length} active position${investors.length !== 1 ? "s" : ""}`}
-            note="Friends &amp; family fund members and their stakes."
-          />
-          <NavCard
-            href="/steward/access"
-            icon="ti-user-check"
-            title="Access requests"
-            count={pendingAccess === 0 ? "All clear" : undefined}
-            badge={pendingAccess > 0 ? `${pendingAccess} pending` : undefined}
-            note="Approve or decline new investor access."
-          />
-          <NavCard
-            href="/steward/withdrawals"
-            icon="ti-arrow-bar-down"
-            title="Withdrawals"
-            count={pendingWithdrawals === 0 ? "All clear" : undefined}
-            badge={pendingWithdrawals > 0 ? `${pendingWithdrawals} in queue` : undefined}
-            note="Investor withdrawal requests awaiting processing."
-          />
-        </div>
+      {/* Console card — primary navigation + stats */}
+      <div style={{ marginTop: 18 }}>
+        <MlinziCard
+          name={user?.fullName ?? "—"}
+          totalAumKes={totalAumKes}
+          totalFeeKes={totalFeeKes}
+          incomeCount={income.length}
+          investorCount={investors.length}
+          pendingAccess={pendingAccess}
+          pendingWithdrawals={pendingWithdrawals}
+        />
       </div>
 
       {/* My position */}
