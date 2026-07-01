@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
@@ -19,6 +19,108 @@ export default function FeatureSections() {
 }
 
 /* ── The Problem ─────────────────────────────────────────────────────────── */
+
+// Simplified Kenya silhouette (viewBox 0 0 200 200)
+const KENYA_PATH =
+  "M45,16 L52,8 L112,4 L150,9 L170,23 L174,56 L172,88 " +
+  "L165,116 L153,140 L140,153 L112,162 L80,164 " +
+  "L60,154 L46,140 L40,120 L36,92 L34,66 L36,46 L30,28 L40,18 Z";
+
+function KenyaCoinMap() {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [year, setYear] = useState(2020);
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setActive(true); io.disconnect(); } },
+      { threshold: 0.3 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!active) return;
+    let y = 2020;
+    setYear(2020);
+    const tick = () => {
+      if (y < 2027) {
+        y++;
+        setYear(y);
+        timerRef.current = setTimeout(tick, 720);
+      } else {
+        timerRef.current = setTimeout(() => {
+          y = 2020;
+          setYear(2020);
+          timerRef.current = setTimeout(tick, 800);
+        }, 2400);
+      }
+    };
+    timerRef.current = setTimeout(tick, 900);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [active]);
+
+  const elapsed   = year - 2020;
+  const kesPwr    = Math.pow(0.93, elapsed);       // 1.00 → 0.60
+  const satsMult  = Math.pow(1.30, elapsed);       // 1.00 → 3.71
+  const chai      = Math.max(1, Math.floor(10 * kesPwr)); // cups at 10 bob each
+  const kesScale  = kesPwr;                         // 1.0 → 0.60
+  const satsScale = 1 + 0.45 * (elapsed / 7);      // 1.0 → 1.45
+  const kesOp     = 0.35 + 0.65 * kesPwr;
+  const satsOp    = 0.45 + 0.55 * (elapsed / 7);
+  const glowPct   = elapsed / 7;
+  const glowA     = (0.12 + 0.38 * glowPct).toFixed(2);
+  const glowR     = Math.round(18 + 44 * glowPct);
+  const glowG     = (0.08 + 0.22 * glowPct).toFixed(2);
+
+  return (
+    <div ref={wrapRef} className="kmap-wrap reveal d1">
+      <svg viewBox="0 0 200 200" className="kmap-svg" aria-hidden="true">
+        <path d={KENYA_PATH} className="kmap-country" />
+      </svg>
+      <div className="kmap-inner">
+        <div className="kmap-year">{year}</div>
+        <div className="kmap-coins">
+          <div
+            className="kmap-coin kmap-kes"
+            style={{ transform: `scale(${kesScale.toFixed(3)})`, opacity: kesOp }}
+          >
+            <span className="kmap-sym">KES</span>
+            <span className="kmap-val">{Math.round(100 * kesPwr)}</span>
+            <span className="kmap-unit">bob</span>
+          </div>
+          <div
+            className="kmap-coin kmap-sat"
+            style={{
+              transform: `scale(${satsScale.toFixed(3)})`,
+              opacity: satsOp,
+              boxShadow: `0 0 ${glowR}px rgba(224,168,0,${glowA}),0 0 ${Math.round(glowR * 0.6)}px rgba(17,166,91,${glowG})`,
+            }}
+          >
+            <span className="kmap-sym">sats</span>
+            <span className="kmap-val">{elapsed === 0 ? "1×" : `${satsMult.toFixed(1)}×`}</span>
+            <span className="kmap-unit">value</span>
+          </div>
+        </div>
+        <div className="kmap-labels">
+          <div className="kmap-lbl kmap-lbl-kes">
+            <b>{chai} {chai === 1 ? "cup" : "cups"} of chai</b>
+            <span>100 bob bought 10 in 2020</span>
+          </div>
+          <div className="kmap-lbl kmap-lbl-sat">
+            <b>{elapsed === 0 ? "holding steady" : `${satsMult.toFixed(1)}× more valuable`}</b>
+            <span>same 100 sats from 2020</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Inflation() {
   const router = useRouter();
   return (
@@ -30,9 +132,9 @@ function Inflation() {
             Your savings <span className="grow">shouldn&apos;t.</span>
           </h2>
           <p className="lead">
-            Money sitting in mobile money loses around 7% of its value every year
-            to inflation. Park the same amount in YeboBank and it earns interest in
-            Bitcoin — designed to hold value across decades, not melt away.
+            100 bob in M-Pesa in 2020 barely buys half what it did. Park the same
+            amount in YeboBank and it earns interest in Bitcoin — designed to hold
+            value across decades, not melt away.
           </p>
           <div style={{ marginTop: 28 }}>
             <Button variant="gold" onClick={() => router.push("/register")}>
@@ -40,16 +142,7 @@ function Inflation() {
             </Button>
           </div>
         </div>
-        <div className="bars reveal d1">
-          <div className="bar-col">
-            <div className="bar bar-shrink" />
-            <div className="bar-label"><b>KES in M-Pesa</b>−7% a year</div>
-          </div>
-          <div className="bar-col">
-            <div className="bar bar-grow" />
-            <div className="bar-label"><b>Sats in YeboBank</b>earning + holding value</div>
-          </div>
-        </div>
+        <KenyaCoinMap />
       </div>
     </section>
   );
