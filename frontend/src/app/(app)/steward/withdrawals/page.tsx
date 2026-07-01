@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { num, fmtKES, timeAgo } from "@/lib/format";
 import { useRate } from "@/lib/rate-context";
 import { getWithdrawalRequests, approveWithdrawal, declineWithdrawal } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import type { WithdrawalRequest } from "@/types";
 
 export default function WithdrawalsPage() {
@@ -29,22 +29,32 @@ export default function WithdrawalsPage() {
     load();
   }
 
+  const pending  = requests.filter(w => w.status === "requested");
+  const approved = requests.filter(w => w.status === "approved");
+  const delivered = requests.filter(w => w.status === "delivered");
+
   return (
     <>
-      <div className="section-head">
-        <div>
-          <div style={{ marginBottom: 4 }}>
-            <Link href="/steward" style={{ color: "var(--soft)", fontSize: 14 }}><i className="ti ti-arrow-left" /> Mlinzi Console</Link>
-          </div>
-          <h1 className="page-title">Withdrawal requests</h1>
-        </div>
-      </div>
+      <ATMCard
+        variant="dashboard"
+        chipLabel="MLINZI CONSOLE"
+        balanceLabel="WITHDRAWAL QUEUE"
+        balancePrimary={`${requests.length} total`}
+        balanceSecondary={`${pending.length} awaiting approval · capital may be illiquid`}
+        stats={[
+          { label: "Pending", value: `${pending.length}`, color: pending.length > 0 ? "#C9A84C" : undefined, sub: "Need approval" },
+          { label: "Approved", value: `${approved.length}`, color: "#8ecb72", sub: "Awaiting delivery" },
+          { label: "Delivered", value: `${delivered.length}`, sub: "Paid out" },
+        ]}
+        actions={[
+          { icon: "ti-arrow-left", label: "Console", path: "/steward" },
+          { icon: "ti-users", label: "Investors", path: "/steward/investors" },
+          { icon: "ti-user-check", label: "Access", path: "/steward/access" },
+          { icon: "ti-arrow-bar-up", label: "Deploy", path: "/steward/deploy" },
+        ]}
+      />
 
-      <p className="note" style={{ marginBottom: 14 }}>
-        Deployed capital may be illiquid — approve with an expected delivery date rather than instant payout.
-      </p>
-
-      <div className="card">
+      <div className="card" style={{ marginTop: 16 }}>
         {requests.length === 0 && <p className="note">No withdrawal requests.</p>}
         {requests.map((w) => (
           <div key={w.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8, padding: "14px 0", borderBottom: "1px solid var(--border-soft)" }}>

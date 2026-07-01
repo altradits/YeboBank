@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num, fmtKES } from "@/lib/format";
 import { getChamas, getChamaJoinRequests, getChamaVotes } from "@/lib/api";
@@ -34,27 +33,35 @@ export default function ChamaPage() {
     ).then(() => setPendingCount(count));
   }, [chamas]);
 
+  const totalPortfolioSats = chamas.reduce((s, c) => {
+    const myC = c.myContributionSats ?? 0;
+    const poolC = c.poolContributionsSats ?? 0;
+    const poolV = c.poolValueSats ?? c.balanceSats;
+    const pct = poolC > 0 ? (myC / poolC) * 100 : 0;
+    const gain = Math.round((pct / 100) * (poolV - poolC));
+    return s + myC + gain;
+  }, 0);
+  const totalContributed = chamas.reduce((s, c) => s + (c.myContributionSats ?? 0), 0);
+
   return (
     <>
-      <div className="section-head">
-        <div>
-          <h1 className="page-title">Chamas</h1>
-          <p className="page-sub">Save together. See everything.</p>
-        </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link href="/chama/portfolio">
-            <Button variant="ghost"><i className="ti ti-chart-bar" /> My total across chamas</Button>
-          </Link>
-          <Link href="/chama/discover">
-            <Button variant="ghost"><i className="ti ti-search" /> Discover</Button>
-          </Link>
-          <Link href="/chama/create">
-            <Button variant="gold"><i className="ti ti-plus" /> New chama</Button>
-          </Link>
-        </div>
-      </div>
-
-      <ATMCard variant="compact" />
+      <ATMCard
+        variant="dashboard"
+        chipLabel="CHAMA"
+        balanceLabel="CHAMA PORTFOLIO"
+        sats={totalPortfolioSats || undefined}
+        stats={[
+          { label: "Active chamas", value: `${chamas.length}`, sub: "Groups I belong to" },
+          { label: "Pending items", value: `${pendingCount}`, color: pendingCount > 0 ? "#C9A84C" : undefined, sub: "Requests & votes" },
+          { label: "My contributions", value: `${num(totalContributed)} sats`, sub: `≈ KES ${num(Math.round(totalContributed * rate.kesPerSat))}` },
+        ]}
+        actions={[
+          { icon: "ti-plus", label: "New Chama", path: "/chama/create" },
+          { icon: "ti-search", label: "Discover", path: "/chama/discover" },
+          { icon: "ti-chart-bar", label: "My Total", path: "/chama/portfolio" },
+          { icon: "ti-layout-dashboard", label: "Dashboard", path: "/dashboard" },
+        ]}
+      />
 
       {pendingCount > 0 && (
         <div className="notif-banner">

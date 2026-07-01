@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRate } from "@/lib/rate-context";
+import { num } from "@/lib/format";
 import TransactionRow from "@/components/app/TransactionRow";
 import { getHistory } from "@/lib/api";
 import { ATMCard } from "@/components/app/ATMCard";
@@ -9,19 +11,34 @@ import type { LedgerEntry, LedgerDirection } from "@/types";
 type Filter = "all" | LedgerDirection;
 
 export default function HistoryPage() {
+  const rate = useRate();
   const [history, setHistory] = useState<LedgerEntry[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
 
   useEffect(() => { getHistory().then(setHistory); }, []);
 
   const shown = history.filter((t) => filter === "all" || t.direction === filter);
+  const totalIn  = history.filter(t => t.direction === "credit").reduce((s, t) => s + t.amountSats, 0);
+  const totalOut = history.filter(t => t.direction === "debit").reduce((s, t) => s + t.amountSats, 0);
 
   return (
     <>
-      <h1 className="page-title">History</h1>
-      <p className="page-sub">Every satoshi in and out, on the record.</p>
-
-      <ATMCard variant="compact" balanceLabel="CURRENT BALANCE" />
+      <ATMCard
+        variant="dashboard"
+        chipLabel="HISTORY"
+        balanceLabel="CURRENT BALANCE"
+        stats={[
+          { label: "Money in", value: `${num(totalIn)} sats`, color: "#8ecb72", sub: `≈ KES ${num(Math.round(totalIn * rate.kesPerSat))}` },
+          { label: "Money out", value: `${num(totalOut)} sats`, sub: `≈ KES ${num(Math.round(totalOut * rate.kesPerSat))}` },
+          { label: "Transactions", value: `${history.length}`, sub: `${history.filter(t => t.direction === "credit").length} in · ${history.filter(t => t.direction === "debit").length} out` },
+        ]}
+        actions={[
+          { icon: "ti-arrow-down", label: "Add Money", path: "/deposit" },
+          { icon: "ti-arrow-up", label: "Withdraw", path: "/withdraw" },
+          { icon: "ti-send", label: "Send", path: "/send" },
+          { icon: "ti-piggy-bank", label: "Savings", path: "/savings" },
+        ]}
+      />
 
       <div className="seg" style={{ marginTop: 18 }}>
         {(["all", "credit", "debit"] as Filter[]).map((f) => (

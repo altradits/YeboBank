@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/Button";
 import QRScanner from "@/components/ui/QRScanner";
 import TransactionRow from "@/components/app/TransactionRow";
+import { ATMCard } from "@/components/app/ATMCard";
 import { useRate } from "@/lib/rate-context";
 import { num, fmtKESraw } from "@/lib/format";
 import {
@@ -535,77 +536,39 @@ export default function AgentPage() {
 
   return (
     <>
-      {/* Stats ─────────────────────────────────────────────────────────────── */}
-      <div className="section-head" style={{ marginBottom: 0 }}>
-        <div>
-          <h1 className="page-title">Agent</h1>
-          <p className="page-sub">{agent.locationName}</p>
-        </div>
-        <span className="badge agent">{agent.status}</span>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
-        {/* Working float */}
-        <div className="card">
-          <div className="stat">
-            <span className="l">Working float</span>
-            <span className="v" style={{ color: criticalWorking ? "var(--terra-text)" : undefined }}>
-              {num(agent.workingFloatSats)} sats
-            </span>
-          </div>
-          <p className="note" style={{ marginTop: 4 }}>≈ KES {num(Math.round(agent.workingFloatSats * rate.kesPerSat))}</p>
-          {criticalWorking && <p className="note" style={{ color: "var(--terra-text)", fontWeight: 600, marginTop: 5 }}><i className="ti ti-alert-triangle" /> Critical — top up now.</p>}
-          {lowWorking && !criticalWorking && <p className="note" style={{ color: "#D06000", marginTop: 5 }}><i className="ti ti-alert-triangle" /> Float low.</p>}
-          <Button variant="ghost" style={{ marginTop: 10, width: "100%", fontSize: 12 }} onClick={() => openTx({ t: "topup" })}>
-            <i className="ti ti-bolt" /> Top up
-          </Button>
-        </div>
-
-        {/* Reserve float */}
-        <div className="card" style={{ borderColor: "rgba(17,166,91,.25)" }}>
-          <div className="stat">
-            <span className="l">Reserve <i className="ti ti-lock" style={{ fontSize: 11, marginLeft: 4, color: "var(--emerald-deep)" }} /></span>
-            <span className="v" style={{ color: "var(--emerald-deep)" }}>{num(agent.reserveSats)} sats</span>
-          </div>
-          <p className="note" style={{ marginTop: 4 }}>≈ KES {num(Math.round(agent.reserveSats * rate.kesPerSat))}</p>
-          {reservePending && (
-            <p className="note" style={{ marginTop: 6, color: "#D06000", fontWeight: 500 }}>
-              <i className="ti ti-clock" /> Unlocks in {fmtCountdown(reserveSecsLeft!)}
-            </p>
-          )}
-          {reserveReady && (
-            <Button style={{ marginTop: 8, width: "100%", fontSize: 12 }} onClick={() => openTx({ t: "reserve_release" })}>
-              <i className="ti ti-lock-open" /> Claim reserve
-            </Button>
-          )}
-          {!reservePending && !reserveReady && (
-            <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-              <Button variant="ghost" style={{ flex: 1, fontSize: 11 }} onClick={() => openTx({ t: "reserve_release" })}>
-                <i className="ti ti-lock-open" /> Release
-              </Button>
-              <Button variant="ghost" style={{ flex: 1, fontSize: 11 }} onClick={() => openTx({ t: "move_to_reserve" })}>
-                <i className="ti ti-lock" /> Add
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Commission row */}
-      <div className="card" style={{ marginTop: 10 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <p className="note">Total earned</p>
-            <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--emerald-deep)", marginTop: 2 }}>
-              +{num(agent.totalEarnedSats)} sats
-            </p>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <p className="note">Rate · Till</p>
-            <p style={{ marginTop: 2, fontWeight: 500 }}>{(agent.commissionRate * 100).toFixed(1)}% · {agent.mpesaTillNumber}</p>
-          </div>
-        </div>
-      </div>
+      <ATMCard
+        variant="dashboard"
+        chipLabel="AGENT CONSOLE"
+        balanceLabel="WORKING FLOAT"
+        balancePrimary={`${num(agent.workingFloatSats)} sats`}
+        balanceSecondary={`≈ KES ${num(Math.round(agent.workingFloatSats * rate.kesPerSat))} · ${agent.locationName}${criticalWorking ? " · ⚠ Critical" : lowWorking ? " · Float low" : ""}`}
+        stats={[
+          {
+            label: "Working float",
+            value: `${num(agent.workingFloatSats)} sats`,
+            sub: `≈ KES ${num(Math.round(agent.workingFloatSats * rate.kesPerSat))}`,
+            color: criticalWorking ? "#B94832" : lowWorking ? "#D06000" : undefined,
+          },
+          {
+            label: "Reserve",
+            value: `${num(agent.reserveSats)} sats`,
+            sub: reservePending ? `Unlocks in ${fmtCountdown(reserveSecsLeft!)}` : "Locked",
+            color: "#8ecb72",
+          },
+          {
+            label: "Total earned",
+            value: `+${num(agent.totalEarnedSats)} sats`,
+            sub: `${(agent.commissionRate * 100).toFixed(1)}% rate · Till ${agent.mpesaTillNumber}`,
+            color: "#8ecb72",
+          },
+        ]}
+        actions={[
+          { icon: "ti-user", label: "Guest Tx", onClick: () => setMode("guest") },
+          { icon: "ti-user-check", label: "Member Tx", onClick: () => setMode("member") },
+          { icon: "ti-bolt", label: "Top Up Float", onClick: () => openTx({ t: "topup" }) },
+          { icon: "ti-history", label: "Activity", onClick: () => document.getElementById("agent-activity")?.scrollIntoView({ behavior: "smooth" }) },
+        ]}
+      />
 
       {/* ── PANIC OVERLAY ──────────────────────────────────────────────────── */}
       {panicked && (() => {
@@ -829,7 +792,7 @@ export default function AgentPage() {
       )}
 
       {/* ── RECENT ACTIVITY ─────────────────────────────────────────────────── */}
-      <div className="card" style={{ marginTop: 10 }}>
+      <div id="agent-activity" className="card" style={{ marginTop: 10 }}>
         <div className="section-head"><h2>Recent activity</h2></div>
         {history.length === 0 && <p className="note">No transactions yet.</p>}
         {history.slice(0, 8).map((t) => <TransactionRow key={t.id} tx={t} />)}

@@ -64,18 +64,23 @@ export default function SavingsPage() {
         <Link href="/savings/lock"><Button variant="gold"><i className="ti ti-plus" /> New lock</Button></Link>
       </div>
 
-      <ATMCard variant="compact" sats={totalPrincipal + totalAccrued} balanceLabel="TOTAL SAVINGS VALUE" />
-
-      <div className="grid-2" style={{ marginTop: 16 }}>
-        <div className="card">
-          <div className="stat"><span className="l">Total locked</span><span className="v">{num(totalPrincipal)} sats</span></div>
-          <p className="note" style={{ marginTop: 8 }}>≈ KES {num(totalPrincipal * rate.kesPerSat)}</p>
-        </div>
-        <div className="card">
-          <div className="stat"><span className="l">Interest accrued</span><span className="v" style={{ color: "var(--emerald-deep)" }}>+{num(totalAccrued)} sats</span></div>
-          <p className="note" style={{ marginTop: 8 }}>Target ~5.2% APY · paid monthly</p>
-        </div>
-      </div>
+      <ATMCard
+        variant="dashboard"
+        chipLabel="SAVINGS"
+        balanceLabel="TOTAL SAVINGS VALUE"
+        sats={totalPrincipal + totalAccrued || undefined}
+        stats={[
+          { label: "Total locked", value: `${num(totalPrincipal)} sats`, sub: `≈ KES ${num(Math.round(totalPrincipal * rate.kesPerSat))}` },
+          { label: "Interest accrued", value: `+${num(totalAccrued)} sats`, color: "#8ecb72", sub: "Paid monthly" },
+          { label: "Target APY", value: "~5.2%", sub: "From real yield" },
+        ]}
+        actions={[
+          { icon: "ti-plus", label: "New Lock", path: "/savings/lock" },
+          { icon: "ti-arrow-down", label: "Add Money", path: "/deposit" },
+          { icon: "ti-arrow-up", label: "Withdraw", path: "/withdraw" },
+          { icon: "ti-history", label: "History", path: "/history" },
+        ]}
+      />
 
       <div className="card" style={{ marginTop: 16 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>

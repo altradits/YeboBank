@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { timeAgo } from "@/lib/format";
 import { getAccessRequests, acceptAccess, declineAccess } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import type { AccessRequest } from "@/types";
 
 type Relationship = "family" | "friend" | "investor";
@@ -31,18 +31,31 @@ export default function AccessRequestsPage() {
   const pending = requests.filter((r) => r.status === "requested");
   const decided = requests.filter((r) => r.status !== "requested");
 
+  const accepted = decided.filter(r => r.status === "accepted").length;
+  const declined = decided.filter(r => r.status !== "accepted").length;
+
   return (
     <>
-      <div className="section-head">
-        <div>
-          <div style={{ marginBottom: 4 }}>
-            <Link href="/steward" style={{ color: "var(--soft)", fontSize: 14 }}><i className="ti ti-arrow-left" /> Mlinzi Console</Link>
-          </div>
-          <h1 className="page-title">Access requests</h1>
-        </div>
-      </div>
+      <ATMCard
+        variant="dashboard"
+        chipLabel="MLINZI CONSOLE"
+        balanceLabel="ACCESS QUEUE"
+        balancePrimary={`${pending.length} pending`}
+        balanceSecondary={`${requests.length} total · ${decided.length} decided`}
+        stats={[
+          { label: "Pending", value: `${pending.length}`, color: pending.length > 0 ? "#C9A84C" : undefined, sub: "Awaiting review" },
+          { label: "Accepted", value: `${accepted}`, color: "#8ecb72", sub: "Active investors" },
+          { label: "Declined", value: `${declined}`, sub: "Not invited" },
+        ]}
+        actions={[
+          { icon: "ti-arrow-left", label: "Console", path: "/steward" },
+          { icon: "ti-users", label: "Investors", path: "/steward/investors" },
+          { icon: "ti-arrow-bar-up", label: "Deploy", path: "/steward/deploy" },
+          { icon: "ti-arrow-bar-down", label: "Withdrawals", path: "/steward/withdrawals" },
+        ]}
+      />
 
-      <div className="card">
+      <div className="card" style={{ marginTop: 16 }}>
         <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, marginBottom: 12 }}>Pending</h2>
         {pending.length === 0 && <p className="note">No pending requests.</p>}
         {pending.map((r) => (
