@@ -102,7 +102,7 @@ h1.hero-h .word{display:inline-block;opacity:0;transform:translateY(16px);transi
 h1.hero-h.go .word{opacity:1;transform:none}
 h1.hero-h .gold{color:var(--gold-text)}
 h1.hero-h .grn{color:var(--emerald-deep)}
-.hero-sub{font-size:18px;line-height:1.65;color:var(--muted);max-width:38ch;margin-top:22px}
+.hero-sub{font-size:18px;line-height:1.65;color:var(--muted);max-width:60ch;margin-top:22px;white-space:nowrap}
 .hero-stats{display:flex;gap:0;margin-top:40px;padding-top:32px;border-top:1px solid var(--border)}
 .hstat{flex:1;padding-right:18px}
 .hstat:not(:last-child){border-right:1px solid var(--border);margin-right:18px}
