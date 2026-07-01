@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRate } from "@/lib/rate-context";
 import { fmtKES, fmtKESraw, num, timeAgo } from "@/lib/format";
+import { ATMCard } from "@/components/app/ATMCard";
 import {
   getUser, getInvestorPositions, getIncomeSources, getPoolDeployments, deployPoolCapital,
   getVirtualCard,
@@ -123,57 +124,24 @@ export default function DeployCapitalPage() {
 
   return (
     <>
-      <div className="section-head">
-        <div>
-          <div style={{ marginBottom: 4 }}>
-            <Link href="/steward" style={{ color: "var(--soft)", fontSize: 14 }}>
-              <i className="ti ti-arrow-left" /> Mlinzi Console
-            </Link>
-          </div>
-          <h1 className="page-title">Deploy Capital</h1>
-          <p className="page-sub">Move pool funds to a new investment.</p>
-        </div>
-      </div>
-
-      {/* Pool stats */}
-      <div className="grid-2">
-        <div className="card">
-          <div className="stat">
-            <span className="l">Pool received</span>
-            <span className="v">{num(poolSats)} sats</span>
-          </div>
-          <p className="note" style={{ marginTop: 8 }}>≈ {fmtKES(poolSats, rate, 0)} from investors</p>
-        </div>
-        <div className="card">
-          <div className="stat">
-            <span className="l">Already deployed</span>
-            <span className="v">{fmtKESraw(deployedKes, 0)}</span>
-          </div>
-          <p className="note" style={{ marginTop: 8 }}>
-            across {deployments.length > 0
-              ? `${deployments.length} deployment${deployments.length !== 1 ? "s" : ""}`
-              : "income sources"}
-          </p>
-        </div>
-      </div>
-
-      <div className="card" style={{ marginTop: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15 }}>
-              Available to deploy
-            </div>
-            <div style={{
-              fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 700, marginTop: 4,
-              color: availableSats > 0 ? "var(--emerald-deep)" : "var(--soft)",
-            }}>
-              {fmtKESraw(availableKes, 0)}
-            </div>
-            <div className="note" style={{ marginTop: 4 }}>≈ {num(availableSats)} sats</div>
-          </div>
-          {availableSats <= 0 && <span className="badge pending">Fully deployed</span>}
-        </div>
-      </div>
+      <ATMCard
+        variant="dashboard"
+        chipLabel="DEPLOY CAPITAL"
+        balanceLabel="AVAILABLE TO DEPLOY"
+        balancePrimary={fmtKESraw(availableKes, 0)}
+        balanceSecondary={`≈ ${num(availableSats)} sats${availableSats <= 0 ? " · Fully deployed" : ""}`}
+        stats={[
+          { label: "Pool received", value: `${num(poolSats)} sats`, sub: `≈ ${fmtKES(poolSats, rate, 0)}` },
+          { label: "Already deployed", value: fmtKESraw(deployedKes, 0), sub: `${deployments.length} deployment${deployments.length !== 1 ? "s" : ""}` },
+          { label: "Available", value: fmtKESraw(availableKes, 0), color: availableSats > 0 ? "#8ecb72" : undefined, sub: availableSats <= 0 ? "Fully deployed" : "Ready to deploy" },
+        ]}
+        actions={[
+          { icon: "ti-arrow-left", label: "Console", path: "/steward" },
+          { icon: "ti-users", label: "Investors", path: "/steward/investors" },
+          { icon: "ti-user-check", label: "Access", path: "/steward/access" },
+          { icon: "ti-arrow-bar-down", label: "Withdrawals", path: "/steward/withdrawals" },
+        ]}
+      />
 
       {/* Deploy form */}
       <div style={{ marginTop: 20 }}>

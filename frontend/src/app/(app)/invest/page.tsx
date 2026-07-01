@@ -100,14 +100,30 @@ export default function InvestPage() {
   const currentValueKes = last ? last.closingKes : position?.principalKesAtEntry ?? 0;
   const thisMonthReturn = last ? last.returnKes : 0;
 
+  const investSats = currentValueKes ? Math.round(currentValueKes / rate.kesPerSat) : undefined;
+  const apyStr = position ? `${position.realizedReturnPctAnnual}%/yr` : "—";
+
   return (
     <>
-      <div className="section-head"><div><h1 className="page-title">My investment</h1><p className="page-sub">{user.relationship && user.relationship !== "none" ? `${user.relationship} of Mlinzi` : ""}</p></div></div>
-      <ATMCard variant="compact"
-        sats={currentValueKes ? Math.round(currentValueKes / rate.kesPerSat) : undefined}
+      <ATMCard
+        variant="dashboard"
+        chipLabel="INVESTOR"
         balanceLabel="INVESTMENT VALUE"
+        sats={investSats}
+        stats={[
+          { label: "Principal", value: `${num(position?.principalSats ?? 0)} sats`, sub: `≈ ${fmtKESraw(position?.principalKesAtEntry ?? 0, 0)} at entry` },
+          { label: "This month", value: fmtKESraw(thisMonthReturn, 0), color: thisMonthReturn >= 0 ? "#8ecb72" : undefined, sub: "Return" },
+          { label: "Return rate", value: apyStr, sub: position?.compounding ? "Compounded" : "Simple" },
+        ]}
+        actions={[
+          { icon: "ti-layout-dashboard", label: "Dashboard", path: "/dashboard" },
+          { icon: "ti-piggy-bank", label: "Savings", path: "/savings" },
+          { icon: "ti-history", label: "History", path: "/history" },
+          { icon: "ti-arrow-bar-down", label: "Withdraw", onClick: () => document.getElementById("withdraw-section")?.scrollIntoView({ behavior: "smooth" }) },
+        ]}
       />
-      <div className="notif-banner"><i className="ti ti-shield-lock" /><span>{PILOT_BANNER}</span></div>
+      <div className="notif-banner" style={{ marginTop: 14 }}><i className="ti ti-shield-lock" /><span>{PILOT_BANNER}</span></div>
+      <p className="page-sub" style={{ marginTop: 10 }}>{user.relationship && user.relationship !== "none" ? `${user.relationship} of Mlinzi` : ""}</p>
 
       {/* My position */}
       <div className="card">
@@ -151,7 +167,7 @@ export default function InvestPage() {
       {fi && <FICalculator fi={fi} currentValueKes={currentValueKes} onSave={onSaveFI} />}
 
       {/* Request withdrawal */}
-      <div className="card" style={{ marginTop: 16 }}>
+      <div id="withdraw-section" className="card" style={{ marginTop: 16 }}>
         <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>Request withdrawal</h2>
         <p className="note" style={{ marginBottom: 10 }}>No self-service payout — Mlinzi approves and sets an expected delivery date.</p>
         <div style={{ display: "flex", gap: 10 }}>

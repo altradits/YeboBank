@@ -10,6 +10,21 @@ const LAST4  = "2370";
 const EXPIRY = "12/29";
 const BG     = "linear-gradient(135deg, #050A06 0%, #0A2016 50%, #1C1200 100%)";
 
+export interface StatItem {
+  label: string;
+  value: string;
+  sub?: string;
+  color?: string;
+}
+
+export interface ActionItem {
+  icon: string;
+  label: string;
+  path?: string;
+  onClick?: () => void;
+  badge?: number;
+}
+
 interface Props {
   /** Pre-loaded balance in sats. If omitted the component fetches it. */
   sats?: number;
@@ -24,12 +39,22 @@ interface Props {
    * Defaults to "AVAILABLE BALANCE". Each page passes its contextually relevant label.
    */
   balanceLabel?: string;
+  /** Override the chip tag text (default "SAVINGS ACCOUNT"). */
+  chipLabel?: string;
+  /** Override the entire primary balance line (hides KES/sats toggle when set). */
+  balancePrimary?: string;
+  /** Override the secondary balance line. */
+  balanceSecondary?: string;
   /**
    * Dashboard variant: locked sats and interest earned to show in the summary strip.
    * Defaults match mock data.
    */
   lockedSats?: number;
   earnedSats?: number;
+  /** Custom stats strip items (overrides defaults when provided). */
+  stats?: StatItem[];
+  /** Custom action buttons (overrides defaults when provided). */
+  actions?: ActionItem[];
 }
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
@@ -96,8 +121,13 @@ export function ATMCard({
   sats: propSats,
   variant = "full",
   balanceLabel = "AVAILABLE BALANCE",
+  chipLabel,
+  balancePrimary: customPrimary,
+  balanceSecondary: customSecondary,
   lockedSats = 400_000,
   earnedSats = 52_000,
+  stats,
+  actions,
 }: Props) {
   const rate   = useRate();
   const router = useRouter();
@@ -133,6 +163,20 @@ export function ATMCard({
 
   // ── DASHBOARD variant ────────────────────────────────────────────────────────
   if (variant === "dashboard") {
+    const defaultStats: StatItem[] = [
+      { label: "Locked in savings", value: `${num(lockedSats)} sats`, sub: `≈ KES ${num(lockedSats * rate.kesPerSat)}` },
+      { label: "Interest earned (12 mo)", value: `+${num(earnedSats)} sats`, sub: "Paid monthly", color: "#8ecb72" },
+      { label: "Target APY", value: "~5.2%", sub: "From real yield" },
+    ];
+    const defaultActions: ActionItem[] = [
+      { icon: "ti-arrow-down", label: "Add money", path: "/deposit" },
+      { icon: "ti-arrow-up",   label: "Withdraw",  path: "/withdraw" },
+      { icon: "ti-send",       label: "Send",      path: "/send" },
+      { icon: "ti-lock",       label: "Lock",      path: "/savings/lock" },
+    ];
+    const displayStats   = stats   ?? defaultStats;
+    const displayActions = actions ?? defaultActions;
+
     return (
       <div style={{ ...sharedBg, borderRadius: 18, padding: "24px 28px", boxShadow: "0 14px 44px rgba(0,0,0,.5)" }}>
         {/* Glow orbs */}
@@ -146,7 +190,7 @@ export function ATMCard({
               Ye<span style={{ color: "#C9A84C" }}>B</span>o
             </span>
             <span style={{ fontSize: 9, color: "rgba(255,255,255,.35)", letterSpacing: 2.5, border: "1px solid rgba(255,255,255,.12)", borderRadius: 4, padding: "2px 7px" }}>
-              SAVINGS ACCOUNT
+              {(chipLabel ?? "SAVINGS ACCOUNT").toUpperCase()}
             </span>
           </div>
           <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "rgba(255,255,255,.45)", letterSpacing: 1 }}>{name}</p>
@@ -155,30 +199,32 @@ export function ATMCard({
         {/* Balance */}
         <div style={{ marginTop: 22, position: "relative" }}>
           <p style={{ fontSize: 10, color: "rgba(255,255,255,.38)", letterSpacing: 2.5, marginBottom: 6 }}>{balanceLabel}</p>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 14, flexWrap: "wrap" }}>
+          {customPrimary ? (
             <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "clamp(26px, 6vw, 36px)", letterSpacing: -.5, lineHeight: 1 }}>
-              {balPrimary}
+              {customPrimary}
             </p>
-            <BalanceToggle view={view} onChange={setView} />
-          </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 14, flexWrap: "wrap" }}>
+              <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "clamp(26px, 6vw, 36px)", letterSpacing: -.5, lineHeight: 1 }}>
+                {balPrimary}
+              </p>
+              <BalanceToggle view={view} onChange={setView} />
+            </div>
+          )}
           <p style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "rgba(255,255,255,.4)", marginTop: 5 }}>
-            {balSecondary}
+            {customSecondary ?? balSecondary}
           </p>
         </div>
 
         {/* Summary stats strip */}
         <div style={{
-          display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
+          display: "grid", gridTemplateColumns: `repeat(${displayStats.length}, 1fr)`,
           gap: 0, marginTop: 22,
           borderTop: "1px solid rgba(255,255,255,.09)",
           borderBottom: "1px solid rgba(255,255,255,.09)",
           paddingBlock: 14,
         }}>
-          {[
-            { label: "Locked in savings", value: `${num(lockedSats)} sats`, sub: `≈ KES ${num(lockedSats * rate.kesPerSat)}` },
-            { label: "Interest earned (12 mo)", value: `+${num(earnedSats)} sats`, sub: "Paid monthly", color: "#8ecb72" },
-            { label: "Target APY", value: "~5.2%", sub: "From real yield" },
-          ].map((s, i, arr) => (
+          {displayStats.map((s, i, arr) => (
             <div key={s.label} style={{
               padding: "0 16px",
               borderRight: i < arr.length - 1 ? "1px solid rgba(255,255,255,.08)" : "none",
@@ -191,14 +237,9 @@ export function ATMCard({
         </div>
 
         {/* Quick actions */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginTop: 16 }}>
-          {([
-            { icon: "ti-arrow-down", label: "Add money", path: "/deposit" },
-            { icon: "ti-arrow-up",   label: "Withdraw",  path: "/withdraw" },
-            { icon: "ti-send",       label: "Send",      path: "/send" },
-            { icon: "ti-lock",       label: "Lock",      path: "/savings/lock" },
-          ] as const).map(({ icon, label, path }) => (
-            <button key={path} onClick={() => router.push(path)} style={{
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${displayActions.length}, 1fr)`, gap: 8, marginTop: 16 }}>
+          {displayActions.map((a) => (
+            <button key={a.label} onClick={a.path ? () => router.push(a.path!) : a.onClick} style={{
               background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.1)",
               color: "#fff", borderRadius: 12, padding: "12px 6px",
               fontSize: 12, fontWeight: 500, cursor: "pointer",
@@ -208,8 +249,22 @@ export function ATMCard({
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,.15)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,.07)"; (e.currentTarget as HTMLElement).style.transform = ""; }}
             >
-              <i className={`ti ${icon}`} style={{ color: "#8ecb72", fontSize: 20 }} />
-              {label}
+              <div style={{ position: "relative" }}>
+                <i className={`ti ${a.icon}`} style={{ color: "#8ecb72", fontSize: 20 }} />
+                {!!a.badge && (
+                  <span style={{
+                    position: "absolute", top: -4, right: -8,
+                    background: "#C9A84C", color: "#3a2c00",
+                    fontSize: 9, fontWeight: 700, fontFamily: "var(--font-mono)",
+                    borderRadius: 999, minWidth: 15, height: 15,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    padding: "0 3px",
+                  }}>
+                    {a.badge}
+                  </span>
+                )}
+              </div>
+              {a.label}
             </button>
           ))}
         </div>

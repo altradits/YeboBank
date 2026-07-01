@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { num, fmtKESraw } from "@/lib/format";
 import { getInvestorPositions, postMonthlyStatement } from "@/lib/api";
+import { ATMCard } from "@/components/app/ATMCard";
 import type { InvestorPosition } from "@/types";
 
 export default function InvestorsPage() {
@@ -30,25 +30,32 @@ export default function InvestorsPage() {
   const totalAum = positions.reduce((s, p) => s + closingOf(p), 0);
   const totalFee = positions.reduce((s, p) => s + p.monthlyStatements.reduce((a, m) => a + m.feeKes, 0), 0);
 
+  const totalStatements = positions.reduce((s, p) => s + p.monthlyStatements.length, 0);
+
   return (
     <>
-      <div className="section-head">
-        <div>
-          <div style={{ marginBottom: 4 }}>
-            <Link href="/steward" style={{ color: "var(--soft)", fontSize: 14 }}><i className="ti ti-arrow-left" /> Mlinzi Console</Link>
-          </div>
-          <h1 className="page-title">Investors</h1>
-        </div>
-      </div>
+      <ATMCard
+        variant="dashboard"
+        chipLabel="INVESTORS"
+        balanceLabel="TOTAL AUM"
+        balancePrimary={fmtKESraw(totalAum, 0)}
+        balanceSecondary={`${positions.length} position${positions.length !== 1 ? "s" : ""} · friends & family pilot`}
+        stats={[
+          { label: "Fee earned", value: fmtKESraw(totalFee, 0), color: "#8ecb72", sub: "2% of profit" },
+          { label: "Statements", value: `${totalStatements}`, sub: "Posted monthly" },
+          { label: "Avg position", value: positions.length > 0 ? fmtKESraw(totalAum / positions.length, 0) : "—", sub: "Per investor" },
+        ]}
+        actions={[
+          { icon: "ti-arrow-left", label: "Console", path: "/steward" },
+          { icon: "ti-arrow-bar-up", label: "Deploy", path: "/steward/deploy" },
+          { icon: "ti-user-check", label: "Access", path: "/steward/access" },
+          { icon: "ti-arrow-bar-down", label: "Withdrawals", path: "/steward/withdrawals" },
+        ]}
+      />
 
-      <div className="notif-banner">
+      <div className="notif-banner" style={{ marginTop: 14 }}>
         <i className="ti ti-shield-lock" />
         <span>Friends &amp; family pilot — figures are projections, not guarantees. Not a public offer.</span>
-      </div>
-
-      <div className="grid-2">
-        <div className="card"><div className="stat"><span className="l">AUM</span><span className="v">{fmtKESraw(totalAum, 0)}</span></div></div>
-        <div className="card"><div className="stat"><span className="l">Fee earned (2% of profit)</span><span className="v" style={{ color: "var(--emerald-deep)" }}>{fmtKESraw(totalFee, 0)}</span></div></div>
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
