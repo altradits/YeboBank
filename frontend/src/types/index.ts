@@ -323,7 +323,7 @@ export interface VirtualCard {
 }
 
 // Records each time the Mlinzi moves pool capital out to fund a new investment.
-export type DeployMethod = "mpesa" | "lightning";
+export type DeployMethod = "mpesa" | "lightning" | "card";
 export interface PoolDeployment {
   id: string;
   method: DeployMethod;

@@ -1065,7 +1065,7 @@ export async function getPoolDeployments(): Promise<PoolDeployment[]> {
 // TODO(backend): POST /steward/pool/deploy — debit pool_wallet ledger, record deployment,
 //   then fan-out the appropriate rails (M-Pesa B2C or Lightning payment).
 export async function deployPoolCapital(
-  method: "mpesa" | "lightning",
+  method: "mpesa" | "lightning" | "card",
   amountSats: number,
   amountKes: number,
   destination: string,
