@@ -22,7 +22,7 @@ export default function FeatureSections() {
 function Inflation() {
   const router = useRouter();
   return (
-    <section className="sec">
+    <section className="sec" id="inflation">
       <div className="wrap infl">
         <div className="reveal">
           <h2 className="h2">

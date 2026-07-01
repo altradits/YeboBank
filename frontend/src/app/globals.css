@@ -78,16 +78,17 @@ a{color:inherit;text-decoration:none}
 .up{color:var(--lime)}.dn{color:#ff9b7a}
 
 /* ===== nav ===== */
-.nav{position:sticky;top:0;z-index:60;background:rgba(251,248,239,.82);backdrop-filter:saturate(150%) blur(12px);border-bottom:1px solid var(--border-soft)}
+.nav{position:sticky;top:0;z-index:60;background:var(--nav-bg,transparent);backdrop-filter:var(--nav-blur,blur(0px));-webkit-backdrop-filter:var(--nav-blur,blur(0px));border-bottom:1px solid var(--nav-border,transparent);transition:background .4s ease,backdrop-filter .4s ease,-webkit-backdrop-filter .4s ease,border-color .4s ease}
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;padding:16px 28px}
-.brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-.02em}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-.02em;color:#fff}
 .brand .mk{width:34px;height:34px;border-radius:11px;background:var(--forest);color:var(--lime);display:grid;place-items:center;font-weight:700;font-size:17px;box-shadow:var(--shadow-1)}
-.navlinks{display:flex;gap:30px;font-size:15px;font-weight:500;color:var(--muted)}
-.navlinks a:hover{color:var(--text)}
+.navlinks{display:flex;gap:30px;font-size:15px;font-weight:500;color:rgba(255,255,255,.65)}
+.navlinks a:hover{color:#fff}
 .navactions{display:flex;gap:12px;align-items:center}
-.navactions .login{font-family:var(--font-display);font-weight:600;font-size:15px}
-.demo-btn{font-family:var(--font-display);font-weight:600;font-size:13px;background:rgba(168,116,0,.14);color:var(--gold-text);border:1.5px solid rgba(168,116,0,.35);padding:7px 15px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;transition:.2s}
-.demo-btn:hover{background:rgba(168,116,0,.24);color:var(--gold-text)}
+.navactions .login{font-family:var(--font-display);font-weight:600;font-size:15px;color:rgba(255,255,255,.85)}
+.navactions .login:hover{color:#fff}
+.demo-btn{font-family:var(--font-display);font-weight:600;font-size:13px;background:rgba(168,116,0,.14);color:var(--gold-soft);border:1.5px solid rgba(168,116,0,.35);padding:7px 15px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;transition:.2s}
+.demo-btn:hover{background:rgba(168,116,0,.24);color:var(--gold-soft)}
 @media(max-width:880px){.navlinks{display:none}}
 
 /* ===== landing above-fold slot ===== */
