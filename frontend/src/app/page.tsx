@@ -13,7 +13,7 @@ import { ClosingCTA, SiteFooter } from "@/components/landing/Footer";
 export default function HomePage() {
   useRevealAll();
   return (
-    <div style={{ '--maxw': '1400px' } as React.CSSProperties}>
+    <div style={{ '--maxw': '1680px' } as React.CSSProperties}>
       <Ticker />
       <SiteNav />
       <Hero />
