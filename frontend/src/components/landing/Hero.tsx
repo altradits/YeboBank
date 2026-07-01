@@ -5,6 +5,62 @@ import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 
+// ── Web Audio synthesizer (module-level singleton) ────────────────────────────
+let _actx: AudioContext | null = null;
+
+function getACtx(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  try {
+    if (!_actx || _actx.state === "closed") _actx = new AudioContext();
+    return _actx;
+  } catch { return null; }
+}
+
+// Short noise-burst — phone keyboard tap / PIN digit
+function playKey() {
+  const ctx = getACtx();
+  if (!ctx || ctx.state !== "running") return;
+  const sr  = ctx.sampleRate;
+  const len = Math.floor(sr * 0.048);
+  const buf = ctx.createBuffer(1, len, sr);
+  const d   = buf.getChannelData(0);
+  for (let i = 0; i < len; i++)
+    d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sr * 0.006));
+  const src  = ctx.createBufferSource();
+  const gain = ctx.createGain();
+  src.buffer = buf;
+  gain.gain.setValueAtTime(0.22, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.048);
+  src.connect(gain);
+  gain.connect(ctx.destination);
+  src.start();
+}
+
+// Rising chime — M-Pesa-style notification
+type Note = [number, number, number]; // [delaySec, hz, vol]
+function playNotify(variant: "confirm" | "deposit" = "confirm") {
+  const ctx = getACtx();
+  if (!ctx || ctx.state !== "running") return;
+  const notes: Note[] = variant === "deposit"
+    ? [[0, 784, 0.18], [0.13, 988, 0.15], [0.26, 1175, 0.11]]  // G5 B5 D6
+    : [[0, 1046.5, 0.18], [0.15, 1318.5, 0.14]];                // C6 E6
+  notes.forEach(([delay, freq, vol]) => {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    const t0 = ctx.currentTime + delay;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.018);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.4);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.42);
+  });
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 type Phase = 0 | 1 | 2 | 3 | 4;
 
 const WORDS: { t: string; cls?: string }[] = [
@@ -41,6 +97,17 @@ export default function Hero() {
 
   const depositSats = Math.round(DEMO_KES * rate.satsPerKes);
 
+  /* ── Resume AudioContext on first user gesture ── */
+  useEffect(() => {
+    const resume = () => getACtx()?.resume();
+    window.addEventListener("pointerdown", resume, { once: true });
+    window.addEventListener("keydown",     resume, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", resume);
+      window.removeEventListener("keydown",     resume);
+    };
+  }, []);
+
   /* ── phase progression ── */
   useEffect(() => {
     const t = [
@@ -52,28 +119,39 @@ export default function Hero() {
     return () => t.forEach(clearTimeout);
   }, []);
 
-  /* ── typing: phone digits, amount digits, PIN dots ── */
+  /* ── typing: phone digits, amount digits, PIN dots (with key sounds) ── */
   useEffect(() => {
     const t: ReturnType<typeof setTimeout>[] = [];
 
-    // Phase 0: type phone number char by char from t=500ms
+    // Phase 0: type phone number char by char
     DEMO_PHONE.split("").forEach((ch, i) =>
-      t.push(setTimeout(() => setTypedPhone(p => p + ch), 520 + i * 120))
+      t.push(setTimeout(() => { setTypedPhone(p => p + ch); playKey(); }, 520 + i * 120))
     );
 
-    // Phase 1: type "500" from t=2700ms
+    // Phase 1: type "500"
     ["5","0","0"].forEach((ch, i) =>
-      t.push(setTimeout(() => setTypedAmount(p => p + ch), 2820 + i * 260))
+      t.push(setTimeout(() => { setTypedAmount(p => p + ch); playKey(); }, 2820 + i * 260))
     );
 
-    // Phase 2: PIN dots fill one by one from t=4700ms
+    // Phase 2: PIN dots fill one by one
     [0,1,2,3].forEach(i =>
-      t.push(setTimeout(() => setPinDots(i + 1), 4720 + i * 280))
+      t.push(setTimeout(() => { setPinDots(i + 1); playKey(); }, 4720 + i * 280))
     );
     t.push(setTimeout(() => setSimConfirmed(true), 5700));
 
     return () => t.forEach(clearTimeout);
   }, []);
+
+  /* ── notification sounds ── */
+  useEffect(() => {
+    if (simConfirmed) playNotify("confirm");
+  }, [simConfirmed]);
+
+  useEffect(() => {
+    if (phase !== 3) return;
+    const t = setTimeout(() => playNotify("deposit"), 120);
+    return () => clearTimeout(t);
+  }, [phase]);
 
   /* ── cursor choreography ── */
   useEffect(() => {
@@ -86,17 +164,17 @@ export default function Hero() {
     };
 
     // Phase 0 — phone number
-    mv(149, 232, 100);  tap(260);     // tap phone field
-    mv(149, 322, 1980); tap(2130);   // tap Continue
+    mv(149, 232, 100);  tap(260);
+    mv(149, 322, 1980); tap(2130);
 
     // Phase 1 — deposit amount
-    mv(149, 225, 2580); tap(2700);   // tap amount field
-    mv(149, 316, 3860); tap(4000);   // tap Send via M-Pesa
+    mv(149, 225, 2580); tap(2700);
+    mv(149, 316, 3860); tap(4000);
 
     // Phase 2 — M-Pesa PIN
-    mv(149, 300, 4500); tap(4680);   // tap PIN area
+    mv(149, 300, 4500); tap(4680);
 
-    // Phase 3 — balance screen (cursor drifts to balance, then hides)
+    // Phase 3 — balance screen, then hide
     mv(149, 230, 6300);
     t.push(setTimeout(() => setShowCursor(false), 7600));
 
@@ -136,8 +214,13 @@ export default function Hero() {
   }
   function handleKey(k: string) {
     if (phase !== 4) return;
-    if (k === "⌫") { setFromRaw(rawInput.slice(0, -1) || "0"); return; }
+    if (k === "⌫") {
+      if (rawInput !== "0") playKey();
+      setFromRaw(rawInput.slice(0, -1) || "0");
+      return;
+    }
     if (k === "." && (rawInput.includes(".") || view === "sats")) return;
+    playKey();
     setFromRaw(rawInput === "0" && k !== "." ? k : rawInput + k);
   }
   function handleToggle(v: "sats"|"kes"|"btc") {
@@ -193,17 +276,17 @@ export default function Hero() {
               <div className="hp-glow" aria-hidden="true" />
               <div className="hp-island" aria-hidden="true" />
 
-              {/* Simulated touch cursor */}
               {showCursor && (
                 <div className={`hp-cursor${clicking ? " click" : ""}`}
                   style={{ left: cursorPos.x, top: cursorPos.y }}
                   aria-hidden="true" />
               )}
 
-              {/* Progress dots */}
               {phase < 4 && (
                 <div className="hp-dots" aria-hidden="true">
-                  {[0,1,2,3].map(i => <span key={i} className={i === phase ? "on" : i < phase ? "done" : ""} />)}
+                  {[0,1,2,3].map(i => (
+                    <span key={i} className={i === phase ? "on" : i < phase ? "done" : ""} />
+                  ))}
                 </div>
               )}
 
