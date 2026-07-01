@@ -90,6 +90,11 @@ a{color:inherit;text-decoration:none}
 .demo-btn:hover{background:rgba(168,116,0,.24);color:var(--gold-text)}
 @media(max-width:880px){.navlinks{display:none}}
 
+/* ===== landing above-fold slot ===== */
+.landing-above-fold{display:flex;flex-direction:column;height:100dvh}
+.landing-above-fold .hero{flex:1;min-height:0;padding-top:40px;padding-bottom:40px}
+body.landing-page{scrollbar-width:none}
+body.landing-page::-webkit-scrollbar{display:none}
 /* ===== hero ===== */
 .hero{min-height:100dvh;display:flex;align-items:center;padding:100px 0 80px;position:relative;overflow:hidden}
 .hero::before{content:"";position:absolute;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(224,168,0,.18),transparent 64%);top:-180px;right:-140px;z-index:0}
