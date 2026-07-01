@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 export function ClosingCTA() {
   const router = useRouter();
   return (
-    <section className="cta">
+    <section className="cta" id="cta">
       <div className="wrap">
         <div className="sw-lead reveal">Harambee — let&apos;s pull together</div>
         <h2 className="reveal d1">Start your savings <span className="gold">today.</span></h2>

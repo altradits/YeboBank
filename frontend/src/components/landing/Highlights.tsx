@@ -14,7 +14,7 @@ export function Lightning() {
     setTimeout(() => setCopied(false), 1400);
   }
   return (
-    <section className="sec sec-ink">
+    <section className="sec sec-ink" id="lightning">
       <div className="wrap" style={{ textAlign: "center", maxWidth: 760 }}>
         <h2 className="h2 reveal d1" style={{ margin: "14px auto 0" }}>
           Send money anywhere, <span className="accent">in seconds.</span>
