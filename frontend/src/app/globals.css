@@ -254,7 +254,9 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 
 /* 3-D Orbit viewport — fills its grid column completely */
 .io-viewport{width:100%;height:100%;min-height:500px;display:flex;justify-content:center;align-items:center;perspective:2200px;overflow:visible}
-.io-system{position:relative;width:740px;height:740px;display:flex;justify-content:center;align-items:center;transform-style:preserve-3d;transform:rotateX(24deg);animation:io-system-drift 8s ease-in-out infinite alternate}
+/* --io-lift compensates the downward perspective-shift from the steep rotateX tilt.
+   At 24° with Z=-348px the card projects ~125px below visual centre; this lifts it back. */
+.io-system{position:relative;width:740px;height:740px;display:flex;justify-content:center;align-items:center;transform-style:preserve-3d;--io-lift:-112px;transform:translateY(var(--io-lift)) rotateX(24deg);animation:io-system-drift 8s ease-in-out infinite alternate}
 
 /* Central stat card */
 .io-center{position:absolute;width:300px;height:clamp(460px,calc(100dvh - 310px),680px);transform:translateZ(-348px);transform-style:preserve-3d}
@@ -281,7 +283,7 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 
 @keyframes io-orbit{0%{transform:rotateY(0deg)}100%{transform:rotateY(360deg)}}
 @keyframes io-counter{0%{transform:rotateY(0deg)}100%{transform:rotateY(-360deg)}}
-@keyframes io-system-drift{0%{transform:rotateX(20deg) rotateZ(-1.5deg)}100%{transform:rotateX(28deg) rotateZ(1.5deg)}}
+@keyframes io-system-drift{0%{transform:translateY(var(--io-lift)) rotateX(20deg) rotateZ(-1.5deg)}100%{transform:translateY(var(--io-lift)) rotateX(28deg) rotateZ(1.5deg)}}
 
 /* Compare panel — right column */
 .io-compare{display:grid;grid-template-columns:1fr 42px 1fr;align-items:center;padding:22px 18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:22px;gap:0}
@@ -309,7 +311,7 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 @media(max-width:1400px){
   #inflation .wrap{padding:80px 36px 20px}
   .infl-main{grid-template-columns:1fr 460px;gap:44px}
-  .io-system{width:620px;height:620px}
+  .io-system{width:620px;height:620px;--io-lift:-95px}
   .io-center{width:252px;height:580px;transform:translateZ(-295px)}
   .io-track{transform-origin:center center -295px;width:116px;height:116px}
   .io-c-year{font-size:56px}
@@ -318,7 +320,7 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 @media(max-width:1100px){
   #inflation .wrap{padding:80px 28px 16px}
   .infl-main{grid-template-columns:1fr 400px;gap:36px}
-  .io-system{width:520px;height:520px}
+  .io-system{width:520px;height:520px;--io-lift:-78px}
   .io-center{width:216px;height:490px;transform:translateZ(-248px)}
   .io-track{transform-origin:center center -248px;width:100px;height:100px}
   .io-c-year{font-size:46px}
@@ -334,7 +336,7 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
   .infl-side .h2{text-align:center}
   .infl-side .lead{text-align:center;margin:8px auto 0}
   .io-viewport{height:440px}
-  .io-system{width:400px;height:400px}
+  .io-system{width:400px;height:400px;--io-lift:-52px}
   .io-center{width:168px;height:360px;transform:translateZ(-190px)}
   .io-track{transform-origin:center center -190px;width:80px;height:80px}
   .io-c-year{font-size:36px}
@@ -348,7 +350,7 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
   .io-year-nav::-webkit-scrollbar{display:none}
   .io-yr-tab{flex:none;padding:6px 10px 10px;font-size:10px}
   .io-viewport{height:340px}
-  .io-system{width:300px;height:300px}
+  .io-system{width:300px;height:300px;--io-lift:-38px}
   .io-center{width:148px;height:290px;transform:translateZ(-148px)}
   .io-track{transform-origin:center center -148px;width:76px;height:76px}
   .io-c-year{font-size:28px}
