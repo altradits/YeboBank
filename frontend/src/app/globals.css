@@ -97,7 +97,7 @@ a{color:inherit;text-decoration:none}
 body.landing-page,html:has(body.landing-page){scrollbar-width:none;overflow-x:hidden}
 body.landing-page::-webkit-scrollbar,html:has(body.landing-page)::-webkit-scrollbar{display:none;width:0}
 /* ===== hero ===== */
-.hero{min-height:100dvh;display:flex;align-items:center;padding:100px 0 80px;position:relative;overflow:hidden}
+.hero{min-height:100dvh;display:flex;align-items:center;padding:100px 0 80px;position:relative;overflow:hidden;background:linear-gradient(135deg,#050A06 0%,#0A2016 50%,#1C1200 100%);color:#fff}
 .hero::before{content:"";position:absolute;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(224,168,0,.18),transparent 64%);top:-180px;right:-140px;z-index:0}
 .hero::after{content:"";position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(17,166,91,.15),transparent 66%);bottom:-240px;left:-160px;z-index:0}
 .hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;width:100%}
@@ -106,14 +106,14 @@ body.landing-page::-webkit-scrollbar,html:has(body.landing-page)::-webkit-scroll
 h1.hero-h{font-family:var(--font-display);font-weight:700;font-size:clamp(44px,5.6vw,72px);line-height:.96;letter-spacing:-.035em;margin-top:16px}
 h1.hero-h .word{display:inline-block;opacity:0;transform:translateY(16px);transition:opacity .55s,transform .55s;margin-right:0.22em}
 h1.hero-h.go .word{opacity:1;transform:none}
-h1.hero-h .gold{color:var(--gold-text)}
-h1.hero-h .grn{color:var(--emerald-deep)}
-.hero-sub{font-size:18px;line-height:1.65;color:var(--muted);max-width:60ch;margin-top:22px;white-space:nowrap}
-.hero-stats{display:flex;gap:0;margin-top:40px;padding-top:32px;border-top:1px solid var(--border)}
+h1.hero-h .gold{color:var(--gold-soft)}
+h1.hero-h .grn{color:var(--lime)}
+.hero-sub{font-size:18px;line-height:1.65;color:rgba(255,255,255,.72);max-width:60ch;margin-top:22px;white-space:nowrap}
+.hero-stats{display:flex;gap:0;margin-top:40px;padding-top:32px;border-top:1px solid rgba(255,255,255,.12)}
 .hstat{flex:1;padding-right:18px}
-.hstat:not(:last-child){border-right:1px solid var(--border);margin-right:18px}
-.hstat .hn{font-family:var(--font-display);font-weight:700;font-size:clamp(22px,2.4vw,30px);line-height:1;color:var(--text);letter-spacing:-.03em}
-.hstat .nl{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.3}
+.hstat:not(:last-child){border-right:1px solid rgba(255,255,255,.12);margin-right:18px}
+.hstat .hn{font-family:var(--font-display);font-weight:700;font-size:clamp(22px,2.4vw,30px);line-height:1;color:#fff;letter-spacing:-.03em}
+.hstat .nl{font-size:12px;color:rgba(255,255,255,.52);margin-top:5px;line-height:1.3}
 @media(max-width:1024px){.hero .wrap{gap:40px}.hero-phone{width:284px}}
 @media(max-width:880px){.hero .wrap{grid-template-columns:1fr;gap:36px}.hero{min-height:auto;padding:72px 0 56px}.hero-phone{width:100%;max-width:320px;margin:0 auto}.hero-stats{max-width:360px}}
 @media(max-width:480px){.hero-phone{max-width:280px}.hstat .hn{font-size:20px}.hero-sub{font-size:16px}}
@@ -225,6 +225,8 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 .h2{font-family:var(--font-display);font-weight:700;font-size:clamp(30px,4.4vw,46px);line-height:1.04;letter-spacing:-.03em;margin-top:14px;max-width:18ch}
 .lead{font-size:18px;line-height:1.65;color:rgba(255,255,255,.78);max-width:46ch;margin-top:20px}
 .h2 .accent{color:var(--gold-soft)}.h2 .grow{color:var(--lime)}
+/* standalone brand-color utilities (for use outside heading context) */
+.gold{color:var(--gold-soft)}.grn-util{color:var(--lime)}.acc-util{color:var(--emerald-deep)}
 
 /* ── Inflation section ─────────────────────────── */
 
@@ -1006,9 +1008,8 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
   color: var(--text);
 }
 
-/* ── Landing page nav (hardcoded light backdrop) ── */
+/* ── Landing page nav — border tint on dark ── */
 [data-theme="dark"] .nav {
-  background: rgba(12,26,12,.92);
   border-color: rgba(255,255,255,.08);
 }
 [data-theme="dark"] .navlinks a { color: rgba(255,255,255,.7); }
@@ -1102,6 +1103,50 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 /* ── Bar-chart labels ── */
 [data-theme="dark"] .bar-label { color: var(--soft); }
 [data-theme="dark"] .bar-label b { color: var(--text); }
+
+/* ── Form inputs — visible surface on near-black bg ── */
+[data-theme="dark"] .input {
+  background: var(--cream);
+  border-color: rgba(255,255,255,.14);
+  color: var(--text);
+}
+[data-theme="dark"] .input:focus {
+  border-color: var(--emerald-deep);
+  box-shadow: 0 0 0 3px rgba(28,180,96,.18);
+}
+
+/* ── Primary button — boost contrast on dark surfaces ── */
+[data-theme="dark"] .btn-primary {
+  background: var(--forest-mid);
+}
+[data-theme="dark"] .btn-primary:hover {
+  background: var(--emerald-deep);
+}
+
+/* ── App topbar — slight elevation above page bg ── */
+[data-theme="dark"] .topbar {
+  background: var(--surface);
+}
+
+/* ── Card hover on dark ── */
+[data-theme="dark"] a.card:hover,
+[data-theme="dark"] .card.hoverable:hover {
+  background: rgba(255,255,255,.035);
+}
+
+/* ── M-Pesa phone mockup — screen always reads as a lit device, not a dark void ── */
+[data-theme="dark"] .phone .scr { background: #E8EFE9; color: #061210; }
+[data-theme="dark"] .phone .ph-top { color: #061210; }
+[data-theme="dark"] .phone .ph-top span { color: #527060; }
+[data-theme="dark"] .mp-card { background: #F5F9F6; border-color: #AECABE; }
+[data-theme="dark"] .mp-row span { color: #527060; }
+[data-theme="dark"] .mp-row b { color: #061210; }
+[data-theme="dark"] .mp-row b.grn { color: #077A3C; }
+[data-theme="dark"] .mp-btn { background: #0A9850; color: #fff; }
+[data-theme="dark"] .mp-ok { background: rgba(17,166,91,.1); }
+[data-theme="dark"] .mp-ok i { color: #077A3C; }
+[data-theme="dark"] .mp-ok .t { color: #061210; }
+[data-theme="dark"] .mp-ok .s { color: #527060; }
 
 /* ── Theme toggle button (in topbar) ── */
 .theme-toggle {
