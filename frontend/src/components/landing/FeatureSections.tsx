@@ -18,18 +18,72 @@ export default function FeatureSections() {
   );
 }
 
-/* ── The Problem ─────────────────────────────────────────────────────────── */
+/* ── The Problem — Coffee Mug Comparison ─────────────────────────────────── */
 
-// Simplified Kenya silhouette (viewBox 0 0 200 200)
-const KENYA_PATH =
-  "M45,16 L52,8 L112,4 L150,9 L170,23 L174,56 L172,88 " +
-  "L165,116 L153,140 L140,153 L112,162 L80,164 " +
-  "L60,154 L46,140 L40,120 L36,92 L34,66 L36,46 L30,28 L40,18 Z";
+type MugSize = "lg" | "sm" | "xs";
+const MUG_D: Record<MugSize, { bw: number; bh: number; st: number; hw: number }> = {
+  lg: { bw: 78, bh: 84, st: 30, hw: 22 },
+  sm: { bw: 40, bh: 46, st: 16, hw: 12 },
+  xs: { bw: 26, bh: 30, st: 11, hw: 8  },
+};
 
-function KenyaCoinMap() {
+function MugSVG({
+  size = "sm", rgb, stroke, label, sub, steam = true,
+}: {
+  size?: MugSize; rgb: string; stroke: string;
+  label?: string; sub?: string; steam?: boolean;
+}) {
+  const { bw, bh, st, hw } = MUG_D[size];
+  const vw = bw + hw + 3;
+  const vh = st + bh + 2;
+  const rx  = size === "lg" ? 9 : size === "sm" ? 5 : 3;
+  const lsw = size === "lg" ? 2 : 1.5;
+  const fs  = size === "lg" ? 11 : size === "sm" ? 7.5 : 5.5;
+
+  // Steam wisp paths — S-curves rising from mug opening
+  const s = (xp: number, dy: number) => {
+    const x = +(bw * xp).toFixed(1);
+    return `M${x},${st} C${+(x - 6).toFixed(1)},${+(st - st * 0.35).toFixed(1)} ${+(x + 5).toFixed(1)},${+(st * 0.2).toFixed(1)} ${x},${dy}`;
+  };
+
+  return (
+    <svg viewBox={`0 0 ${vw} ${vh}`} width={vw} height={vh}>
+      {/* Steam */}
+      {steam && (<>
+        <path className="mug-st"  d={s(0.28, 2)}    fill="none" stroke="rgba(255,255,255,.3)"  strokeWidth={lsw}      strokeLinecap="round" />
+        <path className="mug-st2" d={s(0.54, 1)}    fill="none" stroke="rgba(255,255,255,.22)" strokeWidth={lsw * .8} strokeLinecap="round" />
+        {size === "lg" && (
+          <path className="mug-st3" d={s(0.76, 2)}  fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="1.3"      strokeLinecap="round" />
+        )}
+      </>)}
+      {/* Mug body */}
+      <rect x="1" y={st} width={bw - 2} height={bh} rx={rx} ry={rx}
+        fill={`rgba(${rgb},.14)`} stroke={stroke} strokeWidth={lsw} />
+      {/* Handle — D-curve on right */}
+      <path
+        d={`M${bw - 1},${st + bh * 0.24} C${bw + hw},${st + bh * 0.24} ${bw + hw},${st + bh * 0.76} ${bw - 1},${st + bh * 0.76}`}
+        fill="none" stroke={stroke} strokeWidth={lsw} strokeLinecap="round" />
+      {/* Liquid surface */}
+      <ellipse cx={bw / 2} cy={st + 1} rx={bw / 2 - 5}
+        ry={size === "lg" ? 4.5 : size === "sm" ? 2.5 : 1.6}
+        fill={`rgba(${rgb},.38)`} />
+      {/* Labels */}
+      {label && (
+        <text x={bw / 2} y={st + bh * 0.44} textAnchor="middle" dominantBaseline="middle"
+          fill="#fff" fontSize={fs} fontWeight="700" fontFamily="'IBM Plex Mono',monospace">{label}</text>
+      )}
+      {sub && (
+        <text x={bw / 2} y={st + bh * 0.72} textAnchor="middle" dominantBaseline="middle"
+          fill="rgba(255,255,255,.52)" fontSize={fs * 0.76} fontFamily="'IBM Plex Mono',monospace">{sub}</text>
+      )}
+    </svg>
+  );
+}
+
+function CoffeeMugComparison() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [year, setYear] = useState(2020);
+  const [year, setYear] = useState(2015);
   const [active, setActive] = useState(false);
 
   useEffect(() => {
@@ -37,84 +91,121 @@ function KenyaCoinMap() {
     if (!el) return;
     const io = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) { setActive(true); io.disconnect(); } },
-      { threshold: 0.3 }
+      { threshold: 0.25 }
     );
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
+  // Year loop 2015 → 2026, pause 2.6s, restart
   useEffect(() => {
     if (!active) return;
-    let y = 2020;
-    setYear(2020);
+    let y = 2015;
+    setYear(2015);
     const tick = () => {
-      if (y < 2027) {
+      if (y < 2026) {
         y++;
         setYear(y);
-        timerRef.current = setTimeout(tick, 720);
+        timerRef.current = setTimeout(tick, 820);
       } else {
         timerRef.current = setTimeout(() => {
-          y = 2020;
-          setYear(2020);
-          timerRef.current = setTimeout(tick, 800);
-        }, 2400);
+          y = 2015;
+          setYear(2015);
+          timerRef.current = setTimeout(tick, 900);
+        }, 2600);
       }
     };
-    timerRef.current = setTimeout(tick, 900);
+    timerRef.current = setTimeout(tick, 1000);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [active]);
 
-  const elapsed   = year - 2020;
-  const kesPwr    = Math.pow(0.93, elapsed);       // 1.00 → 0.60
-  const satsMult  = Math.pow(1.30, elapsed);       // 1.00 → 3.71
-  const chai      = Math.max(1, Math.floor(10 * kesPwr)); // cups at 10 bob each
-  const kesScale  = kesPwr;                         // 1.0 → 0.60
-  const satsScale = 1 + 0.45 * (elapsed / 7);      // 1.0 → 1.45
-  const kesOp     = 0.35 + 0.65 * kesPwr;
-  const satsOp    = 0.45 + 0.55 * (elapsed / 7);
-  const glowPct   = elapsed / 7;
-  const glowA     = (0.12 + 0.38 * glowPct).toFixed(2);
-  const glowR     = Math.round(18 + 44 * glowPct);
-  const glowG     = (0.08 + 0.22 * glowPct).toFixed(2);
+  const n = year - 2015; // 0 → 11
+
+  // KES: chai price doubles (10 → 20 KES per cup), so 100 bob buys 10 → 5 cups
+  const kesPrice = Math.round(10 + 10 * (n / 11));
+  const kesCups  = Math.floor(100 / kesPrice);       // 10 → 5
+
+  // BTC: sats per cup halves (20 → 5 sats) as sats appreciate, so 100 sats buys 5 → 20 cups
+  const btcPrice = Math.round(20 - 15 * (n / 11));
+  const btcCups  = Math.floor(100 / btcPrice);       // 5 → 20
+
+  const MAX_KES = 10;
+  const MAX_BTC = 20;
 
   return (
-    <div ref={wrapRef} className="kmap-wrap reveal d1">
-      <svg viewBox="0 0 200 200" className="kmap-svg" aria-hidden="true">
-        <path d={KENYA_PATH} className="kmap-country" />
-      </svg>
-      <div className="kmap-inner">
-        <div className="kmap-year">{year}</div>
-        <div className="kmap-coins">
-          <div
-            className="kmap-coin kmap-kes"
-            style={{ transform: `scale(${kesScale.toFixed(3)})`, opacity: kesOp }}
-          >
-            <span className="kmap-sym">KES</span>
-            <span className="kmap-val">{Math.round(100 * kesPwr)}</span>
-            <span className="kmap-unit">bob</span>
+    <div ref={wrapRef} className="mug-compare reveal d1">
+      {/* Shared year badge */}
+      <div className="mug-year-row">
+        <span className="mug-year-num">{year}</span>
+      </div>
+
+      <div className="mug-panels">
+        {/* ── KES Panel ──────────────────────────────── */}
+        <div className="mug-panel">
+          <div className="mug-panel-tag mug-tag-kes">KES 100</div>
+
+          {/* Source mug */}
+          <div className="mug-src">
+            <MugSVG size="lg" rgb="185,72,50" stroke="#C84832" label="KES" sub="100 bob" />
           </div>
-          <div
-            className="kmap-coin kmap-sat"
-            style={{
-              transform: `scale(${satsScale.toFixed(3)})`,
-              opacity: satsOp,
-              boxShadow: `0 0 ${glowR}px rgba(224,168,0,${glowA}),0 0 ${Math.round(glowR * 0.6)}px rgba(17,166,91,${glowG})`,
-            }}
-          >
-            <span className="kmap-sym">sats</span>
-            <span className="kmap-val">{elapsed === 0 ? "1×" : `${satsMult.toFixed(1)}×`}</span>
-            <span className="kmap-unit">value</span>
+
+          {/* Animated drips */}
+          <div className="mug-drips" aria-hidden="true">
+            <svg width="14" height="38" overflow="visible">
+              <circle className="mug-drop md1" cx="7" cy="4" r="2.4" fill="rgba(200,72,50,.75)" />
+              <circle className="mug-drop md2" cx="7" cy="4" r="2.4" fill="rgba(200,72,50,.6)"  />
+              <circle className="mug-drop md3" cx="7" cy="4" r="2.4" fill="rgba(200,72,50,.45)" />
+            </svg>
           </div>
+
+          {/* Cup grid — ghost cups show purchasing power lost */}
+          <div className="mug-cups-grid">
+            {Array.from({ length: MAX_KES }).map((_, i) => (
+              <div key={i} className="mug-cup-slot" style={{
+                opacity: i < kesCups ? 1 : 0.1,
+                transform: i < kesCups ? "scale(1)" : "scale(0.72)",
+                transition: `opacity .55s ${i * 0.04}s ease, transform .55s ${i * 0.04}s ease`,
+              }}>
+                <MugSVG size="xs" rgb="185,72,50" stroke="#C84832" label={`${kesPrice}`} sub="bob" steam={i < kesCups} />
+              </div>
+            ))}
+          </div>
+
+          <div className="mug-cap mug-cap-kes">{kesCups} cups · KES {kesPrice} each</div>
         </div>
-        <div className="kmap-labels">
-          <div className="kmap-lbl kmap-lbl-kes">
-            <b>{chai} {chai === 1 ? "cup" : "cups"} of chai</b>
-            <span>100 bob bought 10 in 2020</span>
+
+        {/* ── BTC Panel ──────────────────────────────── */}
+        <div className="mug-panel">
+          <div className="mug-panel-tag mug-tag-btc">100 sats</div>
+
+          {/* Source mug */}
+          <div className="mug-src">
+            <MugSVG size="lg" rgb="212,160,32" stroke="#D4A020" label="sats" sub="100 sats" />
           </div>
-          <div className="kmap-lbl kmap-lbl-sat">
-            <b>{elapsed === 0 ? "holding steady" : `${satsMult.toFixed(1)}× more valuable`}</b>
-            <span>same 100 sats from 2020</span>
+
+          {/* Animated drips */}
+          <div className="mug-drips" aria-hidden="true">
+            <svg width="14" height="38" overflow="visible">
+              <circle className="mug-drop md1" cx="7" cy="4" r="2.4" fill="rgba(212,160,32,.75)" />
+              <circle className="mug-drop md2" cx="7" cy="4" r="2.4" fill="rgba(212,160,32,.6)"  />
+              <circle className="mug-drop md3" cx="7" cy="4" r="2.4" fill="rgba(212,160,32,.45)" />
+            </svg>
           </div>
+
+          {/* Cup grid — new cups animate in as sats grow */}
+          <div className="mug-cups-grid">
+            {Array.from({ length: MAX_BTC }).map((_, i) => (
+              <div key={i} className="mug-cup-slot" style={{
+                opacity: i < btcCups ? 1 : 0,
+                transform: i < btcCups ? "scale(1)" : "scale(0.4)",
+                transition: `opacity .45s ${Math.min(i, 8) * 0.04}s ease, transform .45s ${Math.min(i, 8) * 0.04}s cubic-bezier(.2,1.4,.4,1)`,
+              }}>
+                <MugSVG size="xs" rgb="212,160,32" stroke="#D4A020" label={`${btcPrice}`} sub="sats" steam={i < btcCups} />
+              </div>
+            ))}
+          </div>
+
+          <div className="mug-cap mug-cap-btc">{btcCups} cups · {btcPrice} sats each</div>
         </div>
       </div>
     </div>
@@ -132,9 +223,9 @@ function Inflation() {
             Your savings <span className="grow">shouldn&apos;t.</span>
           </h2>
           <p className="lead">
-            100 bob in M-Pesa in 2020 barely buys half what it did. Park the same
-            amount in YeboBank and it earns interest in Bitcoin — designed to hold
-            value across decades, not melt away.
+            A cup of chai that cost KES 10 in 2015 costs KES 20 today — your 100 bob
+            buys half as many cups. The same 100 sats from 2015? Now pours four
+            times more. Watch it happen.
           </p>
           <div style={{ marginTop: 28 }}>
             <Button variant="gold" onClick={() => router.push("/register")}>
@@ -142,7 +233,7 @@ function Inflation() {
             </Button>
           </div>
         </div>
-        <KenyaCoinMap />
+        <CoffeeMugComparison />
       </div>
     </section>
   );

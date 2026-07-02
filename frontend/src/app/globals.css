@@ -226,29 +226,46 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 .lead{font-size:18px;line-height:1.65;color:rgba(255,255,255,.78);max-width:46ch;margin-top:20px}
 .h2 .accent{color:var(--gold-soft)}.h2 .grow{color:var(--lime)}
 
-/* inflation — kenya coin map */
-.infl{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+/* inflation — coffee mug comparison */
+.infl{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
 @media(max-width:880px){.infl{grid-template-columns:1fr;gap:40px}}
-.kmap-wrap{position:relative;width:100%;height:360px}
-.kmap-svg{position:absolute;inset:0;width:100%;height:100%}
-.kmap-country{fill:rgba(17,166,91,.07);stroke:rgba(17,166,91,.24);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
-.kmap-inner{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding:14px 8px 12px}
-.kmap-year{text-align:center;font-family:var(--font-mono);font-size:56px;font-weight:700;color:rgba(255,255,255,.06);letter-spacing:-.04em;line-height:1;flex:0 0 auto;transition:color .4s}
-.kmap-coins{flex:1;display:flex;align-items:center;justify-content:space-around;padding:0 8%}
-.kmap-coin{width:110px;height:110px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s ease,box-shadow .6s ease}
-.kmap-kes{background:rgba(185,72,50,.14);border:1.5px solid rgba(185,72,50,.38)}
-.kmap-sat{background:rgba(224,168,0,.09);border:1.5px solid rgba(224,168,0,.42)}
-.kmap-sym{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.45)}
-.kmap-val{font-family:var(--font-display);font-weight:700;font-size:24px;line-height:1;color:#fff}
-.kmap-kes .kmap-val{color:rgba(230,110,90,.9)}
-.kmap-sat .kmap-val{color:var(--gold-soft)}
-.kmap-unit{font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.38);letter-spacing:.04em}
-.kmap-labels{display:flex;justify-content:space-around;padding:0 4%}
-.kmap-lbl{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
-.kmap-lbl b{font-family:var(--font-mono);font-weight:700;font-size:12px;transition:color .6s}
-.kmap-lbl-kes b{color:rgba(220,100,80,.85)}
-.kmap-lbl-sat b{color:var(--gold-soft)}
-.kmap-lbl span{color:rgba(255,255,255,.35);font-family:var(--font-mono);font-size:11px}
+
+/* mug comparison wrapper */
+.mug-compare{display:flex;flex-direction:column;gap:10px}
+.mug-year-row{text-align:center}
+.mug-year-num{font-family:var(--font-mono);font-size:42px;font-weight:700;color:rgba(255,255,255,.08);letter-spacing:-.04em;transition:color .3s}
+.mug-panels{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mug-panel{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px}
+.mug-panel-tag{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:99px}
+.mug-tag-kes{color:rgba(220,90,70,.9);background:rgba(185,72,50,.14);border:1px solid rgba(185,72,50,.25)}
+.mug-tag-btc{color:rgba(224,168,0,.95);background:rgba(212,160,32,.12);border:1px solid rgba(212,160,32,.28)}
+.mug-src{display:flex;justify-content:center}
+.mug-drips{height:38px;display:flex;justify-content:center;align-items:flex-start}
+.mug-cups-grid{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-height:90px;align-content:flex-start;padding:2px 0;width:100%}
+.mug-cup-slot{display:flex;justify-content:center;align-items:flex-start}
+.mug-cap{font-family:var(--font-mono);font-size:10px;text-align:center;letter-spacing:.02em;min-height:14px;transition:color .4s}
+.mug-cap-kes{color:rgba(210,90,70,.75)}
+.mug-cap-btc{color:rgba(212,160,32,.75)}
+
+/* steam animation — SVG path elements */
+@keyframes mug-steam{
+  0%{opacity:.65;transform:translateY(0) scaleX(1)}
+  50%{opacity:.3;transform:translateY(-8px) scaleX(1.12)}
+  100%{opacity:0;transform:translateY(-18px) scaleX(.85)}
+}
+.mug-st{animation:mug-steam 2.2s ease-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+.mug-st2{animation:mug-steam 2.2s ease-out .72s infinite;transform-box:fill-box;transform-origin:50% 100%}
+.mug-st3{animation:mug-steam 2.2s ease-out 1.4s infinite;transform-box:fill-box;transform-origin:50% 100%}
+
+/* drip animation — SVG circle elements */
+@keyframes mug-drip{
+  0%{transform:translateY(0);opacity:.8}
+  100%{transform:translateY(30px);opacity:0}
+}
+.mug-drop{transform-box:fill-box;transform-origin:center top}
+.md1{animation:mug-drip .85s ease-in infinite}
+.md2{animation:mug-drip .85s ease-in .28s infinite}
+.md3{animation:mug-drip .85s ease-in .56s infinite}
 
 /* feature split */
 .split{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
