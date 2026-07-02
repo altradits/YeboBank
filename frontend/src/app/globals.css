@@ -227,99 +227,138 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 .h2 .accent{color:var(--gold-soft)}.h2 .grow{color:var(--lime)}
 
 /* ── Inflation section ─────────────────────────── */
-.infl-layout{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;width:100%}
-.infl-copy{display:flex;flex-direction:column;gap:0}
-.infl-chip{display:inline-flex;align-self:flex-start;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 14px;border-radius:99px;background:rgba(212,160,32,.1);border:1px solid rgba(212,160,32,.3);color:rgba(224,168,0,.9);margin-bottom:20px}
-.infl-copy .h2{text-align:left}
-.infl-copy .lead{text-align:left;margin-top:16px}
-.infl-copy .infl-cta{align-items:flex-start;margin-top:28px}
-.infl-visual{}
 
-/* ── Orbit wrap ────────────────────────────────── */
-.io-wrap{display:flex;flex-direction:column;gap:18px}
+/* Year tab nav — spans full section width */
+.io-year-nav{display:flex;justify-content:space-between;align-items:flex-end;width:100%;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:4px;flex:none}
+.io-yr-tab{background:none;border:none;cursor:pointer;font-family:var(--font-mono);font-size:12px;font-weight:600;letter-spacing:.02em;color:rgba(255,255,255,.18);padding:8px 0 10px;position:relative;transition:color .22s;line-height:1;flex:1;text-align:center}
+.io-yr-tab::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%) scaleX(0);width:18px;height:2px;background:var(--gold-soft);border-radius:99px;transition:transform .24s ease}
+.io-yr-tab.active{color:var(--gold-soft);animation:io-tab-press .22s ease}
+.io-yr-tab.active::after{transform:translateX(-50%) scaleX(1)}
+.io-yr-tab:hover:not(.active){color:rgba(255,255,255,.45)}
+@keyframes io-tab-press{0%{transform:scale(1)}35%{transform:scale(.82)}100%{transform:scale(1)}}
 
-/* Year progress bar */
-.io-progress{display:flex;align-items:center;gap:10px}
-.io-prog-yr{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.3);min-width:32px;text-align:center;flex:none}
-.io-prog-track{position:relative;flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:99px}
-.io-prog-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,rgba(212,160,32,.3),rgba(212,160,32,.9));border-radius:99px;transition:width .85s ease}
-.io-prog-pin{position:absolute;top:50%;transform:translate(-50%,-50%);transition:left .85s ease;pointer-events:none}
-.io-pin-yr{display:block;font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--gold-soft);text-align:center;line-height:1;margin-top:-22px;white-space:nowrap;text-shadow:0 0 12px rgba(212,160,32,.5)}
+/* Inflation section — one full viewport, no scroll on desktop */
+#inflation{padding:0;align-items:stretch}
+#inflation .wrap{display:flex;flex-direction:column;width:100%;height:100dvh;max-width:1600px;padding:80px 40px 24px;box-sizing:border-box}
 
-/* 3-D Orbit viewport */
-.io-viewport{width:100%;height:380px;display:flex;justify-content:center;align-items:center;perspective:1400px}
-.io-system{position:relative;width:340px;height:340px;display:flex;justify-content:center;align-items:center;transform-style:preserve-3d;transform:rotateX(10deg)}
+/* Two-column layout: orbit left fills height, content right spread top-to-bottom */
+.infl-main{flex:1;min-height:0;display:grid;grid-template-columns:1fr 520px;gap:56px;align-items:stretch}
+.infl-orbit-panel{display:flex;align-items:center;justify-content:center;overflow:visible;min-height:0}
+.infl-side{display:flex;flex-direction:column;justify-content:space-between;gap:0;padding:8px 0 4px}
+.infl-side .h2{text-align:left;font-size:clamp(32px,2.8vw,48px)}
+.infl-side .lead{text-align:left;margin-top:12px;max-width:40ch;font-size:16px;line-height:1.65;color:rgba(255,255,255,.72)}
+.infl-cta{display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.infl-cta>button{width:100%;justify-content:center;padding:18px 24px;font-size:15px}
 
-/* Central stat block */
-.io-center{position:absolute;width:152px;height:174px;transform:translateZ(-170px);transform-style:preserve-3d}
-.io-center-body{width:100%;height:100%;background:linear-gradient(145deg,rgba(20,20,28,.97),rgba(10,10,16,.99));border:1px solid rgba(255,255,255,.1);border-radius:20px;box-shadow:0 0 50px rgba(212,160,32,.1),0 24px 48px rgba(0,0,0,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:14px;backdrop-filter:blur(14px)}
-.io-c-year{font-family:var(--font-mono);font-size:30px;font-weight:700;color:#fff;letter-spacing:-.03em;line-height:1;transition:all .5s}
-.io-c-hr{width:80%;height:1px;background:rgba(255,255,255,.1)}
-.io-c-row{display:flex;align-items:center;justify-content:space-between;width:100%;font-family:var(--font-mono);font-size:9px;gap:4px}
-.io-c-val{font-weight:700;font-size:10.5px;transition:all .6s;white-space:nowrap}
-.io-c-kes{color:rgba(215,85,65,.75)}
-.io-c-kes .io-c-val{color:rgba(225,95,70,.95)}
-.io-c-sat{color:rgba(200,148,18,.75)}
-.io-c-sat .io-c-val{color:var(--gold-soft)}
-.io-c-rate{font-family:var(--font-mono);font-size:8px;color:rgba(255,255,255,.22);letter-spacing:.04em;text-align:center;transition:all .6s}
+/* 3-D Orbit viewport — fills its grid column completely */
+.io-viewport{width:100%;height:100%;min-height:500px;display:flex;justify-content:center;align-items:center;perspective:2200px;overflow:visible}
+.io-system{position:relative;width:740px;height:740px;display:flex;justify-content:center;align-items:center;transform-style:preserve-3d;transform:rotateX(24deg);animation:io-system-drift 8s ease-in-out infinite alternate}
 
-/* Orbiting cup track — anchored to same Z as center */
-.io-track{position:absolute;width:72px;height:72px;transform-style:preserve-3d;transform-origin:center center -170px;animation:io-orbit 12s linear infinite}
+/* Central stat card */
+.io-center{position:absolute;width:300px;height:clamp(460px,calc(100dvh - 310px),680px);transform:translateZ(-348px);transform-style:preserve-3d}
+.io-center-body{width:100%;height:100%;background:linear-gradient(165deg,rgba(18,18,28,.99),rgba(6,6,12,.99));border:1px solid rgba(255,255,255,.13);border-radius:36px;box-shadow:0 0 120px rgba(212,160,32,.2),0 0 0 1px rgba(212,160,32,.06),0 48px 96px rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:0;padding:40px 32px;backdrop-filter:blur(28px)}
+.io-c-year{font-family:var(--font-mono);font-size:72px;font-weight:700;color:#fff;letter-spacing:-.05em;line-height:1;transition:all .45s;text-shadow:0 0 40px rgba(212,160,32,.25)}
+.io-c-hr{width:85%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+.io-c-row{display:flex;align-items:center;justify-content:space-between;width:100%;font-family:var(--font-mono);font-size:13px;gap:8px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.io-c-row:last-of-type{border-bottom:none}
+.io-c-val{font-weight:700;font-size:20px;transition:all .55s;white-space:nowrap}
+.io-c-kes{color:rgba(215,85,65,.7)}
+.io-c-kes .io-c-val{color:rgba(230,100,78,.98);font-size:28px}
+.io-c-sat{color:rgba(200,148,18,.7)}
+.io-c-sat .io-c-val{color:var(--gold-soft);font-size:28px}
+.io-c-rate{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.2);letter-spacing:.07em;text-align:center;transition:all .6s;padding-top:4px}
 
-/* The cup card itself counter-rotates to stay face-forward */
-.io-cup{width:100%;height:100%;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;box-shadow:0 8px 24px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.18);animation:io-counter 12s linear infinite;transition:opacity .75s ease}
-.io-cup-kes{background:linear-gradient(135deg,rgba(160,52,34,.92),rgba(110,28,16,.96))}
-.io-cup-sat{background:linear-gradient(135deg,rgba(155,115,12,.92),rgba(196,148,16,.96))}
-.io-cup-emoji{font-size:20px;line-height:1}
-.io-cup-label{font-family:var(--font-mono);font-size:8px;font-weight:700;color:rgba(255,255,255,.92);letter-spacing:.02em;text-align:center;line-height:1.3;padding:0 3px;transition:all .6s}
+/* Orbiting cups */
+.io-track{position:absolute;width:136px;height:136px;transform-style:preserve-3d;transform-origin:center center -348px;animation:io-orbit 9s linear infinite}
+.io-cup{width:100%;height:100%;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 20px 48px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.24);animation:io-counter 9s linear infinite;transition:opacity .75s ease}
+.io-cup-kes{background:linear-gradient(135deg,rgba(160,52,34,.94),rgba(110,28,16,.97))}
+.io-cup-sat{background:linear-gradient(135deg,rgba(148,110,10,.94),rgba(196,148,16,.97))}
+.io-cup-emoji{font-size:34px;line-height:1}
+.io-cup-price{font-family:var(--font-mono);font-size:13px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.02em;text-align:center;line-height:1.2;padding:0 6px;transition:all .5s}
+.io-cup-sub{font-family:var(--font-mono);font-size:8.5px;color:rgba(255,255,255,.42);letter-spacing:.08em;text-transform:uppercase}
 
-/* Keyframes */
 @keyframes io-orbit{0%{transform:rotateY(0deg)}100%{transform:rotateY(360deg)}}
 @keyframes io-counter{0%{transform:rotateY(0deg)}100%{transform:rotateY(-360deg)}}
+@keyframes io-system-drift{0%{transform:rotateX(20deg) rotateZ(-1.5deg)}100%{transform:rotateX(28deg) rotateZ(1.5deg)}}
 
-/* Below orbit: live KES vs Sats comparison */
-.io-compare{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;padding:20px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;gap:0}
-.io-cmp-side{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:0 8px}
-.io-cmp-label{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.28)}
-.io-cmp-cups{font-family:var(--font-mono);font-size:38px;font-weight:700;letter-spacing:-.04em;line-height:1;transition:all .6s}
+/* Compare panel — right column */
+.io-compare{display:grid;grid-template-columns:1fr 42px 1fr;align-items:center;padding:22px 18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:22px;gap:0}
+.io-cmp-side{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;padding:0 10px}
+.io-cmp-label{font-family:var(--font-mono);font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.28)}
+.io-cmp-cups{font-family:var(--font-mono);font-size:52px;font-weight:700;letter-spacing:-.04em;line-height:1;transition:all .6s}
 .io-cups-kes{color:rgba(220,90,70,.9)}
 .io-cups-sat{color:var(--gold-soft)}
-.io-cmp-sub{font-family:var(--font-mono);font-size:9.5px;color:rgba(255,255,255,.32);letter-spacing:.02em;transition:all .5s}
-.io-cmp-badge{font-family:var(--font-mono);font-size:9px;padding:3px 8px;border-radius:8px;margin-top:2px;transition:all .5s}
+.io-cmp-sub{font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.32);letter-spacing:.02em;transition:all .5s}
+.io-cmp-badge{font-family:var(--font-mono);font-size:9px;padding:4px 10px;border-radius:8px;margin-top:2px;transition:all .5s}
 .io-badge-kes{color:rgba(210,80,60,.65);background:rgba(185,72,50,.1)}
 .io-badge-sat{color:rgba(212,160,32,.65);background:rgba(212,160,32,.08)}
-.io-cmp-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.io-cmp-mid{display:flex;align-items:center;justify-content:center}
 .io-cmp-vs{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.14);letter-spacing:.1em}
 
-/* Stats strip — full width below the two-column grid */
-.infl-stats{display:flex;align-items:stretch;justify-content:center;margin-top:40px;padding:24px 20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;width:100%}
-.infl-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex:1;text-align:center;padding:0 16px}
-.infl-stat-num{font-family:var(--font-mono);font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1}
-.infl-stat-label{font-family:var(--font-mono);font-size:9.5px;color:rgba(255,255,255,.42);letter-spacing:.03em;line-height:1.4;max-width:14ch}
+/* Stats — right column */
+.infl-stats{display:flex;align-items:stretch;justify-content:center;padding:22px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px}
+.infl-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex:1;text-align:center;padding:0 12px}
+.infl-stat-num{font-family:var(--font-mono);font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.infl-stat-label{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.42);letter-spacing:.03em;line-height:1.4;max-width:12ch}
+.infl-stat-num{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.infl-stat-label{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.42);letter-spacing:.03em;line-height:1.4;max-width:12ch}
 .infl-stat-div{width:1px;background:rgba(255,255,255,.1);align-self:stretch;flex:none}
 
-/* CTA (sits inside .infl-copy so inherits left-align) */
-.infl-cta{display:flex;flex-direction:column;gap:8px}
-.infl-rate-note{font-family:var(--font-mono);font-size:10.5px;color:rgba(212,160,32,.5);letter-spacing:.05em}
-
+@media(max-width:1400px){
+  #inflation .wrap{padding:80px 36px 20px}
+  .infl-main{grid-template-columns:1fr 460px;gap:44px}
+  .io-system{width:620px;height:620px}
+  .io-center{width:252px;height:580px;transform:translateZ(-295px)}
+  .io-track{transform-origin:center center -295px;width:116px;height:116px}
+  .io-c-year{font-size:56px}
+  .io-c-val{font-size:22px}
+}
+@media(max-width:1100px){
+  #inflation .wrap{padding:80px 28px 16px}
+  .infl-main{grid-template-columns:1fr 400px;gap:36px}
+  .io-system{width:520px;height:520px}
+  .io-center{width:216px;height:490px;transform:translateZ(-248px)}
+  .io-track{transform-origin:center center -248px;width:100px;height:100px}
+  .io-c-year{font-size:46px}
+  .io-c-val{font-size:19px}
+  .io-cup-emoji{font-size:26px}
+  .io-cup-price{font-size:11px}
+}
 @media(max-width:880px){
-  .infl-layout{grid-template-columns:1fr;gap:40px}
-  .infl-chip{align-self:center}
-  .infl-copy .h2,.infl-copy .lead{text-align:center}
-  .infl-copy .infl-cta{align-items:center}
+  #inflation{align-items:center}
+  #inflation .wrap{height:auto;padding:40px 24px}
+  .infl-main{flex:none;grid-template-columns:1fr;gap:24px;align-items:center}
+  .infl-side{justify-content:flex-start;gap:20px;align-items:center;max-width:520px;margin:0 auto;width:100%}
+  .infl-side .h2{text-align:center}
+  .infl-side .lead{text-align:center;margin:8px auto 0}
+  .io-viewport{height:440px}
+  .io-system{width:400px;height:400px}
+  .io-center{width:168px;height:360px;transform:translateZ(-190px)}
+  .io-track{transform-origin:center center -190px;width:80px;height:80px}
+  .io-c-year{font-size:36px}
+  .io-c-val{font-size:17px}
+  .infl-stats{width:100%}
+  .io-cmp-cups{font-size:38px}
 }
 @media(max-width:640px){
-  .io-viewport{height:300px}
-  .io-system{width:270px;height:270px}
-  .io-center{width:126px;height:148px;transform:translateZ(-135px)}
-  .io-track{transform-origin:center center -135px}
-  .io-c-year{font-size:24px}
-  .io-cmp-cups{font-size:28px}
-  .infl-stats{flex-direction:column;gap:0;margin-top:24px}
-  .infl-stat{padding:14px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+  #inflation .wrap{padding:0 20px}
+  .io-year-nav{overflow-x:auto;justify-content:flex-start;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .io-year-nav::-webkit-scrollbar{display:none}
+  .io-yr-tab{flex:none;padding:6px 10px 10px;font-size:10px}
+  .io-viewport{height:340px}
+  .io-system{width:300px;height:300px}
+  .io-center{width:148px;height:290px;transform:translateZ(-148px)}
+  .io-track{transform-origin:center center -148px;width:76px;height:76px}
+  .io-c-year{font-size:28px}
+  .io-c-row{font-size:10px}
+  .io-cup-emoji{font-size:22px}
+  .io-cup-price{font-size:9.5px}
+  .io-cmp-cups{font-size:32px}
+  .infl-stats{flex-direction:column;gap:0;padding:12px}
+  .infl-stat{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}
   .infl-stat:last-child{border-bottom:none}
   .infl-stat-div{display:none}
-  .infl-stat-num{font-size:22px}
+  .infl-stat-num{font-size:18px}
 }
 
 /* steam animation — SVG path elements */

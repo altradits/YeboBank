@@ -64,6 +64,7 @@ export default function SiteNav() {
           <span className="mk">Y</span> YeboBank
         </Link>
         <div className="navlinks">
+          <a href="#inflation">Inflation</a>
           <a href="#save">Savings</a>
           <a href="#mpesa">M-Pesa</a>
           <a href="#chama">Chamas</a>

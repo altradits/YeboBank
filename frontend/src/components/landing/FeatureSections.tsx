@@ -110,37 +110,40 @@ function fmtSats(n: number): string {
   return n >= 1_000 ? `${Math.round(n / 1_000)}k` : String(Math.round(n));
 }
 
-// Six cups orbit: alternating KES (red) and Sats (gold), evenly spaced
+const YEARS = [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026] as const;
+
+// Six cups orbit: alternating KES (red) and Sats (gold) — evenly spaced over 9s period
 const ORBIT_CUPS = [
-  { type: "kes" as const, delay: "0s",    vy: -18 },
-  { type: "sat" as const, delay: "-2s",   vy:  14 },
-  { type: "kes" as const, delay: "-4s",   vy:   5 },
-  { type: "sat" as const, delay: "-6s",   vy: -10 },
-  { type: "kes" as const, delay: "-8s",   vy:  20 },
-  { type: "sat" as const, delay: "-10s",  vy:   8 },
+  { type: "kes" as const, delay: "0s",    vy: -38 },
+  { type: "sat" as const, delay: "-1.5s", vy:  32 },
+  { type: "kes" as const, delay: "-3s",   vy:  -8 },
+  { type: "sat" as const, delay: "-4.5s", vy: -28 },
+  { type: "kes" as const, delay: "-6s",   vy:  42 },
+  { type: "sat" as const, delay: "-7.5s", vy:  16 },
 ] as const;
 
-function InflationOrbit() {
-  const wrapRef  = useRef<HTMLDivElement>(null);
+function Inflation() {
+  const router   = useRouter();
+  const secRef   = useRef<HTMLElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [year, setYear]     = useState(2015);
   const [active, setActive] = useState(false);
 
   useEffect(() => {
-    const el = wrapRef.current;
+    const el = secRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) { setActive(true); io.disconnect(); } },
-      { threshold: 0.2 }
+      { threshold: 0.1 }
     );
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!active) return;
-    let y = 2015;
-    setYear(2015);
+  const runFrom = (startY: number) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    let y = startY;
+    setYear(y);
     const tick = () => {
       if (y < 2026) {
         y++;
@@ -154,165 +157,145 @@ function InflationOrbit() {
         }, 3000);
       }
     };
-    timerRef.current = setTimeout(tick, 1000);
+    timerRef.current = setTimeout(tick, 900);
+  };
+
+  useEffect(() => {
+    if (!active) return;
+    runFrom(2015);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [active]);
+  }, [active]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const n          = year - 2015;
-  const progress   = (n / 11) * 100;
-
-  // KES: chai price rises 10 → 20 KES over 11 years
   const chaiKES    = Math.round(10 + 10 * (n / 11));
   const kesCups    = Math.floor(100 / chaiKES);
-
-  // Sats: KES-value approach (user-verified)
-  // Step 1: 333,334 sats × current BTC/KES rate → KES value
-  // Step 2: KES value ÷ chai price → cups
   const satKes     = (BTC_KES[year] ?? BTC_KES[2026]) / 100_000_000;
-  const kesValue   = TOTAL_SATS * satKes;               // KES value of our sats this year
-  const satCups    = Math.floor(kesValue / chaiKES);    // cups those KES buy at current price
-  const satsPerCup = Math.round(chaiKES / satKes);      // display: sats cost of 1 cup
-
-  // Visual weight: KES cups fade, Sat cups grow
-  const kesAlpha = Math.max(0.3, kesCups / 10);
-  const satAlpha = Math.min(1, 0.35 + (Math.min(satCups, 1332) / 1332) * 0.65);
+  const kesValue   = TOTAL_SATS * satKes;
+  const satCups    = Math.floor(kesValue / chaiKES);
+  const satsPerCup = Math.round(chaiKES / satKes);
+  const kesAlpha   = Math.max(0.3, kesCups / 10);
+  const satAlpha   = Math.min(1, 0.35 + (Math.min(satCups, 1332) / 1332) * 0.65);
 
   return (
-    <div ref={wrapRef} className="io-wrap reveal d1">
-
-      {/* Roadmap progress bar — 2015 → year → 2026 */}
-      <div className="io-progress">
-        <span className="io-prog-yr">2015</span>
-        <div className="io-prog-track">
-          <div className="io-prog-fill" style={{ width: `${progress}%` }} />
-          <div className="io-prog-pin" style={{ left: `${progress}%` }}>
-            <span className="io-pin-yr">{year}</span>
-          </div>
-        </div>
-        <span className="io-prog-yr">2026</span>
-      </div>
-
-      {/* 3-D Orbit — cups of tea orbit around the year/rate dial */}
-      <div className="io-viewport">
-        <div className="io-system">
-
-          {/* Central stat block — shows live rate + cup counts */}
-          <div className="io-center">
-            <div className="io-center-body">
-              <div className="io-c-year">{year}</div>
-              <div className="io-c-hr" />
-              <div className="io-c-row io-c-kes">
-                <span>KES 100</span>
-                <span className="io-c-val">{kesCups} cups</span>
-              </div>
-              <div className="io-c-row io-c-sat">
-                <span>333k sats</span>
-                <span className="io-c-val">{fmtN(satCups)}</span>
-              </div>
-              <div className="io-c-rate">1 cup = {fmtSats(satsPerCup)} sats</div>
-            </div>
-          </div>
-
-          {/* Six cups orbiting — alternating KES (red) and Sat (gold) */}
-          {ORBIT_CUPS.map((cup, i) => (
-            <div key={i} className="io-track" style={{ animationDelay: cup.delay }}>
-              <div
-                className={`io-cup io-cup-${cup.type}`}
-                style={{
-                  marginTop: cup.vy,
-                  animationDelay: cup.delay,
-                  opacity: cup.type === "kes" ? kesAlpha : satAlpha,
-                }}
-              >
-                <span className="io-cup-emoji">☕</span>
-                <span className="io-cup-label">
-                  {cup.type === "kes" ? `KES ${chaiKES}` : `${fmtSats(satsPerCup)} sats`}
-                </span>
-              </div>
-            </div>
-          ))}
-
-        </div>
-      </div>
-
-      {/* Below orbit: live purchasing power comparison */}
-      <div className="io-compare">
-        <div className="io-cmp-side">
-          <div className="io-cmp-label">KES 100 buys</div>
-          <div className="io-cmp-cups io-cups-kes">{kesCups}</div>
-          <div className="io-cmp-sub">cups · KES {chaiKES} each</div>
-          <div className={`io-cmp-badge io-badge-kes`}>
-            {n === 0 ? "baseline" : `−${Math.round((1 - kesCups / 10) * 100)}% buying power`}
-          </div>
-        </div>
-        <div className="io-cmp-mid">
-          <div className="io-cmp-vs">vs</div>
-        </div>
-        <div className="io-cmp-side">
-          <div className="io-cmp-label">333,334 sats buys</div>
-          <div className="io-cmp-cups io-cups-sat">{fmtN(satCups)}</div>
-          <div className="io-cmp-sub">cups · {fmtSats(satsPerCup)} sats each</div>
-          <div className="io-cmp-badge io-badge-sat">= KES {fmtN(Math.round(kesValue))}</div>
-        </div>
-      </div>
-
-    </div>
-  );
-}
-
-function Inflation() {
-  const router = useRouter();
-  return (
-    <section className="sec" id="inflation">
+    <section className="sec" id="inflation" ref={secRef}>
       <div className="wrap">
 
-        {/* Two-column: copy left, orbit right */}
-        <div className="infl-layout">
+        {/* Year tab nav — full width */}
+        <div className="io-year-nav reveal">
+          {YEARS.map(y => (
+            <button
+              key={y}
+              className={`io-yr-tab${year === y ? " active" : ""}`}
+              onClick={() => runFrom(y)}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
 
-          <div className="infl-copy reveal">
-            <div className="infl-chip">Capital Protection</div>
-            <h2 className="h2">
-              KES loses buying power.<br />
-              <span className="gold">Sats hold it.</span>
-            </h2>
-            <p className="lead">
-              KES 100 in cash in 2015 still reads KES 100 — but buys only 5 cups
-              of chai today, down from 10. The same KES 100 converted to{" "}
-              <strong>333,334 sats</strong> at the 2015 rate is now worth{" "}
-              <strong className="gold">KES 26,645</strong> at today&apos;s rate of{" "}
-              <strong>1 KES = 12.51 sats</strong>. That&apos;s{" "}
-              <strong className="gold">1,332 cups</strong> — 266× more purchasing
-              power. Watch the orbit roll.
-            </p>
+        {/* Two-column: large orbit left, content right */}
+        <div className="infl-main">
+
+          {/* LEFT — 3-D orbit, fills available space */}
+          <div className="infl-orbit-panel reveal d1">
+            <div className="io-viewport">
+              <div className="io-system">
+
+                <div className="io-center">
+                  <div className="io-center-body">
+                    <div className="io-c-year">{year}</div>
+                    <div className="io-c-hr" />
+                    <div className="io-c-row io-c-kes">
+                      <span>KES 100</span>
+                      <span className="io-c-val">{kesCups} cups</span>
+                    </div>
+                    <div className="io-c-row io-c-sat">
+                      <span>333k sats</span>
+                      <span className="io-c-val">{fmtN(satCups)} cups</span>
+                    </div>
+                    <div className="io-c-rate">1 cup = {fmtSats(satsPerCup)} sats</div>
+                  </div>
+                </div>
+
+                {ORBIT_CUPS.map((cup, i) => (
+                  <div key={i} className="io-track" style={{ animationDelay: cup.delay }}>
+                    <div
+                      className={`io-cup io-cup-${cup.type}`}
+                      style={{
+                        marginTop: cup.vy,
+                        animationDelay: cup.delay,
+                        opacity: cup.type === "kes" ? kesAlpha : satAlpha,
+                      }}
+                    >
+                      <span className="io-cup-emoji">☕</span>
+                      <span className="io-cup-price">
+                        {cup.type === "kes" ? `KES ${chaiKES}` : `${fmtSats(satsPerCup)} sats`}
+                      </span>
+                      <span className="io-cup-sub">per cup</span>
+                    </div>
+                  </div>
+                ))}
+
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT — heading, compare, stats, CTA */}
+          <div className="infl-side reveal d2">
+
+            <div>
+              <h2 className="h2">
+                KES loses buying power.<br />
+                <span className="gold">Sats hold it.</span>
+              </h2>
+              <p className="lead">
+                KES 100 saved in sats in 2015 is worth{" "}
+                <strong className="gold">KES 26,645</strong> today —{" "}
+                <strong className="gold">1,332 cups</strong> instead of 5.
+              </p>
+            </div>
+
+            <div className="io-compare">
+              <div className="io-cmp-side">
+                <div className="io-cmp-label">KES 100 buys</div>
+                <div className="io-cmp-cups io-cups-kes">{kesCups}</div>
+                <div className="io-cmp-sub">cups · KES {chaiKES} each</div>
+                <div className="io-cmp-badge io-badge-kes">
+                  {n === 0 ? "baseline" : `−${Math.round((1 - kesCups / 10) * 100)}% power`}
+                </div>
+              </div>
+              <div className="io-cmp-mid"><div className="io-cmp-vs">vs</div></div>
+              <div className="io-cmp-side">
+                <div className="io-cmp-label">333,334 sats buys</div>
+                <div className="io-cmp-cups io-cups-sat">{fmtN(satCups)}</div>
+                <div className="io-cmp-sub">cups · {fmtSats(satsPerCup)} sats each</div>
+                <div className="io-cmp-badge io-badge-sat">= KES {fmtN(Math.round(kesValue))}</div>
+              </div>
+            </div>
+
+            <div className="infl-stats">
+              <div className="infl-stat">
+                <div className="infl-stat-num gold">266×</div>
+                <div className="infl-stat-label">more purchasing power</div>
+              </div>
+              <div className="infl-stat-div" />
+              <div className="infl-stat">
+                <div className="infl-stat-num gold">1,332</div>
+                <div className="infl-stat-label">cups from 333k sats</div>
+              </div>
+              <div className="infl-stat-div" />
+              <div className="infl-stat">
+                <div className="infl-stat-num gold">KES 26,645</div>
+                <div className="infl-stat-label">value of KES 100 in sats</div>
+              </div>
+            </div>
+
             <div className="infl-cta">
               <Button variant="gold" onClick={() => router.push("/register")}>
                 Protect my savings with sats <i className="ti ti-arrow-right" />
               </Button>
-              <p className="infl-rate-note">Today · 1 KES = 12.51 sats</p>
             </div>
-          </div>
 
-          <div className="infl-visual reveal d1">
-            <InflationOrbit />
-          </div>
-
-        </div>
-
-        {/* Stats strip — spans full width below the grid */}
-        <div className="infl-stats reveal d2">
-          <div className="infl-stat">
-            <div className="infl-stat-num gold">266×</div>
-            <div className="infl-stat-label">more purchasing power</div>
-          </div>
-          <div className="infl-stat-div" />
-          <div className="infl-stat">
-            <div className="infl-stat-num gold">1,332</div>
-            <div className="infl-stat-label">cups of chai from 333k sats</div>
-          </div>
-          <div className="infl-stat-div" />
-          <div className="infl-stat">
-            <div className="infl-stat-num gold">KES 26,645</div>
-            <div className="infl-stat-label">value of KES 100 saved in sats</div>
           </div>
         </div>
 
