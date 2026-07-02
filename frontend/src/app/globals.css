@@ -226,26 +226,101 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 .lead{font-size:18px;line-height:1.65;color:rgba(255,255,255,.78);max-width:46ch;margin-top:20px}
 .h2 .accent{color:var(--gold-soft)}.h2 .grow{color:var(--lime)}
 
-/* inflation — coffee mug comparison */
-.infl{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
-@media(max-width:880px){.infl{grid-template-columns:1fr;gap:40px}}
+/* ── Inflation section ─────────────────────────── */
+.infl-layout{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;width:100%}
+.infl-copy{display:flex;flex-direction:column;gap:0}
+.infl-chip{display:inline-flex;align-self:flex-start;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 14px;border-radius:99px;background:rgba(212,160,32,.1);border:1px solid rgba(212,160,32,.3);color:rgba(224,168,0,.9);margin-bottom:20px}
+.infl-copy .h2{text-align:left}
+.infl-copy .lead{text-align:left;margin-top:16px}
+.infl-copy .infl-cta{align-items:flex-start;margin-top:28px}
+.infl-visual{}
 
-/* mug comparison wrapper */
-.mug-compare{display:flex;flex-direction:column;gap:10px}
-.mug-year-row{text-align:center}
-.mug-year-num{font-family:var(--font-mono);font-size:42px;font-weight:700;color:rgba(255,255,255,.08);letter-spacing:-.04em;transition:color .3s}
-.mug-panels{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.mug-panel{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px}
-.mug-panel-tag{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:99px}
-.mug-tag-kes{color:rgba(220,90,70,.9);background:rgba(185,72,50,.14);border:1px solid rgba(185,72,50,.25)}
-.mug-tag-btc{color:rgba(224,168,0,.95);background:rgba(212,160,32,.12);border:1px solid rgba(212,160,32,.28)}
-.mug-src{display:flex;justify-content:center}
-.mug-drips{height:38px;display:flex;justify-content:center;align-items:flex-start}
-.mug-cups-grid{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-height:90px;align-content:flex-start;padding:2px 0;width:100%}
-.mug-cup-slot{display:flex;justify-content:center;align-items:flex-start}
-.mug-cap{font-family:var(--font-mono);font-size:10px;text-align:center;letter-spacing:.02em;min-height:14px;transition:color .4s}
-.mug-cap-kes{color:rgba(210,90,70,.75)}
-.mug-cap-btc{color:rgba(212,160,32,.75)}
+/* ── Orbit wrap ────────────────────────────────── */
+.io-wrap{display:flex;flex-direction:column;gap:18px}
+
+/* Year progress bar */
+.io-progress{display:flex;align-items:center;gap:10px}
+.io-prog-yr{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.3);min-width:32px;text-align:center;flex:none}
+.io-prog-track{position:relative;flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:99px}
+.io-prog-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,rgba(212,160,32,.3),rgba(212,160,32,.9));border-radius:99px;transition:width .85s ease}
+.io-prog-pin{position:absolute;top:50%;transform:translate(-50%,-50%);transition:left .85s ease;pointer-events:none}
+.io-pin-yr{display:block;font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--gold-soft);text-align:center;line-height:1;margin-top:-22px;white-space:nowrap;text-shadow:0 0 12px rgba(212,160,32,.5)}
+
+/* 3-D Orbit viewport */
+.io-viewport{width:100%;height:380px;display:flex;justify-content:center;align-items:center;perspective:1400px}
+.io-system{position:relative;width:340px;height:340px;display:flex;justify-content:center;align-items:center;transform-style:preserve-3d;transform:rotateX(10deg)}
+
+/* Central stat block */
+.io-center{position:absolute;width:152px;height:174px;transform:translateZ(-170px);transform-style:preserve-3d}
+.io-center-body{width:100%;height:100%;background:linear-gradient(145deg,rgba(20,20,28,.97),rgba(10,10,16,.99));border:1px solid rgba(255,255,255,.1);border-radius:20px;box-shadow:0 0 50px rgba(212,160,32,.1),0 24px 48px rgba(0,0,0,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:14px;backdrop-filter:blur(14px)}
+.io-c-year{font-family:var(--font-mono);font-size:30px;font-weight:700;color:#fff;letter-spacing:-.03em;line-height:1;transition:all .5s}
+.io-c-hr{width:80%;height:1px;background:rgba(255,255,255,.1)}
+.io-c-row{display:flex;align-items:center;justify-content:space-between;width:100%;font-family:var(--font-mono);font-size:9px;gap:4px}
+.io-c-val{font-weight:700;font-size:10.5px;transition:all .6s;white-space:nowrap}
+.io-c-kes{color:rgba(215,85,65,.75)}
+.io-c-kes .io-c-val{color:rgba(225,95,70,.95)}
+.io-c-sat{color:rgba(200,148,18,.75)}
+.io-c-sat .io-c-val{color:var(--gold-soft)}
+.io-c-rate{font-family:var(--font-mono);font-size:8px;color:rgba(255,255,255,.22);letter-spacing:.04em;text-align:center;transition:all .6s}
+
+/* Orbiting cup track — anchored to same Z as center */
+.io-track{position:absolute;width:72px;height:72px;transform-style:preserve-3d;transform-origin:center center -170px;animation:io-orbit 12s linear infinite}
+
+/* The cup card itself counter-rotates to stay face-forward */
+.io-cup{width:100%;height:100%;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;box-shadow:0 8px 24px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.18);animation:io-counter 12s linear infinite;transition:opacity .75s ease}
+.io-cup-kes{background:linear-gradient(135deg,rgba(160,52,34,.92),rgba(110,28,16,.96))}
+.io-cup-sat{background:linear-gradient(135deg,rgba(155,115,12,.92),rgba(196,148,16,.96))}
+.io-cup-emoji{font-size:20px;line-height:1}
+.io-cup-label{font-family:var(--font-mono);font-size:8px;font-weight:700;color:rgba(255,255,255,.92);letter-spacing:.02em;text-align:center;line-height:1.3;padding:0 3px;transition:all .6s}
+
+/* Keyframes */
+@keyframes io-orbit{0%{transform:rotateY(0deg)}100%{transform:rotateY(360deg)}}
+@keyframes io-counter{0%{transform:rotateY(0deg)}100%{transform:rotateY(-360deg)}}
+
+/* Below orbit: live KES vs Sats comparison */
+.io-compare{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;padding:20px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;gap:0}
+.io-cmp-side{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:0 8px}
+.io-cmp-label{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.28)}
+.io-cmp-cups{font-family:var(--font-mono);font-size:38px;font-weight:700;letter-spacing:-.04em;line-height:1;transition:all .6s}
+.io-cups-kes{color:rgba(220,90,70,.9)}
+.io-cups-sat{color:var(--gold-soft)}
+.io-cmp-sub{font-family:var(--font-mono);font-size:9.5px;color:rgba(255,255,255,.32);letter-spacing:.02em;transition:all .5s}
+.io-cmp-badge{font-family:var(--font-mono);font-size:9px;padding:3px 8px;border-radius:8px;margin-top:2px;transition:all .5s}
+.io-badge-kes{color:rgba(210,80,60,.65);background:rgba(185,72,50,.1)}
+.io-badge-sat{color:rgba(212,160,32,.65);background:rgba(212,160,32,.08)}
+.io-cmp-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.io-cmp-vs{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.14);letter-spacing:.1em}
+
+/* Stats strip — full width below the two-column grid */
+.infl-stats{display:flex;align-items:stretch;justify-content:center;margin-top:40px;padding:24px 20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;width:100%}
+.infl-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex:1;text-align:center;padding:0 16px}
+.infl-stat-num{font-family:var(--font-mono);font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.infl-stat-label{font-family:var(--font-mono);font-size:9.5px;color:rgba(255,255,255,.42);letter-spacing:.03em;line-height:1.4;max-width:14ch}
+.infl-stat-div{width:1px;background:rgba(255,255,255,.1);align-self:stretch;flex:none}
+
+/* CTA (sits inside .infl-copy so inherits left-align) */
+.infl-cta{display:flex;flex-direction:column;gap:8px}
+.infl-rate-note{font-family:var(--font-mono);font-size:10.5px;color:rgba(212,160,32,.5);letter-spacing:.05em}
+
+@media(max-width:880px){
+  .infl-layout{grid-template-columns:1fr;gap:40px}
+  .infl-chip{align-self:center}
+  .infl-copy .h2,.infl-copy .lead{text-align:center}
+  .infl-copy .infl-cta{align-items:center}
+}
+@media(max-width:640px){
+  .io-viewport{height:300px}
+  .io-system{width:270px;height:270px}
+  .io-center{width:126px;height:148px;transform:translateZ(-135px)}
+  .io-track{transform-origin:center center -135px}
+  .io-c-year{font-size:24px}
+  .io-cmp-cups{font-size:28px}
+  .infl-stats{flex-direction:column;gap:0;margin-top:24px}
+  .infl-stat{padding:14px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+  .infl-stat:last-child{border-bottom:none}
+  .infl-stat-div{display:none}
+  .infl-stat-num{font-size:22px}
+}
 
 /* steam animation — SVG path elements */
 @keyframes mug-steam{
@@ -264,8 +339,14 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 }
 .mug-drop{transform-box:fill-box;transform-origin:center top}
 .md1{animation:mug-drip .85s ease-in infinite}
-.md2{animation:mug-drip .85s ease-in .28s infinite}
-.md3{animation:mug-drip .85s ease-in .56s infinite}
+.md2{animation:mug-drip .85s ease-in .17s infinite}
+.md3{animation:mug-drip .85s ease-in .34s infinite}
+.md4{animation:mug-drip .85s ease-in .51s infinite}
+.md5{animation:mug-drip .85s ease-in .68s infinite}
+
+/* overflow badge — shows cups beyond the 10 visible icons */
+.mug-overflow{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:4px 12px;border-radius:99px;background:rgba(212,160,32,.12);border:1px solid rgba(212,160,32,.3);color:var(--gold-soft);letter-spacing:.04em;transition:all .5s ease;animation:mug-overflow-pulse 2s ease-in-out infinite}
+@keyframes mug-overflow-pulse{0%,100%{box-shadow:0 0 0 0 rgba(212,160,32,.0)}50%{box-shadow:0 0 8px 2px rgba(212,160,32,.18)}}
 
 /* feature split */
 .split{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
