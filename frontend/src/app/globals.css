@@ -1259,35 +1259,36 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 
 .chama-layout{display:grid;grid-template-columns:1fr 460px;gap:104px;align-items:center;width:100%;min-height:80dvh}
 
-/* The lotus flower circle */
-.chama-arena{position:relative;width:480px;height:480px;flex:none;margin:0 auto}
-
-/* Lotus petals SVG — one path per member, radiating from the shared pool */
-.chama-lotus-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;animation:lotus-breathe 6s ease-in-out infinite}
-@keyframes lotus-breathe{0%,100%{opacity:.88}50%{opacity:1}}
-
-/* Member seat (circle — glass pill, no CSS border) */
-.chama-member{position:absolute;top:50%;left:50%;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform .5s cubic-bezier(.2,0,.2,1)}
-.chama-av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:17px;transition:all .3s;background:rgba(12,7,2,.72);backdrop-filter:blur(6px)}
-.chama-member:hover .chama-av{transform:scale(1.18);box-shadow:0 0 20px rgba(224,168,0,.5),0 0 0 2px rgba(224,168,0,.7)}
-.chama-member-name{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase;transition:color .25s;white-space:nowrap}
-.chama-member:hover .chama-member-name{color:rgba(255,255,255,.85)}
-.chama-contrib-tip{font-family:var(--font-mono);font-size:10px;color:var(--gold-soft);opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s;white-space:nowrap}
-.chama-member:hover .chama-contrib-tip{opacity:1;transform:none}
-
-/* Center pool card (box-shadow ring, no CSS border) */
-.chama-pool{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:128px;height:128px;border-radius:50%;background:linear-gradient(135deg,rgba(30,18,4,.98),rgba(20,12,2,.98));box-shadow:0 0 60px rgba(224,168,0,.15),inset 0 1px 0 rgba(255,255,255,.1),0 0 0 1.5px rgba(224,168,0,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;z-index:10;pointer-events:none}
-.chama-pool-label{font-family:var(--font-mono);font-size:8px;color:rgba(255,255,255,.32);letter-spacing:.12em;text-transform:uppercase}
-.chama-pool-amount{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--gold-soft);letter-spacing:-.02em;line-height:1}
-.chama-pool-sub{font-family:var(--font-mono);font-size:8px;color:rgba(150,194,68,.6);letter-spacing:.06em}
+/* The shared ledger card — elevation level 3 (BRANDKIT §5.3), one idea per card */
+.chama-ledger{max-width:480px;margin:0 auto;background:linear-gradient(150deg,rgba(30,18,4,.92),rgba(16,10,3,.96));box-shadow:0 14px 44px rgba(0,0,0,.5),0 0 0 1px rgba(224,168,0,.22);border-radius:var(--r-lg);padding:26px 28px}
+.chama-ledger-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.chama-ledger-title{font-family:var(--font-display);font-weight:600;font-size:17px;color:#fff}
+.chama-ledger-sub{font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.04em;margin-top:4px}
+.chama-ledger-badge{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--lime);background:rgba(150,194,68,.12);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.chama-ledger-pool{display:flex;flex-direction:column;gap:4px;margin-top:20px;padding:16px 0;border-top:1px solid rgba(255,255,255,.09);border-bottom:1px solid rgba(255,255,255,.09)}
+.chama-ledger-pool .l{font-size:9px;color:rgba(255,255,255,.38);letter-spacing:.2em}
+.chama-ledger-pool .v{font-family:var(--font-mono);font-weight:700;font-size:30px;color:var(--gold-soft);letter-spacing:-.02em;line-height:1}
+.chama-ledger-pool .s{font-family:var(--font-mono);font-size:11px;color:rgba(150,194,68,.65)}
+.chama-ledger-rows{display:flex;flex-direction:column;margin-top:6px}
+.chama-ledger-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.chama-ledger-row .av{width:28px;height:28px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:12px;color:var(--gold-soft);background:rgba(224,168,0,.12)}
+.chama-ledger-row .nm{font-size:13px;color:rgba(255,255,255,.85);width:72px;flex:none}
+.chama-ledger-row .bar{flex:1;height:4px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.chama-ledger-row .bar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,rgba(150,194,68,.7),rgba(224,168,0,.8));transition:width .6s cubic-bezier(.2,0,0,1)}
+.chama-ledger-row .amt{font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,.75);white-space:nowrap}
+.chama-ledger-vote{display:flex;align-items:center;gap:12px;margin-top:18px;padding:12px 14px;border-radius:var(--r-md);background:rgba(255,255,255,.04);box-shadow:inset 0 0 0 1px rgba(224,168,0,.18)}
+.chama-ledger-vote i{font-size:20px;color:var(--gold-soft);flex:none}
+.chama-ledger-vote .q{font-size:13px;font-weight:500;color:rgba(255,255,255,.9)}
+.chama-ledger-vote .t{font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.42);margin-top:3px}
+.chama-ledger-pending{margin-left:auto;font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--gold-soft);background:rgba(224,168,0,.14);border-radius:999px;padding:4px 10px;flex:none}
 
 /* Hover effects */
 #chama .split-li{border-color:rgba(224,168,0,.15);transition:background .25s,transform .25s}
 #chama .split-li:hover{background:rgba(224,168,0,.06);transform:translateX(6px);border-radius:12px;border-color:rgba(224,168,0,.3)}
 #chama .split-li i{background:rgba(224,168,0,.12);color:var(--gold-soft)}
 
-@media(max-width:1024px){.chama-layout{grid-template-columns:1fr;gap:40px}.chama-arena{width:360px;height:360px}}
-@media(max-width:480px){.chama-arena{width:300px;height:300px}}
+@media(max-width:1024px){.chama-layout{grid-template-columns:1fr;gap:40px}}
+@media(max-width:480px){.chama-ledger{padding:20px 18px}.chama-ledger-row .nm{width:60px}}
 
 /* =========================================================================
    AGENTS SECTION — "The Radar"
@@ -1585,25 +1586,27 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 [data-theme="light"] #mpesa .split-li i { background: rgba(10,152,80,.12); color: var(--emerald-deep) }
 [data-theme="light"] #mpesa .split-li:hover { background: rgba(10,152,80,.05); border-color: rgba(10,152,80,.3) }
 
-/* ── Chama section ────────────────────────────────────────────────────── */
-[data-theme="light"] .chama-lotus-svg { opacity: .78 }
-[data-theme="light"] .chama-av {
-  background: rgba(255,251,244,.88);
-  backdrop-filter: blur(6px);
+/* ── Chama section (shared ledger card) ───────────────────────────────── */
+[data-theme="light"] .chama-ledger {
+  background: linear-gradient(150deg, #fffdf8, #fdf6ea);
+  box-shadow: 0 10px 32px rgba(0,0,0,.1), 0 0 0 1px rgba(168,116,0,.25);
 }
-[data-theme="light"] .chama-member:hover .chama-av {
-  box-shadow: 0 0 16px rgba(168,116,0,.22), 0 0 0 2px rgba(168,116,0,.65);
-}
-[data-theme="light"] .chama-member-name        { color: var(--soft) }
-[data-theme="light"] .chama-member:hover .chama-member-name { color: var(--text) }
-[data-theme="light"] .chama-contrib-tip         { color: var(--gold-text) }
-[data-theme="light"] .chama-pool {
-  background: linear-gradient(135deg, #fff, #fdf8f0);
-  box-shadow: 0 0 40px rgba(168,116,0,.1), inset 0 1px 0 rgba(255,255,255,.9), 0 0 0 1.5px rgba(168,116,0,.3);
-}
-[data-theme="light"] .chama-pool-label  { color: var(--soft) }
-[data-theme="light"] .chama-pool-amount { color: var(--gold-text) }
-[data-theme="light"] .chama-pool-sub    { color: var(--forest-mid) }
+[data-theme="light"] .chama-ledger-title  { color: var(--text) }
+[data-theme="light"] .chama-ledger-sub    { color: var(--soft) }
+[data-theme="light"] .chama-ledger-badge  { color: var(--emerald-deep); background: rgba(10,152,80,.1) }
+[data-theme="light"] .chama-ledger-pool   { border-color: rgba(26,36,25,.1) }
+[data-theme="light"] .chama-ledger-pool .l { color: var(--soft) }
+[data-theme="light"] .chama-ledger-pool .v { color: var(--gold-text) }
+[data-theme="light"] .chama-ledger-pool .s { color: var(--emerald-deep) }
+[data-theme="light"] .chama-ledger-row     { border-color: rgba(26,36,25,.08) }
+[data-theme="light"] .chama-ledger-row .av { color: var(--gold-text); background: rgba(168,116,0,.1) }
+[data-theme="light"] .chama-ledger-row .nm { color: var(--text) }
+[data-theme="light"] .chama-ledger-row .bar { background: rgba(26,36,25,.08) }
+[data-theme="light"] .chama-ledger-row .amt { color: var(--muted) }
+[data-theme="light"] .chama-ledger-vote { background: rgba(255,255,255,.7); box-shadow: inset 0 0 0 1px rgba(168,116,0,.22) }
+[data-theme="light"] .chama-ledger-vote .q { color: var(--text) }
+[data-theme="light"] .chama-ledger-vote .t { color: var(--soft) }
+[data-theme="light"] .chama-ledger-pending { color: var(--gold-text); background: rgba(168,116,0,.1) }
 [data-theme="light"] #chama .split-li i { background: rgba(168,116,0,.1); color: var(--gold-text) }
 [data-theme="light"] #chama .split-li:hover { background: rgba(168,116,0,.04); border-color: rgba(168,116,0,.25) }
 
