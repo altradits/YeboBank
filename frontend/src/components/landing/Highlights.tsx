@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
+import { KENYA_COUNTIES, KENYA_VIEWBOX } from "@/lib/kenya-counties";
+import { useReveal } from "@/components/ui/useReveal";
 
 /* ══════════════════════════════════════════════════════════════════════════
    LIGHTNING — "The Spark": animated bolt + transmitting address
@@ -11,9 +13,10 @@ import Button from "@/components/ui/Button";
 const ADDR = "wanjiku@yebobank.com";
 
 export function Lightning() {
-  const router     = useRouter();
-  const sectionRef = useRef<HTMLElement>(null);
-  const canvasRef  = useRef<HTMLCanvasElement>(null);
+  const router        = useRouter();
+  const sectionRef    = useRef<HTMLElement>(null);
+  const canvasRef     = useRef<HTMLCanvasElement>(null);
+  const ghostKenyaRef = useReveal<HTMLDivElement>(0.08);
   const [copied, setCopied]           = useState(false);
   const [transmitting, setTransmit]   = useState(false);
   const [visibleChars, setVisible]    = useState(0);
@@ -129,6 +132,23 @@ export function Lightning() {
 
   return (
     <section className="sec" id="lightning" ref={sectionRef} style={{ position: "relative" }}>
+      {/* Ghost Kenya map — echoes CommunityPair's map as this section enters from below */}
+      <div className="ghost-echo-wrap ghost-echo-wrap--kenya" aria-hidden="true">
+        <div className="ghost-kenya ghost-reveal" ref={ghostKenyaRef}>
+          <svg viewBox={KENYA_VIEWBOX} role="presentation" aria-hidden="true">
+            {KENYA_COUNTIES.map((c, i) => (
+              <path
+                key={i}
+                d={c.d}
+                fill="rgba(47,224,186,.06)"
+                stroke="rgba(47,224,186,.28)"
+                strokeWidth=".8"
+              />
+            ))}
+          </svg>
+        </div>
+      </div>
+
       {/* Canvas for mouse arc particles */}
       <canvas
         ref={canvasRef}
@@ -224,8 +244,9 @@ const BLOCKS = [
 ] as const;
 
 export function Trust() {
-  const router   = useRouter();
-  const chainRef = useRef<HTMLDivElement>(null);
+  const router        = useRouter();
+  const chainRef      = useRef<HTMLDivElement>(null);
+  const ghostBoltRef  = useReveal<HTMLDivElement>(0.08);
 
   useEffect(() => {
     const el = chainRef.current;
@@ -245,8 +266,22 @@ export function Trust() {
   }, []);
 
   return (
-    <section className="sec" id="trust">
-      <div className="wrap" style={{ textAlign: "center" }}>
+    <section className="sec" id="trust" style={{ position: "relative" }}>
+      {/* Ghost bolt — echoes the Lightning section's bolt as this section enters */}
+      <div className="ghost-echo-wrap ghost-echo-wrap--bolt" aria-hidden="true">
+        <div className="ghost-bolt ghost-reveal" ref={ghostBoltRef}>
+          <svg viewBox="0 0 120 200" role="presentation" aria-hidden="true">
+            <path
+              d="M72 8L20 108H62L48 192L100 84H58L72 8Z"
+              fill="rgba(224,168,0,.09)"
+              stroke="rgba(224,168,0,.22)"
+              strokeWidth="1"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <div className="wrap" style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
         <div className="kicker reveal" style={{ justifyContent: "center" }}>
           <i className="ti ti-shield-check" /> Trust &amp; transparency
         </div>
