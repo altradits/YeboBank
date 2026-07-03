@@ -285,11 +285,6 @@ function Savings() {
           {/* LEFT — the earnings card: pick a term, see the number */}
           <div className="save-card reveal" role="img"
             aria-label="What a locked savings account earns: pick a term, see sats earned per year">
-            <div className="save-card-head">
-              <span className="l"><i className="ti ti-lock" /> LOCKED SAVINGS</span>
-              <span className="save-card-badge">PAID MONTHLY</span>
-            </div>
-
             <div className="save-card-earn">
               <div className="save-card-num"><span ref={numRef}>0</span></div>
               <div className="save-card-unit">sats earned per year</div>
