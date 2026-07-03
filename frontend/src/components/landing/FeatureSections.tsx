@@ -232,7 +232,7 @@ function Inflation() {
 
             <div className="infl-cta">
               <button className="hero-btn" onClick={() => router.push("/register")}>
-                Protect my savings with sats <i className="ti ti-arrow-right" />
+                Protect my savings with sats
               </button>
             </div>
           </div>
