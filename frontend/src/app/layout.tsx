@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { RateProvider } from "@/lib/rate-context";
 
-const display = Space_Grotesk({
+// Syne: geometric display with distinctive letterforms — premium fintech feel
+const display = Syne({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-space-grotesk",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-syne",
   display: "swap",
 });
-const body = IBM_Plex_Sans({
+// DM Sans: clean optical-size sans — excellent legibility at body sizes
+const body = DM_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-plex",
+  variable: "--font-dm-sans",
   display: "swap",
 });
+// JetBrains Mono: developer-grade monospace for sats, addresses, hashes
 const mono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
@@ -30,7 +33,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         {/* Resolve theme before first paint — prevents flash of wrong theme */}
         <script dangerouslySetInnerHTML={{ __html:

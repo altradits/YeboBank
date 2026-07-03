@@ -140,17 +140,21 @@ export function Lightning() {
       <div className="wrap" style={{ position: "relative", zIndex: 2 }}>
         <div className="lightning-layout">
 
-          {/* LEFT — animated bolt + stats */}
+          {/* LEFT — animated bolt + stats, clean stack layout */}
           <div className="bolt-visual reveal">
-            <div className="bolt-stat bolt-stat-1">
-              <div className="bolt-stat-n">0¢</div>
-              <div className="bolt-stat-l">send fee</div>
-            </div>
-            <div className="bolt-stat bolt-stat-2">
-              <div className="bolt-stat-n">&lt;1s</div>
-              <div className="bolt-stat-l">settlement</div>
+            {/* Speed stats row */}
+            <div className="bolt-stats-row">
+              <div className="bolt-stat">
+                <div className="bolt-stat-n">0¢</div>
+                <div className="bolt-stat-l">send fee</div>
+              </div>
+              <div className="bolt-stat" style={{ textAlign: "right" }}>
+                <div className="bolt-stat-n">&lt;1s</div>
+                <div className="bolt-stat-l">settlement</div>
+              </div>
             </div>
 
+            {/* Bolt SVG */}
             <div className="bolt-svg-wrap">
               <svg className="bolt-svg" width="120" height="200" viewBox="0 0 120 200" fill="none">
                 <path
@@ -169,13 +173,14 @@ export function Lightning() {
               </svg>
             </div>
 
-            <div className="bolt-stat bolt-stat-3">
+            {/* Global reach stat */}
+            <div className="bolt-stat" style={{ textAlign: "center" }}>
               <div className="bolt-stat-n">Global</div>
               <div className="bolt-stat-l">reach — any country</div>
             </div>
 
             {/* Transmitting address — appears char-by-char on hover */}
-            <div className="transmit-wrap" style={{ marginTop: 40 }}>
+            <div className="transmit-wrap">
               <div
                 className="transmit-chip"
                 onMouseEnter={startTransmit}
