@@ -314,7 +314,6 @@ function Savings() {
 
           {/* RIGHT — copy */}
           <div className="reveal d1">
-            <div className="kicker"><i className="ti ti-lock" /> Locked savings</div>
             <h2 className="h2">Your money earns <span className="accent">while you sleep.</span></h2>
             <p className="lead">
               Lock your sats and earn a share of real treasury yield, distributed
@@ -326,12 +325,9 @@ function Savings() {
               <SplitLi icon="ti-scale"          title="Honest by design"    desc="Your principal is never touched for fees — ever." />
               <SplitLi icon="ti-arrow-back-up"  title="Leave early if needed" desc="Your full principal comes back to you, no questions asked." />
             </div>
-            <div style={{ marginTop: 32, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ marginTop: 32 }}>
               <Button variant="gold" onClick={() => router.push("/register?redirect=/savings")}>
                 Start saving today <i className="ti ti-arrow-right" />
-              </Button>
-              <Button variant="ghost" onDark onClick={() => router.push("/dashboard")}>
-                See demo
               </Button>
             </div>
           </div>
