@@ -61,19 +61,20 @@ function playNotify(variant: "confirm" | "deposit" = "confirm") {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+// 0: login  1: deposit amount  2: M-Pesa STK  3: deposit confirmed  4: lock savings
 type Phase = 0 | 1 | 2 | 3 | 4;
 
 const WORDS: { t: string; cls?: string }[] = [
   { t: "Save" }, { t: "in" }, { t: "Bitcoin.", cls: "gold" },
   { t: "Spend" }, { t: "in" }, { t: "shillings.", cls: "grn" },
 ];
-const KEYS       = ["1","2","3","4","5","6","7","8","9",".","0","⌫"] as const;
 const DEMO_PHONE = "+254712345678";
 const DEMO_KES   = 500;
 
 export default function Hero() {
-  const router = useRouter();
-  const rate   = useRate();
+  const router  = useRouter();
+  const rate    = useRate();
+  const [loopKey, setLoopKey] = useState(0);
 
   // simulation
   const [phase,        setPhase]        = useState<Phase>(0);
@@ -81,21 +82,28 @@ export default function Hero() {
   const [typedAmount,  setTypedAmount]  = useState("");
   const [pinDots,      setPinDots]      = useState(0);
   const [simConfirmed, setSimConfirmed] = useState(false);
+  const [lockConfirmed, setLockConfirmed] = useState(false);
 
   // cursor
   const [cursorPos,  setCursorPos]  = useState({ x: 149, y: 260 });
   const [clicking,   setClicking]   = useState(false);
   const [showCursor, setShowCursor] = useState(true);
 
-  // converter (phase 4)
-  const [view,     setView]     = useState<"sats"|"kes"|"btc">("sats");
-  const [editSats, setEditSats] = useState(0);
-  const [rawInput, setRawInput] = useState("0");
-
-  const hRef      = useRef<HTMLHeadingElement>(null);
-  const hiddenRef = useRef<HTMLInputElement>(null);
-
+  const hRef       = useRef<HTMLHeadingElement>(null);
   const depositSats = Math.round(DEMO_KES * rate.satsPerKes);
+
+  /* ── Reset all sim state when loop restarts ── */
+  useEffect(() => {
+    setPhase(0);
+    setTypedPhone("");
+    setTypedAmount("");
+    setPinDots(0);
+    setSimConfirmed(false);
+    setLockConfirmed(false);
+    setCursorPos({ x: 149, y: 260 });
+    setClicking(false);
+    setShowCursor(true);
+  }, [loopKey]);
 
   /* ── Resume AudioContext on first user gesture ── */
   useEffect(() => {
@@ -108,41 +116,36 @@ export default function Hero() {
     };
   }, []);
 
-  /* ── phase progression ── */
+  /* ── Phase progression + loop ── */
   useEffect(() => {
     const t = [
       setTimeout(() => setPhase(1), 2400),
       setTimeout(() => setPhase(2), 4400),
       setTimeout(() => setPhase(3), 6200),
-      setTimeout(() => setPhase(4), 8000),
+      setTimeout(() => setPhase(4), 8200),
+      setTimeout(() => setLockConfirmed(true), 9600),
+      setTimeout(() => setLoopKey(k => k + 1), 12000),
     ];
     return () => t.forEach(clearTimeout);
-  }, []);
+  }, [loopKey]);
 
-  /* ── typing: phone digits, amount digits, PIN dots (with key sounds) ── */
+  /* ── Typing: phone digits, amount, PIN dots ── */
   useEffect(() => {
     const t: ReturnType<typeof setTimeout>[] = [];
-
-    // Phase 0: type phone number char by char
     DEMO_PHONE.split("").forEach((ch, i) =>
       t.push(setTimeout(() => { setTypedPhone(p => p + ch); playKey(); }, 520 + i * 120))
     );
-
-    // Phase 1: type "500"
     ["5","0","0"].forEach((ch, i) =>
       t.push(setTimeout(() => { setTypedAmount(p => p + ch); playKey(); }, 2820 + i * 260))
     );
-
-    // Phase 2: PIN dots fill one by one
     [0,1,2,3].forEach(i =>
       t.push(setTimeout(() => { setPinDots(i + 1); playKey(); }, 4720 + i * 280))
     );
     t.push(setTimeout(() => setSimConfirmed(true), 5700));
-
     return () => t.forEach(clearTimeout);
-  }, []);
+  }, [loopKey]);
 
-  /* ── notification sounds ── */
+  /* ── Notification sounds ── */
   useEffect(() => {
     if (simConfirmed) playNotify("confirm");
   }, [simConfirmed]);
@@ -153,7 +156,12 @@ export default function Hero() {
     return () => clearTimeout(t);
   }, [phase]);
 
-  /* ── cursor choreography ── */
+  useEffect(() => {
+    if (!lockConfirmed) return;
+    playNotify("confirm");
+  }, [lockConfirmed]);
+
+  /* ── Cursor choreography ── */
   useEffect(() => {
     const t: ReturnType<typeof setTimeout>[] = [];
     const mv  = (x: number, y: number, ms: number) =>
@@ -174,73 +182,21 @@ export default function Hero() {
     // Phase 2 — M-Pesa PIN
     mv(149, 300, 4500); tap(4680);
 
-    // Phase 3 — balance screen, then hide
-    mv(149, 230, 6300);
-    t.push(setTimeout(() => setShowCursor(false), 7600));
+    // Phase 3 — tap the Lock prompt
+    mv(149, 320, 6500); tap(6640);
+
+    // Phase 4 — tap "Lock sats" button
+    mv(149, 330, 8500); tap(8680);
+    t.push(setTimeout(() => setShowCursor(false), 9900));
 
     return () => t.forEach(clearTimeout);
-  }, []);
+  }, [loopKey]);
 
-  /* ── headline reveal ── */
+  /* ── Headline reveal ── */
   useEffect(() => {
     const id = setTimeout(() => hRef.current?.classList.add("go"), 150);
     return () => clearTimeout(id);
   }, []);
-
-  /* ── auto-focus hidden input when converter appears ── */
-  useEffect(() => {
-    if (phase !== 4) return;
-    const t = setTimeout(() => hiddenRef.current?.focus(), 200);
-    return () => clearTimeout(t);
-  }, [phase]);
-
-  /* ── converter helpers ── */
-  function fmtBtc(sats: number) {
-    const btc = sats / 1e8;
-    if (btc === 0) return "0.00000";
-    return btc.toFixed(Math.max(5, -Math.floor(Math.log10(Math.abs(btc))) + 1));
-  }
-  function rawDisplay() {
-    if (view === "sats") return `${rawInput} sats`;
-    if (view === "kes")  return `KES ${rawInput}`;
-    return `${rawInput} BTC`;
-  }
-  function setFromRaw(raw: string) {
-    setRawInput(raw);
-    const n = parseFloat(raw) || 0;
-    if      (view === "sats") setEditSats(Math.round(n));
-    else if (view === "kes")  setEditSats(Math.round(n * rate.satsPerKes));
-    else                      setEditSats(Math.round(n * 1e8));
-  }
-  function handleKey(k: string) {
-    if (phase !== 4) return;
-    if (k === "⌫") {
-      if (rawInput !== "0") playKey();
-      setFromRaw(rawInput.slice(0, -1) || "0");
-      return;
-    }
-    if (k === "." && (rawInput.includes(".") || view === "sats")) return;
-    playKey();
-    setFromRaw(rawInput === "0" && k !== "." ? k : rawInput + k);
-  }
-  function handleToggle(v: "sats"|"kes"|"btc") {
-    const r = v === "sats" ? String(editSats)
-            : v === "kes"  ? (editSats * rate.kesPerSat).toFixed(2)
-            :                fmtBtc(editSats);
-    setView(v); setRawInput(r);
-  }
-  function convLine() {
-    if (view === "kes") return `${num(editSats)} sats`;
-    return `KES ${num(editSats * rate.kesPerSat, 2)}`;
-  }
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Backspace")          { e.preventDefault(); handleKey("⌫"); return; }
-    if (e.key === "." || e.key === ",") { e.preventDefault(); handleKey("."); return; }
-    if (/^[0-9]$/.test(e.key))         { e.preventDefault(); handleKey(e.key); }
-  }
-  function go(path: string) {
-    router.push(`/login?redirect=${encodeURIComponent(path)}`);
-  }
 
   return (
     <header className="hero">
@@ -259,10 +215,15 @@ export default function Hero() {
           <p className="hero-sub reveal d1">
             Earn interest in sats. Top up and cash out through M-Pesa.
           </p>
+          <div className="hero-cta reveal d2">
+            <button className="hero-btn" onClick={() => router.push("/register")}>
+              Open a free account <i className="ti ti-arrow-right" />
+            </button>
+          </div>
         </div>
 
         {/* ── Phone frame ── */}
-        <div className="hero-phone reveal d2">
+        <div className="hero-phone reveal d3">
           <div className="hp-vol" aria-hidden="true" />
           <div className="hp-pwr" aria-hidden="true" />
 
@@ -277,13 +238,16 @@ export default function Hero() {
                   aria-hidden="true" />
               )}
 
-              {phase < 4 && (
-                <div className="hp-dots" aria-hidden="true">
-                  {[0,1,2,3].map(i => (
-                    <span key={i} className={i === phase ? "on" : i < phase ? "done" : ""} />
-                  ))}
-                </div>
-              )}
+              {/* Progress dots — 4 steps: login → deposit → confirm → lock */}
+              <div className="hp-dots" aria-hidden="true">
+                {[0,1,2,3].map(i => (
+                  <span key={i} className={
+                    phase >= 4 ? "done" :
+                    i === phase ? "on" :
+                    i < phase ? "done" : ""
+                  } />
+                ))}
+              </div>
 
               {/* ── Phase 0: Enter phone number ── */}
               {phase === 0 && (
@@ -368,46 +332,26 @@ export default function Hero() {
                 </div>
               )}
 
-              {/* ── Phase 4: Interactive converter ── */}
+              {/* ── Phase 4: Lock savings ── */}
               {phase === 4 && (
-                <>
-                  <input ref={hiddenRef} className="hp-hidden-input"
-                    type="text" inputMode="none" value="" onChange={() => {}}
-                    onKeyDown={handleKeyDown} aria-label="Enter amount" />
-                  <div className="hp-lbl">Enter amount to convert</div>
-                  <div className="hp-amt hp-amt-counting"
-                    onClick={() => hiddenRef.current?.focus()}
-                    style={{ cursor: "text" }}>
-                    {rawDisplay()}
+                <div className="hp-sim">
+                  <div className="hp-sim-back"><i className="ti ti-arrow-left" /> Your wallet</div>
+                  <div className="hp-sim-title">Lock savings</div>
+                  <div className="hp-sim-card">
+                    <div className="hp-sim-row"><span>Amount</span><b>{num(depositSats)} sats</b></div>
+                    <div className="hp-sim-row"><span>Term</span><b>5 years</b></div>
+                    <div className="hp-sim-row"><span>Yield</span><b className="grn">~5.2% APY</b></div>
                   </div>
-                  <div className="hp-conv">≈ {convLine()}</div>
-                  <div className="hp-tog" role="tablist" aria-label="Balance unit">
-                    {(["sats","kes","btc"] as const).map(v => (
-                      <button key={v} className={view === v ? "on" : ""} onClick={() => handleToggle(v)}>
-                        {v === "btc" ? "BTC" : v === "kes" ? "KES" : "Sats"}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="hp-bottom">
-                    <div className="hp-kbd">
-                      {KEYS.map(k => (
-                        <button key={k}
-                          className={`hp-key${k==="⌫"?" del":""}${k==="."&&view==="sats"?" dim":""}`}
-                          onClick={() => handleKey(k)}
-                          aria-label={k === "⌫" ? "Delete" : k}>
-                          {k === "⌫" ? <i className="ti ti-backspace" /> : k}
-                        </button>
-                      ))}
+                  {!lockConfirmed ? (
+                    <div className="hp-sim-btn hp-sim-lock">
+                      <i className="ti ti-lock" /> Lock sats
                     </div>
-                    <div className="hp-actions">
-                      <button onClick={() => go("/deposit")}><i className="ti ti-arrow-down" /><span>Add</span></button>
-                      <button onClick={() => go("/savings/lock")}><i className="ti ti-lock" /><span>Lock</span></button>
-                      <button onClick={() => go("/send")}><i className="ti ti-send" /><span>Send</span></button>
-                      <button onClick={() => go("/chama")}><i className="ti ti-users" /><span>Chama</span></button>
+                  ) : (
+                    <div className="hp-sim-ok">
+                      <i className="ti ti-circle-check" /> Locked for 5 years
                     </div>
-                  </div>
-                  <div className="hp-home" aria-hidden="true" />
-                </>
+                  )}
+                </div>
               )}
 
             </div>
