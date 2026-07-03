@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
+import LogoMark from "@/components/ui/LogoMark";
 import { register } from "@/lib/api";
 
 export default function RegisterPage() {
@@ -28,7 +29,7 @@ export default function RegisterPage() {
   return (
     <main className="auth">
       <div className="auth-card">
-        <Link href="/" className="brand"><span className="mk">Y</span> YeboBank</Link>
+        <Link href="/" className="brand"><LogoMark size={34} /> YeboBank</Link>
         <h1>Open your account</h1>
         <p className="sub">Karibu. All you need is a phone number.</p>
         <form onSubmit={onSubmit}>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
+import LogoMark from "@/components/ui/LogoMark";
 import { login } from "@/lib/api";
 
 export default function LoginPage() {
@@ -28,7 +29,7 @@ export default function LoginPage() {
   return (
     <main className="auth">
       <div className="auth-card">
-        <Link href="/" className="brand"><span className="mk">Y</span> YeboBank</Link>
+        <Link href="/" className="brand"><LogoMark size={34} /> YeboBank</Link>
         <h1>Welcome back</h1>
         <p className="sub">Log in to your savings.</p>
         <form onSubmit={onSubmit}>
