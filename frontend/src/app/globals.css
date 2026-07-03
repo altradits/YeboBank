@@ -1170,3 +1170,359 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
   color: var(--gold-text);
   background: rgba(201,168,76,.07);
 }
+
+/* =========================================================================
+   SAVINGS SECTION — "The Vault"
+   ========================================================================= */
+#save{background:linear-gradient(150deg,#050810 0%,#091428 50%,#0a0c20 100%)}
+#save::before{background:radial-gradient(circle,rgba(224,168,0,.22),transparent 64%);top:-120px;right:-80px}
+#save::after{background:radial-gradient(circle,rgba(10,60,160,.18),transparent 66%);bottom:-200px;left:-100px}
+
+.savings-layout{display:grid;grid-template-columns:1fr 480px;gap:72px;align-items:center;width:100%}
+
+/* Dial visual */
+.savings-dial-wrap{position:relative;display:flex;justify-content:center;align-items:center;height:520px}
+.savings-ring{position:absolute;border-radius:50%;border-style:solid;border-color:transparent}
+.savings-ring-1{width:460px;height:460px;border-width:1.5px;border-color:rgba(224,168,0,.12);animation:sring1 18s linear infinite}
+.savings-ring-2{width:380px;height:380px;border-width:2px;border-top-color:rgba(224,168,0,.35);border-right-color:rgba(224,168,0,.18);animation:sring2 12s linear infinite reverse}
+.savings-ring-3{width:300px;height:300px;border-width:1.5px;border-top-color:rgba(150,194,68,.28);border-left-color:rgba(150,194,68,.12);animation:sring1 8s linear infinite}
+.savings-ring-4{width:220px;height:220px;border-width:1px;border-color:rgba(255,255,255,.06);animation:sring2 6s linear infinite}
+@keyframes sring1{to{transform:rotate(360deg)}}
+@keyframes sring2{to{transform:rotate(-360deg)}}
+
+/* Tick marks on outer ring */
+.savings-ticks{position:absolute;width:460px;height:460px;animation:sring1 18s linear infinite}
+.savings-tick{position:absolute;width:2px;background:rgba(224,168,0,.22);transform-origin:50% 230px;border-radius:1px}
+
+/* Center dial card */
+.savings-center-card{position:relative;z-index:2;width:192px;height:192px;border-radius:50%;background:linear-gradient(135deg,rgba(12,16,32,.98),rgba(6,8,20,.98));border:1.5px solid rgba(224,168,0,.28);box-shadow:0 0 80px rgba(224,168,0,.18),0 0 0 8px rgba(224,168,0,.04),inset 0 1px 0 rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:default}
+.savings-center-card:hover{box-shadow:0 0 120px rgba(224,168,0,.28),0 0 0 12px rgba(224,168,0,.06),inset 0 1px 0 rgba(255,255,255,.12);border-color:rgba(224,168,0,.45)}
+.savings-dial-num{font-family:var(--font-mono);font-size:32px;font-weight:700;color:#fff;letter-spacing:-.03em;line-height:1;transition:all .6s}
+.savings-dial-unit{font-family:var(--font-mono);font-size:10px;color:var(--gold-soft);letter-spacing:.12em;text-transform:uppercase}
+.savings-dial-label{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.28);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+
+/* Orbiting sat particle dots */
+.savings-particle{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold-soft);box-shadow:0 0 8px rgba(224,168,0,.7);pointer-events:none}
+.sp1{animation:sring1 9s linear infinite;top:calc(50% - 3px);left:calc(50% + 225px)}
+.sp2{animation:sring1 9s linear infinite;animation-delay:-3s;top:calc(50% - 3px);left:calc(50% + 225px)}
+.sp3{animation:sring1 9s linear infinite;animation-delay:-6s;top:calc(50% - 3px);left:calc(50% + 225px)}
+.sp-lime{background:var(--lime);box-shadow:0 0 8px rgba(150,194,68,.7)}
+
+/* Term picker cards */
+.savings-terms{display:flex;gap:12px;margin-top:32px}
+.term-card{flex:1;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .25s cubic-bezier(.2,.8,.2,1);position:relative;overflow:hidden}
+.term-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(224,168,0,.18),transparent 70%);opacity:0;transition:opacity .25s}
+.term-card:hover{border-color:rgba(224,168,0,.4);transform:translateY(-4px)}
+.term-card:hover::before{opacity:1}
+.term-card.active{border-color:rgba(224,168,0,.6);background:rgba(224,168,0,.08);box-shadow:0 0 32px rgba(224,168,0,.12)}
+.term-card.active::before{opacity:1}
+.term-yr{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--gold-soft);line-height:1}
+.term-label{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.term-apy{font-family:var(--font-mono);font-size:11px;color:var(--lime);margin-top:8px;font-weight:600}
+
+@media(max-width:1024px){.savings-layout{grid-template-columns:1fr;gap:48px}.savings-dial-wrap{height:400px}.savings-ring-1{width:360px;height:360px}.savings-ring-2{width:300px;height:300px}.savings-ring-3{width:240px;height:240px}.savings-ring-4{width:180px;height:180px}.savings-ticks{width:360px;height:360px}.savings-tick{transform-origin:50% 180px}.sp1,.sp2,.sp3{left:calc(50% + 170px)}}
+@media(max-width:640px){.savings-dial-wrap{height:320px}.savings-ring-1{width:280px;height:280px}.savings-ring-2{width:230px;height:230px}.savings-ring-3{width:180px;height:180px}.savings-ring-4{width:140px;height:140px}.savings-ticks{width:280px;height:280px}.savings-tick{transform-origin:50% 140px}.sp1,.sp2,.sp3{left:calc(50% + 132px)}.savings-center-card{width:150px;height:150px}.savings-dial-num{font-size:24px}}
+
+/* =========================================================================
+   M-PESA SECTION — "The Bridge"
+   ========================================================================= */
+#mpesa{background:linear-gradient(150deg,#030e0c 0%,#061a14 50%,#040c0a 100%)}
+#mpesa::before{background:radial-gradient(circle,rgba(17,166,91,.24),transparent 64%);top:-140px;left:-80px}
+#mpesa::after{background:radial-gradient(circle,rgba(224,168,0,.12),transparent 66%);bottom:-180px;right:-120px}
+
+.mpesa-layout{display:grid;grid-template-columns:480px 1fr;gap:72px;align-items:center;width:100%}
+
+/* 3D-tilting phone wrap — CSS custom props set by JS mousemove */
+.mpesa-visual{display:flex;flex-direction:column;align-items:center;gap:32px;perspective:1200px;cursor:none}
+.mpesa-phone-3d{transform-style:preserve-3d;transform:perspective(1200px) rotateY(calc(var(--mx,0)*14deg)) rotateX(calc(var(--my,0)*-9deg));transition:transform .12s ease;will-change:transform}
+
+/* Custom cursor for M-Pesa section */
+.mpesa-cursor{position:fixed;pointer-events:none;z-index:9999;width:40px;height:40px;border-radius:50%;border:2px solid var(--lime);transform:translate(-50%,-50%);transition:opacity .2s;mix-blend-mode:screen;display:none}
+.mpesa-visual:hover .mpesa-cursor{display:block}
+
+/* Animated connection line between phone and flow target */
+.mpesa-flow-svg{width:100%;height:60px;overflow:visible}
+.mpesa-flow-path{fill:none;stroke:rgba(17,166,91,.4);stroke-width:2;stroke-dasharray:8 6;animation:flow-dash 1.2s linear infinite}
+.mpesa-flow-path.fast{animation-duration:.5s;stroke:rgba(150,194,68,.7)}
+@keyframes flow-dash{to{stroke-dashoffset:-28}}
+
+/* Flow destination: mini wallet card below phone */
+.mpesa-wallet-card{background:rgba(17,166,91,.08);border:1px solid rgba(17,166,91,.25);border-radius:16px;padding:14px 20px;display:flex;align-items:center;gap:14px;transition:border-color .3s,background .3s}
+.mpesa-wallet-card:hover{border-color:rgba(17,166,91,.5);background:rgba(17,166,91,.14)}
+.mpesa-wallet-icon{width:40px;height:40px;border-radius:12px;background:rgba(17,166,91,.2);display:grid;place-items:center;font-size:20px;color:var(--lime);flex:none}
+.mpesa-wallet-text{font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,.5)}
+.mpesa-wallet-val{font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--lime)}
+
+/* Hover effects for split-li in M-Pesa */
+#mpesa .split-li{border-color:rgba(17,166,91,.2);transition:background .25s,transform .25s}
+#mpesa .split-li:hover{background:rgba(17,166,91,.06);transform:translateX(6px);border-radius:12px;border-color:rgba(17,166,91,.35)}
+#mpesa .split-li i{background:rgba(17,166,91,.16);color:var(--lime)}
+
+@media(max-width:1024px){.mpesa-layout{grid-template-columns:1fr}}
+
+/* =========================================================================
+   CHAMA SECTION — "The Circle" (mouse-magnet member nodes)
+   ========================================================================= */
+#chama{background:linear-gradient(150deg,#0c0806 0%,#1a100a 50%,#0e0904 100%)}
+#chama::before{background:radial-gradient(circle,rgba(224,168,0,.20),transparent 64%);top:-100px;left:calc(50% - 310px)}
+#chama::after{background:radial-gradient(circle,rgba(150,194,68,.14),transparent 66%);bottom:-160px;right:-80px}
+
+.chama-layout{display:grid;grid-template-columns:1fr 420px;gap:64px;align-items:center;width:100%;min-height:80dvh}
+
+/* The circle arena */
+.chama-arena{position:relative;width:480px;height:480px;flex:none;margin:0 auto}
+.chama-arena-bg{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.06);background:radial-gradient(circle at 50% 50%,rgba(224,168,0,.06),transparent 70%)}
+
+/* SVG arcs layer */
+.chama-arcs-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.chama-arc{fill:none;stroke-width:1.5;stroke-linecap:round;opacity:0;animation:arc-appear 4s ease infinite}
+@keyframes arc-appear{0%,10%,90%,100%{opacity:0}30%,70%{opacity:.6}}
+
+/* Member bubble */
+.chama-member{position:absolute;top:50%;left:50%;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform .5s cubic-bezier(.2,0,.2,1)}
+.chama-av{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:18px;border:2px solid rgba(255,255,255,.2);transition:all .3s;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.chama-member:hover .chama-av{transform:scale(1.18);border-color:var(--gold);box-shadow:0 0 24px rgba(224,168,0,.4)}
+.chama-member-name{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase;transition:color .25s;white-space:nowrap}
+.chama-member:hover .chama-member-name{color:rgba(255,255,255,.85)}
+.chama-contrib-tip{font-family:var(--font-mono);font-size:10px;color:var(--gold-soft);opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s;white-space:nowrap}
+.chama-member:hover .chama-contrib-tip{opacity:1;transform:none}
+
+/* Center pool card */
+.chama-pool{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:128px;height:128px;border-radius:50%;background:linear-gradient(135deg,rgba(30,18,4,.98),rgba(20,12,2,.98));border:1.5px solid rgba(224,168,0,.35);box-shadow:0 0 60px rgba(224,168,0,.15),inset 0 1px 0 rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;z-index:10;pointer-events:none}
+.chama-pool-label{font-family:var(--font-mono);font-size:8px;color:rgba(255,255,255,.32);letter-spacing:.12em;text-transform:uppercase}
+.chama-pool-amount{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--gold-soft);letter-spacing:-.02em;line-height:1}
+.chama-pool-sub{font-family:var(--font-mono);font-size:8px;color:rgba(150,194,68,.6);letter-spacing:.06em}
+
+/* Hover effects */
+#chama .split-li{border-color:rgba(224,168,0,.15);transition:background .25s,transform .25s}
+#chama .split-li:hover{background:rgba(224,168,0,.06);transform:translateX(6px);border-radius:12px;border-color:rgba(224,168,0,.3)}
+#chama .split-li i{background:rgba(224,168,0,.12);color:var(--gold-soft)}
+
+@media(max-width:1024px){.chama-layout{grid-template-columns:1fr;gap:40px}.chama-arena{width:360px;height:360px}}
+@media(max-width:480px){.chama-arena{width:300px;height:300px}}
+
+/* =========================================================================
+   AGENTS SECTION — "The Radar"
+   ========================================================================= */
+#agents{background:linear-gradient(150deg,#040807 0%,#071410 50%,#040c08 100%)}
+#agents::before{background:radial-gradient(circle,rgba(150,194,68,.18),transparent 64%);top:-160px;right:-60px}
+#agents::after{background:radial-gradient(circle,rgba(17,166,91,.12),transparent 66%);bottom:-200px;left:-80px}
+
+.agents-layout{display:grid;grid-template-columns:1fr 440px;gap:64px;align-items:center;width:100%}
+
+/* Radar display */
+.radar-display{position:relative;width:440px;height:440px;flex:none;margin:0 auto;cursor:crosshair}
+.radar-bg{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(17,166,91,.08) 0%,rgba(4,20,10,.95) 70%,rgba(2,10,5,.98) 100%);border:1.5px solid rgba(17,166,91,.2)}
+
+/* Concentric rings */
+.radar-ring{position:absolute;border-radius:50%;border:1px solid rgba(17,166,91,.14);top:50%;left:50%;transform:translate(-50%,-50%)}
+.radar-ring:nth-child(1){width:25%;height:25%}
+.radar-ring:nth-child(2){width:50%;height:50%}
+.radar-ring:nth-child(3){width:75%;height:75%}
+
+/* Cross-hair lines */
+.radar-cross{position:absolute;inset:0;border-radius:50%}
+.radar-cross::before,.radar-cross::after{content:'';position:absolute;background:rgba(17,166,91,.14)}
+.radar-cross::before{width:1px;height:100%;left:50%;transform:translateX(-50%)}
+.radar-cross::after{height:1px;width:100%;top:50%;transform:translateY(-50%)}
+
+/* Rotating sweep */
+.radar-sweep{position:absolute;inset:0;border-radius:50%;animation:radar-rot 3s linear infinite;overflow:hidden}
+.radar-sweep::before{content:'';position:absolute;top:50%;left:50%;width:50%;height:50%;background:conic-gradient(from 0deg,rgba(17,166,91,.0) 0deg,rgba(17,166,91,.45) 50deg,rgba(17,166,91,.0) 60deg);transform-origin:0 0;transform:translate(0,-100%) rotate(180deg)}
+@keyframes radar-rot{to{transform:rotate(360deg)}}
+
+/* Radar sweep glow line */
+.radar-sweep-line{position:absolute;top:0;left:50%;width:2px;height:50%;transform-origin:bottom center;background:linear-gradient(to top,rgba(17,166,91,.7),transparent);animation:radar-rot 3s linear infinite;border-radius:1px;filter:blur(.5px)}
+
+/* Agent dots on radar */
+.radar-dot{position:absolute;transform:translate(-50%,-50%);cursor:pointer}
+.radar-dot-inner{width:10px;height:10px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px rgba(150,194,68,.9);position:relative;z-index:2;transition:transform .2s}
+.radar-dot:hover .radar-dot-inner{transform:scale(1.5)}
+.radar-dot::before{content:'';position:absolute;top:50%;left:50%;width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(150,194,68,.4);transform:translate(-50%,-50%);animation:dot-pulse 2s ease-out infinite}
+.radar-dot::after{content:'';position:absolute;top:50%;left:50%;width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(150,194,68,.2);transform:translate(-50%,-50%);animation:dot-pulse 2s ease-out .7s infinite}
+@keyframes dot-pulse{0%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(3.5);opacity:0}}
+
+/* Dot tooltip */
+.radar-dot-tip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:rgba(4,20,10,.96);border:1px solid rgba(17,166,91,.4);border-radius:10px;padding:7px 12px;font-family:var(--font-mono);font-size:11px;color:#fff;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;z-index:20}
+.radar-dot-tip b{color:var(--lime)}
+.radar-dot:hover .radar-dot-tip{opacity:1}
+
+/* Gold "you" dot at center */
+.radar-center-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5}
+.radar-center-inner{width:14px;height:14px;border-radius:50%;background:var(--gold-soft);box-shadow:0 0 16px rgba(224,168,0,.9);border:2px solid rgba(255,255,255,.6)}
+
+/* Coverage stat strip */
+.agents-stats{display:flex;gap:0;margin-bottom:32px}
+.agents-stat{flex:1;padding:16px;border:1px solid rgba(255,255,255,.08);text-align:center}
+.agents-stat:first-child{border-radius:16px 0 0 16px}
+.agents-stat:last-child{border-radius:0 16px 16px 0}
+.agents-stat-n{font-family:var(--font-mono);font-size:28px;font-weight:700;color:var(--lime);letter-spacing:-.03em;line-height:1}
+.agents-stat-l{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.08em;text-transform:uppercase;margin-top:5px}
+
+/* Hover effects */
+#agents .split-li{border-color:rgba(150,194,68,.15);transition:background .25s,transform .25s}
+#agents .split-li:hover{background:rgba(150,194,68,.06);transform:translateX(6px);border-radius:12px;border-color:rgba(150,194,68,.3)}
+#agents .split-li i{background:rgba(150,194,68,.12);color:var(--lime)}
+
+@media(max-width:1024px){.agents-layout{grid-template-columns:1fr;gap:48px}.radar-display{width:340px;height:340px}}
+@media(max-width:480px){.radar-display{width:280px;height:280px}}
+
+/* =========================================================================
+   LIGHTNING SECTION — "The Spark" 
+   ========================================================================= */
+#lightning{background:linear-gradient(150deg,#020208 0%,#08081e 50%,#060418 100%)}
+#lightning::before{background:radial-gradient(circle,rgba(224,168,0,.18),transparent 64%);top:-100px;right:calc(50% - 280px)}
+#lightning::after{background:radial-gradient(circle,rgba(90,60,200,.15),transparent 66%);bottom:-160px;left:-60px}
+
+.lightning-layout{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;width:100%}
+
+/* Big bolt visual */
+.bolt-visual{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;height:400px}
+.bolt-svg-wrap{position:relative;z-index:2}
+.bolt-svg{filter:drop-shadow(0 0 24px rgba(224,168,0,.65)) drop-shadow(0 0 60px rgba(224,168,0,.25));animation:bolt-breathe 2.4s ease-in-out infinite}
+@keyframes bolt-breathe{0%,100%{filter:drop-shadow(0 0 20px rgba(224,168,0,.55)) drop-shadow(0 0 50px rgba(224,168,0,.2))}50%{filter:drop-shadow(0 0 40px rgba(224,168,0,.9)) drop-shadow(0 0 90px rgba(224,168,0,.4))}}
+
+/* Electric arc particles that follow mouse */
+.arc-canvas{position:absolute;inset:0;pointer-events:none}
+
+/* Speed stats around the bolt */
+.bolt-stat{position:absolute;font-family:var(--font-mono);display:flex;flex-direction:column;gap:3px}
+.bolt-stat-n{font-size:28px;font-weight:700;color:#fff;letter-spacing:-.03em;line-height:1}
+.bolt-stat-l{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.1em;text-transform:uppercase}
+.bolt-stat-1{top:20px;left:10px}
+.bolt-stat-2{top:20px;right:10px;text-align:right}
+.bolt-stat-3{bottom:30px;left:50%;transform:translateX(-50%);text-align:center}
+
+/* Transmission address — chars appear one by one on hover */
+.transmit-wrap{margin-top:32px;display:flex;justify-content:center}
+.transmit-chip{display:inline-flex;align-items:center;gap:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:10px 12px 10px 18px;transition:border-color .3s}
+.transmit-chip:hover{border-color:rgba(224,168,0,.45)}
+.transmit-addr{font-family:var(--font-mono);font-size:16px;color:#fff;letter-spacing:.01em}
+.transmit-char{display:inline-block;opacity:0;animation:char-appear .05s forwards}
+@keyframes char-appear{to{opacity:1}}
+.transmit-cpy{width:38px;height:38px;border-radius:50%;background:var(--gold);color:#3a2c00;display:grid;place-items:center;cursor:pointer;border:none;transition:background .2s,transform .2s;font-size:17px}
+.transmit-cpy:hover{background:var(--gold-soft);transform:scale(1.1)}
+
+/* Hover: links glide right with gold arrow */
+#lightning .split-li{border-color:rgba(224,168,0,.12);transition:background .25s,transform .25s}
+#lightning .split-li:hover{background:rgba(224,168,0,.05);transform:translateX(6px);border-radius:12px;border-color:rgba(224,168,0,.28)}
+#lightning .split-li i{background:rgba(224,168,0,.12);color:var(--gold-soft)}
+
+@media(max-width:1024px){.lightning-layout{grid-template-columns:1fr;gap:48px}.bolt-visual{height:280px}}
+
+/* =========================================================================
+   TRUST SECTION — "The Ledger"
+   ========================================================================= */
+#trust{background:linear-gradient(150deg,#030c07 0%,#071a0e 50%,#040c07 100%)}
+#trust::before{background:radial-gradient(circle,rgba(17,166,91,.18),transparent 64%)}
+#trust::after{background:radial-gradient(circle,rgba(224,168,0,.12),transparent 66%)}
+
+.trust-chain{display:flex;flex-direction:column;gap:0;margin-top:56px;max-width:860px;margin-left:auto;margin-right:auto}
+.ledger-block{background:rgba(255,255,255,.03);border:1px solid rgba(17,166,91,.15);border-radius:0;padding:24px 28px;display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:20px;transition:background .25s,border-color .25s,transform .25s;position:relative;overflow:hidden;cursor:default}
+.ledger-block:first-child{border-radius:20px 20px 0 0}
+.ledger-block:last-child{border-radius:0 0 20px 20px}
+.ledger-block + .ledger-block{border-top:none}
+.ledger-block::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,transparent,rgba(17,166,91,.6),transparent);opacity:0;transition:opacity .3s}
+.ledger-block:hover::before{opacity:1}
+.ledger-block:hover{background:rgba(17,166,91,.06);border-color:rgba(17,166,91,.35);transform:translateX(4px)}
+.ledger-block-icon{width:52px;height:52px;border-radius:15px;background:rgba(17,166,91,.1);border:1px solid rgba(17,166,91,.2);display:grid;place-items:center;font-size:22px;color:var(--lime);flex:none;transition:all .3s}
+.ledger-block:hover .ledger-block-icon{background:rgba(17,166,91,.18);box-shadow:0 0 20px rgba(17,166,91,.2)}
+.ledger-block-body h3{font-family:var(--font-display);font-weight:600;font-size:17px;color:#fff;margin-bottom:4px}
+.ledger-block-body p{font-size:14px;color:rgba(255,255,255,.6);line-height:1.5;margin:0}
+.ledger-block-hash{font-family:var(--font-mono);font-size:9px;color:rgba(17,166,91,.3);letter-spacing:.08em;transition:color .3s;text-align:right}
+.ledger-block:hover .ledger-block-hash{color:rgba(17,166,91,.7)}
+.ledger-connector{width:3px;height:16px;background:linear-gradient(to bottom,rgba(17,166,91,.4),rgba(17,166,91,.15));margin:0 auto}
+
+/* Trust hover: block "confirming" effect */
+.ledger-confirm{position:absolute;top:10px;right:12px;font-family:var(--font-mono);font-size:9px;color:var(--lime);letter-spacing:.06em;opacity:0;transition:opacity .3s;display:flex;align-items:center;gap:5px}
+.ledger-block:hover .ledger-confirm{opacity:1}
+.ledger-confirm i{font-size:12px}
+
+/* =========================================================================
+   CONVERTER SECTION — enhanced hover
+   ========================================================================= */
+#convert .ocard{transition:border-color .25s,background .25s,transform .25s}
+#convert .ocard:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.1)}
+#convert .ocard.gold:hover{border-color:rgba(224,168,0,.4);background:rgba(224,168,0,.08)}
+#convert .ocard.grn:hover{border-color:rgba(150,194,68,.4);background:rgba(150,194,68,.06)}
+
+/* =========================================================================
+   SECTION KICKERS — nav accent colors per section
+   ========================================================================= */
+#save .kicker{color:rgba(200,210,255,.8)}
+#mpesa .kicker{color:var(--lime)}
+#chama .kicker{color:var(--gold-soft)}
+#agents .kicker{color:var(--lime)}
+#lightning .kicker{color:var(--gold-soft)}
+#trust .kicker{color:var(--lime)}
+
+/* =========================================================================
+   NAV LINK SECTION ACCENTS — each link glows its section color on hover
+   ========================================================================= */
+.navlinks a{position:relative;transition:color .25s}
+.navlinks a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1.5px;border-radius:1px;transform:scaleX(0);transition:transform .22s ease,background .22s}
+.navlinks a[data-sec="inflation"]:hover::after,.navlinks a[data-sec="inflation"].active-link::after{background:var(--gold-soft);transform:scaleX(1)}
+.navlinks a[data-sec="save"]:hover::after,.navlinks a[data-sec="save"].active-link::after{background:rgba(150,160,255,.9);transform:scaleX(1)}
+.navlinks a[data-sec="mpesa"]:hover::after,.navlinks a[data-sec="mpesa"].active-link::after{background:var(--lime);transform:scaleX(1)}
+.navlinks a[data-sec="chama"]:hover::after,.navlinks a[data-sec="chama"].active-link::after{background:var(--gold-soft);transform:scaleX(1)}
+.navlinks a[data-sec="agents"]:hover::after,.navlinks a[data-sec="agents"].active-link::after{background:var(--lime);transform:scaleX(1)}
+.navlinks a[data-sec="lightning"]:hover::after,.navlinks a[data-sec="lightning"].active-link::after{background:var(--gold-soft);transform:scaleX(1)}
+.navlinks a[data-sec="convert"]:hover::after,.navlinks a[data-sec="convert"].active-link::after{background:var(--lime);transform:scaleX(1)}
+
+/* M-Pesa 3D phone tilt via CSS custom properties set by JS */
+.mpesa-phone-3d{
+  transform:perspective(1200px) rotateY(calc(var(--mx,0)*14deg)) rotateX(calc(var(--my,0)*-9deg));
+  transition:transform .12s ease;
+  will-change:transform;
+}
+
+/* Savings section — fix particle orbit base position using absolute */
+.savings-particle{
+  position:absolute;
+  width:7px;height:7px;border-radius:50%;
+}
+.sp1{top:calc(50% - 3.5px);left:50%;
+  animation:savings-orbit1 9s linear infinite}
+.sp2{top:calc(50% - 3.5px);left:50%;
+  animation:savings-orbit1 9s linear -3s infinite}
+.sp3{top:calc(50% - 3.5px);left:50%;
+  animation:savings-orbit1 9s linear -6s infinite}
+@keyframes savings-orbit1{
+  0%  {transform:translateX(225px) rotate(0deg)   translateX(-225px) rotate(0deg)}
+  100%{transform:translateX(225px) rotate(360deg) translateX(-225px) rotate(-360deg)}
+}
+
+/* Ledger block reveal animation */
+.ledger-block{
+  opacity:0;
+  transform:translateX(-16px);
+  transition:opacity .5s ease, transform .5s ease, background .25s, border-color .25s;
+}
+.ledger-block.in{opacity:1;transform:translateX(0)}
+
+/* Chama section — responsive arena sizing */
+@media(max-width:1024px){
+  .chama-layout{grid-template-columns:1fr;gap:48px}
+}
+
+/* Savings particle orbit — proper CSS orbit trick */
+.savings-particle{position:absolute;top:calc(50% - 3.5px);left:calc(50% - 3.5px);width:7px;height:7px;border-radius:50%;background:var(--gold-soft);box-shadow:0 0 10px rgba(224,168,0,.8)}
+.sp-lime{background:var(--lime);box-shadow:0 0 10px rgba(150,194,68,.8)}
+.sp1{animation:sat-orbit 9s linear infinite}
+.sp2{animation:sat-orbit 9s linear -3s infinite}
+.sp3{animation:sat-orbit 9s linear -6s infinite}
+@keyframes sat-orbit{
+  from{transform:rotate(0deg) translateX(225px)}
+  to  {transform:rotate(360deg) translateX(225px)}
+}
+@media(max-width:1024px){
+  .sp1,.sp2,.sp3{animation-name:sat-orbit-md}
+  @keyframes sat-orbit-md{from{transform:rotate(0deg) translateX(175px)}to{transform:rotate(360deg) translateX(175px)}}
+}
+@media(max-width:640px){
+  .sp1,.sp2,.sp3{animation-name:sat-orbit-sm}
+  @keyframes sat-orbit-sm{from{transform:rotate(0deg) translateX(132px)}to{transform:rotate(360deg) translateX(132px)}}
+}
+
+/* Override the earlier conflicting particle rules */
+.savings-particle{background:var(--gold-soft);box-shadow:0 0 10px rgba(224,168,0,.8);animation:sat-orbit 9s linear infinite}
