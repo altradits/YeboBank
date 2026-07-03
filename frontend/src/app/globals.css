@@ -89,10 +89,12 @@ a{color:inherit;text-decoration:none}
 .navactions .login:hover{color:#fff}
 .demo-btn{font-family:var(--font-display);font-weight:600;font-size:13px;background:rgba(168,116,0,.14);color:var(--gold-soft);border:1.5px solid rgba(168,116,0,.35);padding:7px 15px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;transition:.2s}
 .demo-btn:hover{background:rgba(168,116,0,.24);color:var(--gold-soft)}
+.nav-theme-toggle{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);color:rgba(255,255,255,.72);display:grid;place-items:center;cursor:pointer;font-size:16px;transition:.2s;flex-shrink:0}
+.nav-theme-toggle:hover{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.25)}
 @media(max-width:880px){.navlinks{display:none}}
 
 /* ===== landing above-fold slot ===== */
-.landing-above-fold{display:flex;flex-direction:column;height:100dvh;padding-top:72px}
+.landing-above-fold{display:flex;flex-direction:column;height:100dvh;padding-top:72px;background:#050A06}
 .landing-above-fold .hero{flex:1;min-height:0;padding-top:24px;padding-bottom:40px}
 body.landing-page,html:has(body.landing-page){scrollbar-width:none;overflow-x:hidden}
 body.landing-page::-webkit-scrollbar,html:has(body.landing-page)::-webkit-scrollbar{display:none;width:0}

@@ -26,8 +26,11 @@ export default function SiteNav() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [accent, setAccent] = useState(DEFAULT_DARK);
+  const [dark, setDark] = useState(true);
 
   useEffect(() => {
+    setDark(document.documentElement.dataset.theme !== "light");
+
     const NAV_H = 72;
 
     function update() {
@@ -50,6 +53,13 @@ export default function SiteNav() {
     update();
     return () => window.removeEventListener("scroll", update);
   }, []);
+
+  function toggleTheme() {
+    const next = dark ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("yebo-theme", next); } catch {}
+    setDark(!dark);
+  }
 
   const bg     = scrolled ? accent : "transparent";
   const blur   = scrolled ? "saturate(160%) blur(16px)" : "blur(0px)";
@@ -74,6 +84,13 @@ export default function SiteNav() {
           <a href="#convert" data-sec="convert">Convert</a>
         </div>
         <div className="navactions">
+          <button
+            className="nav-theme-toggle"
+            onClick={toggleTheme}
+            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            <i className={`ti ${dark ? "ti-sun" : "ti-moon"}`} />
+          </button>
           <Link className="login" href="/login">Log in</Link>
           <Link className="demo-btn" href="/dashboard">Try demo <i className="ti ti-arrow-right" /></Link>
           <Button onClick={() => router.push("/register")}>Open account</Button>
