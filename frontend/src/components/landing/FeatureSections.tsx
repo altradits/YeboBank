@@ -18,7 +18,9 @@ export default function FeatureSections() {
   );
 }
 
-/* ── The Problem — Coffee Mug Comparison ─────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   INFLATION — The Problem (unchanged — reference design)
+   ══════════════════════════════════════════════════════════════════════════ */
 
 type MugSize = "lg" | "sm" | "xs";
 const MUG_D: Record<MugSize, { bw: number; bh: number; st: number; hw: number }> = {
@@ -40,7 +42,6 @@ function MugSVG({
   const lsw = size === "lg" ? 2 : 1.5;
   const fs  = size === "lg" ? 11 : size === "sm" ? 7.5 : 5.5;
 
-  // Steam wisp paths — S-curves rising from mug opening
   const s = (xp: number, dy: number) => {
     const x = +(bw * xp).toFixed(1);
     return `M${x},${st} C${+(x - 6).toFixed(1)},${+(st - st * 0.35).toFixed(1)} ${+(x + 5).toFixed(1)},${+(st * 0.2).toFixed(1)} ${x},${dy}`;
@@ -48,7 +49,6 @@ function MugSVG({
 
   return (
     <svg viewBox={`0 0 ${vw} ${vh}`} width={vw} height={vh}>
-      {/* Steam */}
       {steam && (<>
         <path className="mug-st"  d={s(0.28, 2)}    fill="none" stroke="rgba(255,255,255,.3)"  strokeWidth={lsw}      strokeLinecap="round" />
         <path className="mug-st2" d={s(0.54, 1)}    fill="none" stroke="rgba(255,255,255,.22)" strokeWidth={lsw * .8} strokeLinecap="round" />
@@ -56,18 +56,14 @@ function MugSVG({
           <path className="mug-st3" d={s(0.76, 2)}  fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="1.3"      strokeLinecap="round" />
         )}
       </>)}
-      {/* Mug body */}
       <rect x="1" y={st} width={bw - 2} height={bh} rx={rx} ry={rx}
         fill={`rgba(${rgb},.14)`} stroke={stroke} strokeWidth={lsw} />
-      {/* Handle — D-curve on right */}
       <path
         d={`M${bw - 1},${st + bh * 0.24} C${bw + hw},${st + bh * 0.24} ${bw + hw},${st + bh * 0.76} ${bw - 1},${st + bh * 0.76}`}
         fill="none" stroke={stroke} strokeWidth={lsw} strokeLinecap="round" />
-      {/* Liquid surface */}
       <ellipse cx={bw / 2} cy={st + 1} rx={bw / 2 - 5}
         ry={size === "lg" ? 4.5 : size === "sm" ? 2.5 : 1.6}
         fill={`rgba(${rgb},.38)`} />
-      {/* Labels */}
       {label && (
         <text x={bw / 2} y={st + bh * 0.44} textAnchor="middle" dominantBaseline="middle"
           fill="#fff" fontSize={fs} fontWeight="700" fontFamily="'IBM Plex Mono',monospace">{label}</text>
@@ -80,26 +76,14 @@ function MugSVG({
   );
 }
 
-// Real historical BTC/KES rates (approximate year-end)
 const BTC_KES: Record<number, number> = {
-  2015: 30_000,
-  2016: 82_000,
-  2017: 1_550_000,
-  2018: 355_000,
-  2019: 725_000,
-  2020: 3_190_000,
-  2021: 7_800_000,
-  2022: 1_980_000,
-  2023: 5_670_000,
-  2024: 12_480_000,
-  2025: 13_200_000,
-  2026: 7_994_000,  // current: 1 KES = 12.51 sats → BTC/KES ≈ 7,994,000
+  2015: 30_000,  2016: 82_000,   2017: 1_550_000, 2018: 355_000,
+  2019: 725_000, 2020: 3_190_000, 2021: 7_800_000, 2022: 1_980_000,
+  2023: 5_670_000, 2024: 12_480_000, 2025: 13_200_000, 2026: 7_994_000,
 };
 
-// KES 100 in 2015 → sats. Math.ceil ensures re-converting back gives ≥ KES 100
-// so floor(cups) in 2015 = 10 (matches KES panel exactly).
-const SAT_KES_2015 = BTC_KES[2015] / 100_000_000; // KES per sat ≈ 0.0003
-const TOTAL_SATS   = Math.ceil(100 / SAT_KES_2015); // 333,334 sats (KES 100 at 2015 rate)
+const SAT_KES_2015 = BTC_KES[2015] / 100_000_000;
+const TOTAL_SATS   = Math.ceil(100 / SAT_KES_2015);
 
 function fmtN(n: number): string {
   return n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M`
@@ -112,7 +96,6 @@ function fmtSats(n: number): string {
 
 const YEARS = [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026] as const;
 
-// Six cups orbit: alternating KES (red) and Sats (gold) — evenly spaced over 9s period
 const ORBIT_CUPS = [
   { type: "kes" as const, delay: "0s",    vy: -38 },
   { type: "sat" as const, delay: "-1.5s", vy:  32 },
@@ -179,8 +162,6 @@ function Inflation() {
   return (
     <section className="sec" id="inflation" ref={secRef}>
       <div className="wrap">
-
-        {/* Year tab nav — full width */}
         <div className="io-year-nav reveal">
           {YEARS.map(y => (
             <button
@@ -193,14 +174,10 @@ function Inflation() {
           ))}
         </div>
 
-        {/* Two-column: large orbit left, content right */}
         <div className="infl-main">
-
-          {/* LEFT — 3-D orbit, fills available space */}
           <div className="infl-orbit-panel reveal d1">
             <div className="io-viewport">
               <div className="io-system">
-
                 <div className="io-center">
                   <div className="io-center-body">
                     <div className="io-c-year">{year}</div>
@@ -235,14 +212,11 @@ function Inflation() {
                     </div>
                   </div>
                 ))}
-
               </div>
             </div>
           </div>
 
-          {/* RIGHT — heading, compare, stats, CTA */}
           <div className="infl-side reveal d2">
-
             <div>
               <h2 className="h2">
                 KES loses buying power.<br />
@@ -295,230 +269,500 @@ function Inflation() {
                 Protect my savings with sats <i className="ti ti-arrow-right" />
               </Button>
             </div>
-
           </div>
         </div>
-
       </div>
     </section>
   );
 }
 
-/* ── The Solution ────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   SAVINGS — "The Vault": animated dial, interactive term picker
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const TERMS = [
+  { yr: 5,  label: "5 years",  sats: 52_000,  apy: "~5.2% APY" },
+  { yr: 7,  label: "7 years",  sats: 78_000,  apy: "~5.4% APY" },
+  { yr: 10, label: "10 years", sats: 124_000, apy: "~5.8% APY" },
+] as const;
+
+const TICK_COUNT = 36;
+
 function Savings() {
-  const apyRef = useRef<HTMLSpanElement>(null);
-  const router = useRouter();
+  const router     = useRouter();
+  const numRef     = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [term, setTerm]       = useState(0);
+  const [visible, setVisible] = useState(false);
+  const targetSats = TERMS[term].sats;
 
   useEffect(() => {
-    const el = apyRef.current;
+    const el = sectionRef.current;
     if (!el) return;
-    const io = new IntersectionObserver((ents) => {
-      ents.forEach((e) => {
-        if (e.isIntersecting) {
-          animateCount(el, 52000, 1600);
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.4 });
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); io.disconnect(); } },
+      { threshold: 0.15 }
+    );
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!visible || !numRef.current) return;
+    animateCount(numRef.current, targetSats, 1400);
+  }, [visible, targetSats]);
+
   return (
-    <section className="sec sec-dark" id="save">
-      <div className="wrap split">
-        <div className="split-visual reveal">
-          <div className="balance flat">
-            <div className="head">
-              <span className="lbl">Locked savings · 5-year</span>
-              <span className="badge"><i className="ti ti-sparkles" /> Target ~5.2% APY</span>
+    <section className="sec" id="save" ref={sectionRef}>
+      <div className="wrap">
+        <div className="savings-layout">
+
+          {/* LEFT — animated dial */}
+          <div className="savings-dial-wrap reveal">
+            {/* Concentric rotating rings */}
+            <div className="savings-ring savings-ring-1" />
+            <div className="savings-ring savings-ring-2" />
+            <div className="savings-ring savings-ring-3" />
+            <div className="savings-ring savings-ring-4" />
+
+            {/* Tick marks on outer ring */}
+            <div className="savings-ticks" aria-hidden="true">
+              {Array.from({ length: TICK_COUNT }).map((_, i) => (
+                <div
+                  key={i}
+                  className="savings-tick"
+                  style={{
+                    height: i % 6 === 0 ? 10 : 5,
+                    left: "calc(50% - 1px)",
+                    top: 0,
+                    transform: `rotate(${(360 / TICK_COUNT) * i}deg)`,
+                    opacity: i % 6 === 0 ? 0.45 : 0.18,
+                  }}
+                />
+              ))}
             </div>
-            <div className="amt mn"><span ref={apyRef}>0</span> sats</div>
-            <div className="conv">earned this year</div>
-            <div className="qa one">
-              <div className="q">
-                <i className="ti ti-info-circle" /> Interest paid from real treasury
-                yield — never from other savers&apos; deposits.
-              </div>
+
+            {/* Orbiting sat particles */}
+            <div className="savings-particle sp1" aria-hidden="true" />
+            <div className="savings-particle sp2 sp-lime" aria-hidden="true" />
+            <div className="savings-particle sp3" aria-hidden="true" />
+
+            {/* Center card */}
+            <div className="savings-center-card">
+              <div className="savings-dial-num" ref={numRef}>0</div>
+              <div className="savings-dial-unit">sats</div>
+              <div className="savings-dial-label">earned / year</div>
+            </div>
+
+            {/* Term picker cards below dial */}
+            <div className="savings-terms" style={{ position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 380 }}>
+              {TERMS.map((t, i) => (
+                <div
+                  key={i}
+                  className={`term-card${term === i ? " active" : ""}`}
+                  onClick={() => setTerm(i)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && setTerm(i)}
+                >
+                  <div className="term-yr">{t.yr}<span style={{ fontSize: 12, fontWeight: 400 }}>yr</span></div>
+                  <div className="term-label">lock period</div>
+                  <div className="term-apy">{t.apy}</div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-        <div className="reveal d1">
-          <h2 className="h2">Your money earns <span className="accent">while you sleep.</span></h2>
-          <p className="lead">
-            Lock your sats and earn a share of real returns, distributed
-            transparently every month. We take a flat 2% of the yield — nothing
-            else. If the pool earns nothing, we earn nothing.
-          </p>
-          <div className="split-list">
-            <SplitLi icon="ti-lock" title="Lock and grow" desc="Set sats aside and watch interest land each month." />
-            <SplitLi icon="ti-scale" title="Honest by design" desc="Your principal is never touched for fees — ever." />
-            <SplitLi icon="ti-arrow-back-up" title="Leave early if you must" desc="Your full principal always comes back to you." />
+
+          {/* RIGHT — copy */}
+          <div className="reveal d1">
+            <div className="kicker"><i className="ti ti-lock" /> Locked savings</div>
+            <h2 className="h2">Your money earns <span className="accent">while you sleep.</span></h2>
+            <p className="lead">
+              Lock your sats and earn a share of real treasury yield, distributed
+              every month. We take a flat 2% of the yield — nothing else. If the
+              pool earns nothing, we earn nothing.
+            </p>
+            <div className="split-list">
+              <SplitLi icon="ti-lock"          title="Set it and forget it" desc="Choose a term, lock your sats, let compound interest run." />
+              <SplitLi icon="ti-scale"          title="Honest by design"    desc="Your principal is never touched for fees — ever." />
+              <SplitLi icon="ti-arrow-back-up"  title="Leave early if needed" desc="Your full principal comes back to you, no questions asked." />
+            </div>
+            <div style={{ marginTop: 32, display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Button variant="gold" onClick={() => router.push("/register?redirect=/savings")}>
+                Start saving today <i className="ti ti-arrow-right" />
+              </Button>
+              <Button variant="ghost" onDark onClick={() => router.push("/dashboard")}>
+                See demo
+              </Button>
+            </div>
           </div>
-          <div style={{ marginTop: 28 }}>
-            <Button variant="gold" onClick={() => router.push("/register?redirect=/savings")}>
-              Start saving today <i className="ti ti-arrow-right" />
-            </Button>
-          </div>
+
         </div>
       </div>
     </section>
   );
 }
 
-/* ── M-Pesa ──────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   M-PESA — "The Bridge": 3D-tilt phone + animated flow
+   ══════════════════════════════════════════════════════════════════════════ */
+
 function Mpesa() {
-  const router = useRouter();
-  const rate = useRate();
-  const sats = Math.round(500 * rate.satsPerKes);
+  const router  = useRouter();
+  const rate    = useRate();
+  const sats    = Math.round(500 * rate.satsPerKes);
+  const visRef  = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
+
+  useEffect(() => {
+    const el = visRef.current;
+    if (!el) return;
+    const onMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width - 0.5);
+      const y = ((e.clientY - rect.top) / rect.height - 0.5);
+      el.style.setProperty("--mx", String(x));
+      el.style.setProperty("--my", String(y));
+    };
+    const onLeave = () => {
+      el.style.setProperty("--mx", "0");
+      el.style.setProperty("--my", "0");
+    };
+    el.addEventListener("mousemove", onMove);
+    el.addEventListener("mouseleave", onLeave);
+    return () => {
+      el.removeEventListener("mousemove", onMove);
+      el.removeEventListener("mouseleave", onLeave);
+    };
+  }, []);
+
   return (
     <section className="sec" id="mpesa">
-      <div className="wrap split flip">
-        <div className="split-visual reveal">
-          <div className="phone">
-            <div className="scr">
-              <div className="ph-top">M-PESA <span>STK Push</span></div>
-              <div className="mp-card">
-                <div className="mp-row"><span>Pay to</span><b>YeboBank</b></div>
-                <div className="mp-row"><span>Amount</span><b>KES 500.00</b></div>
-                <div className="mp-row"><span>You receive</span><b className="grn">≈ {num(sats)} sats</b></div>
-                <div className="mp-btn">Enter PIN to confirm</div>
+      <div className="wrap">
+        <div className="mpesa-layout">
+
+          {/* LEFT — visual: 3D phone + flow line + wallet */}
+          <div
+            className="mpesa-visual"
+            ref={visRef}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+          >
+            <div className="mpesa-phone-3d">
+              <div className="phone">
+                <div className="scr">
+                  <div className="ph-top">M-PESA <span>STK Push</span></div>
+                  <div className="mp-card">
+                    <div className="mp-row"><span>Pay to</span><b>YeboBank</b></div>
+                    <div className="mp-row"><span>Amount</span><b>KES 500.00</b></div>
+                    <div className="mp-row"><span>You receive</span><b className="grn">≈ {num(sats)} sats</b></div>
+                    <div className="mp-btn">Enter PIN to confirm</div>
+                  </div>
+                  <div className="mp-ok">
+                    <i className="ti ti-circle-check" />
+                    <div>
+                      <div className="t">Deposit confirmed</div>
+                      <div className="s">Balance updated instantly</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="mp-ok">
-                <i className="ti ti-circle-check" />
-                <div><div className="t">Deposit confirmed</div><div className="s">Balance updated instantly</div></div>
+            </div>
+
+            {/* Animated flow SVG */}
+            <svg className="mpesa-flow-svg" viewBox="0 0 268 60" aria-hidden="true" style={{ width: 268, height: 60 }}>
+              <path
+                className={`mpesa-flow-path${hovered ? " fast" : ""}`}
+                d="M 134 4 C 80 4 40 56 134 56 C 228 56 188 4 134 4"
+              />
+              <circle r="4" fill="var(--lime)" opacity=".9">
+                <animateMotion dur={hovered ? "0.6s" : "1.4s"} repeatCount="indefinite"
+                  path="M 134 4 C 80 4 40 56 134 56 C 228 56 188 4 134 4" />
+              </circle>
+            </svg>
+
+            {/* Destination wallet */}
+            <div className="mpesa-wallet-card">
+              <div className="mpesa-wallet-icon"><i className="ti ti-wallet" /></div>
+              <div>
+                <div className="mpesa-wallet-text">Your YeboBank wallet</div>
+                <div className="mpesa-wallet-val">+{num(sats)} sats</div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="reveal d1">
-          <h2 className="h2">Top up the way you <span className="accent">already pay.</span></h2>
-          <p className="lead">
-            Deposit and withdraw in shillings through the M-Pesa network 51 million
-            Kenyans already use. No new app habits, no cards — just an STK Push and
-            a PIN you already know.
-          </p>
-          <div className="split-list">
-            <SplitLi icon="ti-arrow-down" title="Deposit in seconds" desc="A prompt on your phone, your PIN, done." />
-            <SplitLi icon="ti-arrow-up" title="Cash out to your line" desc="Send shillings straight back to M-Pesa." />
+
+          {/* RIGHT — copy */}
+          <div className="reveal d1">
+            <div className="kicker"><i className="ti ti-device-mobile" /> M-Pesa integration</div>
+            <h2 className="h2">Top up the way you <span className="grow">already pay.</span></h2>
+            <p className="lead">
+              Deposit and withdraw in shillings through the M-Pesa network
+              51 million Kenyans already use. No new habits, no cards —
+              just an STK Push and a PIN you already know.
+            </p>
+            <div className="split-list">
+              <SplitLi icon="ti-arrow-down" title="Deposit in seconds"   desc="A prompt on your phone, your PIN, done. Sats land instantly." />
+              <SplitLi icon="ti-arrow-up"   title="Cash out to M-Pesa"  desc="Withdraw shillings straight back to your M-Pesa line." />
+              <SplitLi icon="ti-shield"     title="No new app to learn"  desc="The same STK Push you've used a thousand times." />
+            </div>
+            <div style={{ marginTop: 32 }}>
+              <Button variant="gold" onClick={() => router.push("/register?redirect=/deposit")}>
+                Deposit via M-Pesa <i className="ti ti-arrow-right" />
+              </Button>
+            </div>
           </div>
-          <div style={{ marginTop: 28 }}>
-            <Button variant="gold" onClick={() => router.push("/register?redirect=/deposit")}>
-              Deposit via M-Pesa <i className="ti ti-arrow-right" />
-            </Button>
-          </div>
+
         </div>
       </div>
     </section>
   );
 }
 
-/* ── Chama ───────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   CHAMA — "The Circle": mouse-magnet member nodes
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const MEMBERS = [
+  { name: "Wanjiku", initial: "W", contrib: "KES 12,000", color: "#C49020", bg: "rgba(196,144,32,.22)", angle: 0   },
+  { name: "Kamau",   initial: "K", contrib: "KES  8,500", color: "#96C244", bg: "rgba(150,194,68,.2)",  angle: 60  },
+  { name: "Aisha",   initial: "A", contrib: "KES 15,000", color: "#C49020", bg: "rgba(196,144,32,.22)", angle: 120 },
+  { name: "Otieno",  initial: "O", contrib: "KES  9,200", color: "#96C244", bg: "rgba(150,194,68,.2)",  angle: 180 },
+  { name: "Nafula",  initial: "N", contrib: "KES 11,400", color: "#C49020", bg: "rgba(196,144,32,.22)", angle: 240 },
+  { name: "Mwenda",  initial: "M", contrib: "KES  7,800", color: "#96C244", bg: "rgba(150,194,68,.2)",  angle: 300 },
+] as const;
+
+const RADIUS = 175;
+
 function Chama() {
-  const router = useRouter();
-  const nodes = [
-    { s: 84, l: "calc(50% - 42px)", t: "calc(50% - 42px)", txt: "Chama", hub: true, d: 0 },
-    { s: 52, l: "10%", t: "14%", txt: "+5k", d: 0.1 },
-    { s: 46, l: "78%", t: "10%", txt: "+3k", d: 0.18 },
-    { s: 58, l: "80%", t: "54%", txt: "+8k", d: 0.26 },
-    { s: 48, l: "55%", t: "78%", txt: "+2k", d: 0.34 },
-    { s: 54, l: "12%", t: "66%", txt: "+4k", d: 0.42 },
-    { s: 42, l: "30%", t: "82%", txt: "+1k", d: 0.5 },
-  ];
-  const lines = [
-    ["14%", "20%"], ["82%", "16%"], ["86%", "60%"],
-    ["60%", "84%"], ["18%", "72%"], ["34%", "88%"],
-  ];
+  const router     = useRouter();
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const sec = sectionRef.current;
+    if (!sec) return;
+
+    const members = sec.querySelectorAll<HTMLElement>(".chama-member");
+
+    const onMove = (e: MouseEvent) => {
+      const rect = sec.getBoundingClientRect();
+      const cx   = rect.left + rect.width / 2;
+      const cy   = rect.top  + rect.height / 2;
+      const dx   = (e.clientX - cx) / rect.width;
+      const dy   = (e.clientY - cy) / rect.height;
+
+      members.forEach((m, i) => {
+        const pull = 14 + i * 2.5;
+        m.style.setProperty("--pull-x", `${dx * pull}px`);
+        m.style.setProperty("--pull-y", `${dy * pull}px`);
+      });
+    };
+
+    const onLeave = () => {
+      members.forEach(m => {
+        m.style.setProperty("--pull-x", "0px");
+        m.style.setProperty("--pull-y", "0px");
+      });
+    };
+
+    sec.addEventListener("mousemove", onMove);
+    sec.addEventListener("mouseleave", onLeave);
+    return () => {
+      sec.removeEventListener("mousemove", onMove);
+      sec.removeEventListener("mouseleave", onLeave);
+    };
+  }, []);
+
   return (
-    <section className="sec sec-cream" id="chama">
-      <div className="wrap split">
-        <div className="split-visual reveal">
-          <div className="nodes">
-            <svg width="100%" height="100%" style={{ position: "absolute", inset: 0 }} aria-hidden="true">
-              {lines.map(([x, y], i) => (
-                <line key={i} className="node-line" x1="50%" y1="50%" x2={x} y2={y} />
-              ))}
+    <section className="sec" id="chama" ref={sectionRef}>
+      <div className="wrap">
+        <div className="chama-layout">
+
+          {/* LEFT — the circle */}
+          <div className="chama-arena reveal" style={{ width: 480, height: 480, position: "relative", flexShrink: 0, margin: "0 auto" }}>
+            <div className="chama-arena-bg" />
+
+            {/* SVG arcs between adjacent members */}
+            <svg className="chama-arcs-svg" viewBox="0 0 480 480" aria-hidden="true">
+              {MEMBERS.map((m, i) => {
+                const next = MEMBERS[(i + 1) % MEMBERS.length];
+                const toRad = (deg: number) => (deg * Math.PI) / 180;
+                const ax = 240 + RADIUS * Math.cos(toRad(m.angle));
+                const ay = 240 + RADIUS * Math.sin(toRad(m.angle));
+                const bx = 240 + RADIUS * Math.cos(toRad(next.angle));
+                const by = 240 + RADIUS * Math.sin(toRad(next.angle));
+                return (
+                  <path
+                    key={i}
+                    className="chama-arc"
+                    d={`M${ax},${ay} Q240,240 ${bx},${by}`}
+                    stroke={i % 2 === 0 ? "rgba(196,144,32,.55)" : "rgba(150,194,68,.45)"}
+                    style={{ animationDelay: `${i * 0.68}s` }}
+                  />
+                );
+              })}
             </svg>
-            {nodes.map((n, i) => (
-              <div
-                key={i}
-                className={`node${n.hub ? " hub" : ""}`}
-                style={{ width: n.s, height: n.s, left: n.l, top: n.t, transitionDelay: `${n.d}s` }}
-              >
-                {n.txt}
-              </div>
-            ))}
+
+            {/* Member bubbles — positioned via CSS transform from center */}
+            {MEMBERS.map((m, i) => {
+              const rad = (m.angle * Math.PI) / 180;
+              const bx  = RADIUS * Math.cos(rad);
+              const by  = RADIUS * Math.sin(rad);
+              return (
+                <div
+                  key={i}
+                  className="chama-member"
+                  style={{
+                    "--bx": `${bx}px`,
+                    "--by": `${by}px`,
+                    transform: `translate(calc(-50% + ${bx}px + var(--pull-x, 0px)), calc(-50% + ${by}px + var(--pull-y, 0px)))`,
+                  } as React.CSSProperties}
+                  title={`${m.name} — ${m.contrib}`}
+                >
+                  <div
+                    className="chama-av"
+                    style={{ background: m.bg, borderColor: m.color, color: m.color }}
+                  >
+                    {m.initial}
+                  </div>
+                  <div className="chama-member-name">{m.name}</div>
+                  <div className="chama-contrib-tip">{m.contrib}</div>
+                </div>
+              );
+            })}
+
+            {/* Center pool */}
+            <div className="chama-pool">
+              <div className="chama-pool-label">Group pool</div>
+              <div className="chama-pool-amount">KES 63.9k</div>
+              <div className="chama-pool-sub">6 members · active</div>
+            </div>
           </div>
-        </div>
-        <div className="reveal d1">
-          <h2 className="h2">Save together.<br /><span className="grow">See everything.</span></h2>
-          <p className="lead">
-            Run your chama with a shared wallet and a transparent ledger every
-            member can read for themselves. The savings tradition you already
-            trust — now it can&apos;t be raided, and it doesn&apos;t lose value.
-          </p>
-          <div className="split-list">
-            <SplitLi icon="ti-eye" title="Open books" desc="Every contribution and payout is visible to all members." />
-            <SplitLi icon="ti-checkbox" title="Group decisions" desc="Payouts move only when the group agrees." />
+
+          {/* RIGHT — copy */}
+          <div className="reveal d1">
+            <div className="kicker"><i className="ti ti-users" /> Group savings</div>
+            <h2 className="h2">Save together.<br /><span className="grow">See everything.</span></h2>
+            <p className="lead">
+              Run your chama with a shared wallet every member can read.
+              The savings tradition you already trust — now it can&apos;t be raided,
+              and it doesn&apos;t lose value to inflation.
+            </p>
+            <p style={{ marginTop: 14, fontSize: 14, color: "rgba(255,255,255,.45)", fontStyle: "italic" }}>
+              ↑ Move your cursor over the circle to see the group lean toward you.
+            </p>
+            <div className="split-list">
+              <SplitLi icon="ti-eye"       title="Open books"       desc="Every contribution and payout visible to all members." />
+              <SplitLi icon="ti-checkbox"  title="Group decisions"  desc="Payouts move only when the group votes to release them." />
+              <SplitLi icon="ti-trending-up" title="Sats, not KES"  desc="The group pool holds value instead of shrinking to inflation." />
+            </div>
+            <div style={{ marginTop: 32 }}>
+              <Button variant="gold" onClick={() => router.push("/register?redirect=/chama")}>
+                Start or join a chama <i className="ti ti-arrow-right" />
+              </Button>
+            </div>
           </div>
-          <div style={{ marginTop: 28 }}>
-            <Button variant="gold" onClick={() => router.push("/register?redirect=/chama")}>
-              Start or join a chama <i className="ti ti-arrow-right" />
-            </Button>
-          </div>
+
         </div>
       </div>
     </section>
   );
 }
 
-/* ── Agents ──────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   AGENTS — "The Radar": tactical display with pulsing agent dots
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const AGENT_DOTS = [
+  { left: "50%",  top: "50%", label: "Nairobi CBD",   agents: 48, isCenter: false, delay: "0s"    },
+  { left: "38%",  top: "32%", label: "Westlands",     agents: 23, isCenter: false, delay: "0.4s"  },
+  { left: "65%",  top: "35%", label: "Embakasi",      agents: 31, isCenter: false, delay: "0.8s"  },
+  { left: "28%",  top: "58%", label: "Kibera",        agents: 19, isCenter: false, delay: "1.2s"  },
+  { left: "72%",  top: "62%", label: "Kasarani",      agents: 27, isCenter: false, delay: "1.6s"  },
+  { left: "18%",  top: "72%", label: "Mombasa Rd",    agents: 14, isCenter: false, delay: "2.0s"  },
+  { left: "82%",  top: "24%", label: "Ruiru",         agents: 16, isCenter: false, delay: "2.4s"  },
+  { left: "55%",  top: "80%", label: "Rongai",        agents: 12, isCenter: false, delay: "2.8s"  },
+] as const;
+
 function Agents() {
   const router = useRouter();
-  const pins = [
-    { l: "46%", t: "44%", lab: "You", ic: "ti-building-store", d: 0.05 },
-    { l: "20%", t: "24%", lab: "Gikomba", ic: "ti-map-pin", d: 0.15 },
-    { l: "72%", t: "28%", lab: "Kibera", ic: "ti-map-pin", d: 0.25 },
-    { l: "76%", t: "66%", lab: "Kondele", ic: "ti-map-pin", d: 0.35 },
-    { l: "24%", t: "70%", lab: "Mombasa Rd", ic: "ti-map-pin", d: 0.45 },
-  ];
+
   return (
     <section className="sec" id="agents">
-      <div className="wrap split flip">
-        <div className="split-visual reveal">
-          <div className="map">
-            {[140, 240, 340].map((d) => (
-              <div key={d} className="ring" style={{ width: d, height: d, left: `calc(50% - ${d / 2}px)`, top: `calc(50% - ${d / 2}px)` }} />
-            ))}
-            {pins.map((p, i) => (
-              <div key={i} className="pin" style={{ left: p.l, top: p.t, transitionDelay: `${p.d}s` }}>
-                <i className={`ti ${p.ic}`} />
-                <span className="lab">{p.lab}</span>
+      <div className="wrap">
+        <div className="agents-layout">
+
+          {/* LEFT — radar */}
+          <div className="radar-display reveal">
+            <div className="radar-bg" />
+            <div className="radar-ring" />
+            <div className="radar-ring" />
+            <div className="radar-ring" />
+            <div className="radar-cross" aria-hidden="true" />
+            <div className="radar-sweep" aria-hidden="true" />
+            <div className="radar-sweep-line" aria-hidden="true" />
+
+            {/* Agent dots */}
+            {AGENT_DOTS.map((d, i) => (
+              <div
+                key={i}
+                className="radar-dot"
+                style={{ left: d.left, top: d.top, animationDelay: d.delay }}
+              >
+                <div className="radar-dot-inner" />
+                <div className="radar-dot-tip">
+                  <b>{d.label}</b><br />{d.agents} agents nearby
+                </div>
               </div>
             ))}
+
+            {/* Center "you" dot */}
+            <div className="radar-center-dot">
+              <div className="radar-center-inner" title="You" />
+            </div>
           </div>
-        </div>
-        <div className="reveal d1">
-          <h2 className="h2">Cash in and out, <span className="accent">down the street.</span></h2>
-          <p className="lead">
-            No smartphone or bundles? Walk to a neighbourhood agent — a shop you
-            already know — to turn cash into savings and savings back into cash.
-            Agents earn a small commission for serving their community.
-          </p>
-          <div className="split-list">
-            <SplitLi icon="ti-walk" title="Always nearby" desc="A growing network of mawakala across Kenya." />
-            <SplitLi icon="ti-heart-handshake" title="Community first" desc="Local agents, local trust, local livelihoods." />
+
+          {/* RIGHT — copy */}
+          <div className="reveal d1">
+            <div className="agents-stats">
+              <div className="agents-stat">
+                <div className="agents-stat-n">340+</div>
+                <div className="agents-stat-l">Locations</div>
+              </div>
+              <div className="agents-stat">
+                <div className="agents-stat-n">47</div>
+                <div className="agents-stat-l">Counties</div>
+              </div>
+              <div className="agents-stat">
+                <div className="agents-stat-n">24/7</div>
+                <div className="agents-stat-l">Available</div>
+              </div>
+            </div>
+            <div className="kicker"><i className="ti ti-map-pin" /> Agent network</div>
+            <h2 className="h2">Cash in and out, <span className="accent">down the street.</span></h2>
+            <p className="lead">
+              No smartphone? No bundles? Walk to a neighbourhood agent — a shop
+              you already know — to turn cash into savings and savings back into
+              cash. Agents earn commission for serving their community.
+            </p>
+            <div className="split-list">
+              <SplitLi icon="ti-walk"             title="Always nearby"     desc="A growing network of mawakala covering every county." />
+              <SplitLi icon="ti-heart-handshake"  title="Community first"   desc="Local agents, local trust, local livelihoods." />
+              <SplitLi icon="ti-cash"             title="No internet needed" desc="Agents bridge the digital gap — cash works everywhere." />
+            </div>
+            <div style={{ marginTop: 32 }}>
+              <Button variant="gold" onClick={() => router.push("/register?redirect=/agent")}>
+                Find an agent near you <i className="ti ti-arrow-right" />
+              </Button>
+            </div>
           </div>
-          <div style={{ marginTop: 28 }}>
-            <Button variant="gold" onClick={() => router.push("/register?redirect=/agent")}>
-              Find an agent <i className="ti ti-arrow-right" />
-            </Button>
-          </div>
+
         </div>
       </div>
     </section>
   );
 }
+
+/* ── Shared ────────────────────────────────────────────────────────────── */
 
 function SplitLi({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (

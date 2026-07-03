@@ -10,11 +10,11 @@ import LogoMark from "@/components/ui/LogoMark";
 // so the frosted glass picks up whichever tint is active underneath.
 const ACCENTS: Record<string, string> = {
   inflation: "rgba(28,12,0,.72)",
-  save:      "rgba(0,20,8,.72)",
-  mpesa:     "rgba(5,8,20,.72)",
-  chama:     "rgba(22,12,0,.72)",
-  agents:    "rgba(0,18,6,.72)",
-  lightning: "rgba(26,14,0,.72)",
+  save:      "rgba(4,8,22,.72)",
+  mpesa:     "rgba(0,20,14,.72)",
+  chama:     "rgba(22,10,0,.72)",
+  agents:    "rgba(0,14,8,.72)",
+  lightning: "rgba(6,4,26,.72)",
   trust:     "rgba(5,18,8,.72)",
   convert:   "rgba(18,10,0,.72)",
   cta:       "rgba(5,10,5,.72)",
@@ -65,12 +65,13 @@ export default function SiteNav() {
           <LogoMark size={34} /> YeboBank
         </Link>
         <div className="navlinks">
-          <a href="#inflation">Inflation</a>
-          <a href="#save">Savings</a>
-          <a href="#mpesa">M-Pesa</a>
-          <a href="#chama">Chamas</a>
-          <a href="#agents">Agents</a>
-          <a href="#convert">Convert</a>
+          <a href="#inflation" data-sec="inflation">Inflation</a>
+          <a href="#save" data-sec="save">Savings</a>
+          <a href="#mpesa" data-sec="mpesa">M-Pesa</a>
+          <a href="#chama" data-sec="chama">Chama</a>
+          <a href="#agents" data-sec="agents">Agents</a>
+          <a href="#lightning" data-sec="lightning">Lightning</a>
+          <a href="#convert" data-sec="convert">Convert</a>
         </div>
         <div className="navactions">
           <Link className="login" href="/login">Log in</Link>
