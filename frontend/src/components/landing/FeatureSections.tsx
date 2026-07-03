@@ -317,58 +317,102 @@ function Savings() {
       <div className="wrap">
         <div className="savings-layout">
 
-          {/* LEFT — animated dial */}
-          <div className="savings-dial-wrap reveal">
-            {/* Concentric rotating rings */}
-            <div className="savings-ring savings-ring-1" />
-            <div className="savings-ring savings-ring-2" />
-            <div className="savings-ring savings-ring-3" />
-            <div className="savings-ring savings-ring-4" />
+          {/* LEFT — combination vault lock */}
+          <div className="vault-scene reveal">
+            <svg className="vault-svg" viewBox="0 0 440 440" aria-hidden="true">
+              <defs>
+                <radialGradient id="vbg" cx="48%" cy="42%" r="54%">
+                  <stop offset="0%" stopColor="#1C1008"/>
+                  <stop offset="100%" stopColor="#050302"/>
+                </radialGradient>
+                <radialGradient id="vface" cx="40%" cy="35%" r="60%">
+                  <stop offset="0%" stopColor="#261A0A"/>
+                  <stop offset="100%" stopColor="#0E0906"/>
+                </radialGradient>
+                <linearGradient id="vbolt" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#E0C840"/>
+                  <stop offset="100%" stopColor="#8C6010"/>
+                </linearGradient>
+                <radialGradient id="vdial" cx="50%" cy="40%" r="50%">
+                  <stop offset="0%" stopColor="#1A1208"/>
+                  <stop offset="100%" stopColor="#080604"/>
+                </radialGradient>
+              </defs>
 
-            {/* Tick marks on outer ring */}
-            <div className="savings-ticks" aria-hidden="true">
-              {Array.from({ length: TICK_COUNT }).map((_, i) => (
-                <div
-                  key={i}
-                  className="savings-tick"
-                  style={{
-                    height: i % 6 === 0 ? 10 : 5,
-                    left: "calc(50% - 1px)",
-                    top: 0,
-                    transform: `rotate(${(360 / TICK_COUNT) * i}deg)`,
-                    opacity: i % 6 === 0 ? 0.45 : 0.18,
-                  }}
-                />
-              ))}
+              {/* Vault body — solid filled circle, no CSS border */}
+              <circle cx="220" cy="220" r="208" fill="url(#vbg)"/>
+              {/* Outer rim (SVG stroke, not CSS border-width) */}
+              <circle cx="220" cy="220" r="204" fill="none" stroke="rgba(196,144,32,.22)" strokeWidth="4"/>
+
+              {/* Door face */}
+              <circle cx="220" cy="220" r="180" fill="url(#vface)"/>
+              {/* Concentric door ridges (detailing) */}
+              <circle cx="220" cy="220" r="176" fill="none" stroke="rgba(196,144,32,.34)" strokeWidth="3"/>
+              <circle cx="220" cy="220" r="158" fill="none" stroke="rgba(196,144,32,.16)" strokeWidth="1.5"/>
+              <circle cx="220" cy="220" r="136" fill="none" stroke="rgba(196,144,32,.09)" strokeWidth="1"/>
+
+              {/* LOCKING BOLTS — N, S, E, W — extend from door edge into outer rim */}
+              {/* North */}
+              <rect x="211" y="12" width="18" height="28" rx="6" fill="url(#vbolt)"/>
+              <rect x="214.5" y="15" width="11" height="3.5" rx="2" fill="rgba(255,255,255,.28)"/>
+              {/* South */}
+              <rect x="211" y="400" width="18" height="28" rx="6" fill="url(#vbolt)"/>
+              <rect x="214.5" y="421.5" width="11" height="3.5" rx="2" fill="rgba(255,255,255,.28)"/>
+              {/* East */}
+              <rect x="400" y="211" width="28" height="18" rx="6" fill="url(#vbolt)"/>
+              <rect x="421.5" y="214.5" width="3.5" height="11" rx="2" fill="rgba(255,255,255,.28)"/>
+              {/* West */}
+              <rect x="12" y="211" width="28" height="18" rx="6" fill="url(#vbolt)"/>
+              <rect x="15" y="214.5" width="3.5" height="11" rx="2" fill="rgba(255,255,255,.28)"/>
+
+              {/* Combination dial — slowly rotates */}
+              <g className="vault-dial-spin" style={{ transformOrigin: "220px 220px" }}>
+                <circle cx="220" cy="220" r="92" fill="url(#vdial)"/>
+                <circle cx="220" cy="220" r="88" fill="none" stroke="rgba(196,144,32,.42)" strokeWidth="2.5"/>
+                {/* Tick marks around dial */}
+                {Array.from({ length: 40 }).map((_, i) => {
+                  const angle = (i * 9 * Math.PI) / 180;
+                  const isMajor = i % 5 === 0;
+                  const r1 = isMajor ? 71 : 78;
+                  return (
+                    <line key={i}
+                      x1={220 + r1 * Math.cos(angle)}     y1={220 + r1 * Math.sin(angle)}
+                      x2={220 + 86  * Math.cos(angle)}     y2={220 + 86  * Math.sin(angle)}
+                      stroke={isMajor ? "rgba(196,144,32,.62)" : "rgba(196,144,32,.25)"}
+                      strokeWidth={isMajor ? 1.8 : 0.9}
+                    />
+                  );
+                })}
+              </g>
+
+              {/* Fixed indicator arrow — outside the spinning group */}
+              <polygon points="220,127 215.5,143 224.5,143" fill="rgba(224,168,0,.95)"/>
+
+              {/* Dial center knob */}
+              <circle cx="220" cy="220" r="15" fill="rgba(196,144,32,.6)"/>
+              <circle cx="220" cy="220" r="8"  fill="rgba(255,255,255,.18)"/>
+              <circle cx="220" cy="220" r="3"  fill="rgba(255,255,255,.45)"/>
+            </svg>
+
+            {/* Animated sats counter — HTML overlay centred on the dial */}
+            <div className="vault-center-overlay">
+              <div className="vault-num" ref={numRef}>0</div>
+              <div className="vault-unit">sats</div>
+              <div className="vault-sub">earned / year</div>
             </div>
 
-            {/* Orbiting sat particles */}
-            <div className="savings-particle sp1" aria-hidden="true" />
-            <div className="savings-particle sp2 sp-lime" aria-hidden="true" />
-            <div className="savings-particle sp3" aria-hidden="true" />
-
-            {/* Center card */}
-            <div className="savings-center-card">
-              <div className="savings-dial-num" ref={numRef}>0</div>
-              <div className="savings-dial-unit">sats</div>
-              <div className="savings-dial-label">earned / year</div>
-            </div>
-
-            {/* Term picker cards below dial */}
-            <div className="savings-terms" style={{ position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 380 }}>
+            {/* Term picker */}
+            <div className="vault-terms">
               {TERMS.map((t, i) => (
-                <div
+                <button
                   key={i}
-                  className={`term-card${term === i ? " active" : ""}`}
+                  className={`vault-term${term === i ? " active" : ""}`}
                   onClick={() => setTerm(i)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === "Enter" && setTerm(i)}
+                  aria-pressed={term === i}
                 >
-                  <div className="term-yr">{t.yr}<span style={{ fontSize: 12, fontWeight: 400 }}>yr</span></div>
-                  <div className="term-label">lock period</div>
-                  <div className="term-apy">{t.apy}</div>
-                </div>
+                  <div className="vault-term-yr">{t.yr}<span>yr</span></div>
+                  <div className="vault-term-apy">{t.apy}</div>
+                </button>
               ))}
             </div>
           </div>
@@ -531,7 +575,7 @@ const MEMBERS = [
   { name: "Mwenda",  initial: "M", contrib: "KES  7,800", color: "#96C244", bg: "rgba(150,194,68,.2)",  angle: 300 },
 ] as const;
 
-const RADIUS = 175;
+const RADIUS = 115;
 
 function Chama() {
   const router     = useRouter();
@@ -579,27 +623,20 @@ function Chama() {
 
           {/* LEFT — the circle */}
           <div className="chama-arena reveal" style={{ width: 480, height: 480, position: "relative", flexShrink: 0, margin: "0 auto" }}>
-            <div className="chama-arena-bg" />
-
-            {/* SVG arcs between adjacent members */}
-            <svg className="chama-arcs-svg" viewBox="0 0 480 480" aria-hidden="true">
-              {MEMBERS.map((m, i) => {
-                const next = MEMBERS[(i + 1) % MEMBERS.length];
-                const toRad = (deg: number) => (deg * Math.PI) / 180;
-                const ax = 240 + RADIUS * Math.cos(toRad(m.angle));
-                const ay = 240 + RADIUS * Math.sin(toRad(m.angle));
-                const bx = 240 + RADIUS * Math.cos(toRad(next.angle));
-                const by = 240 + RADIUS * Math.sin(toRad(next.angle));
-                return (
-                  <path
-                    key={i}
-                    className="chama-arc"
-                    d={`M${ax},${ay} Q240,240 ${bx},${by}`}
-                    stroke={i % 2 === 0 ? "rgba(196,144,32,.55)" : "rgba(150,194,68,.45)"}
-                    style={{ animationDelay: `${i * 0.68}s` }}
-                  />
-                );
-              })}
+            {/* Lotus — 6 petals radiating from the shared pool, one per member */}
+            <svg className="chama-lotus-svg" viewBox="0 0 480 480" aria-hidden="true">
+              {MEMBERS.map((m, i) => (
+                <path key={i}
+                  d="M 240,240 Q 294,145 240,58 Q 186,145 240,240 Z"
+                  fill={i % 2 === 0 ? "rgba(196,144,32,.14)" : "rgba(150,194,68,.11)"}
+                  stroke={i % 2 === 0 ? "rgba(196,144,32,.55)" : "rgba(150,194,68,.45)"}
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                  transform={`rotate(${m.angle + 90}, 240, 240)`}
+                />
+              ))}
+              {/* Sepal ring — where all petals converge */}
+              <circle cx="240" cy="240" r="32" fill="rgba(196,144,32,.07)" stroke="rgba(196,144,32,.22)" strokeWidth="1"/>
             </svg>
 
             {/* Member bubbles — positioned via CSS transform from center */}
@@ -620,7 +657,7 @@ function Chama() {
                 >
                   <div
                     className="chama-av"
-                    style={{ background: m.bg, borderColor: m.color, color: m.color }}
+                    style={{ color: m.color }}
                   >
                     {m.initial}
                   </div>
@@ -691,34 +728,65 @@ function Agents() {
       <div className="wrap">
         <div className="agents-layout">
 
-          {/* LEFT — radar */}
-          <div className="radar-display reveal">
-            <div className="radar-bg" />
-            <div className="radar-ring" />
-            <div className="radar-ring" />
-            <div className="radar-ring" />
-            <div className="radar-cross" aria-hidden="true" />
-            <div className="radar-sweep" aria-hidden="true" />
-            <div className="radar-sweep-line" aria-hidden="true" />
+          {/* LEFT — duka neighbourhood map */}
+          <div className="duka-map-wrap reveal">
+            {/* Street grid SVG backdrop (no CSS border-width anywhere) */}
+            <svg className="duka-map-svg" viewBox="0 0 440 440" aria-hidden="true">
+              {/* Map surface */}
+              <rect width="440" height="440" rx="18" fill="rgba(3,14,8,.97)"/>
 
-            {/* Agent dots */}
+              {/* City blocks — filled rects between streets */}
+              {[0,1,2,3].map(row => [0,1,2,3].map(col => (
+                <rect key={`${row}-${col}`}
+                  x={col * 110} y={row * 110}
+                  width="96" height="96"
+                  fill={(row + col) % 2 === 0 ? "rgba(10,32,18,.72)" : "rgba(7,24,13,.72)"}
+                />
+              )))}
+
+              {/* Street gutters (the roads — lighter fills between blocks) */}
+              {[1,2,3].map(i => (
+                <rect key={`v${i}`} x={i*110-7} y={0} width="14" height="440" fill="rgba(17,166,91,.07)"/>
+              ))}
+              {[1,2,3].map(i => (
+                <rect key={`h${i}`} x={0} y={i*110-7} width="440" height="14" fill="rgba(17,166,91,.07)"/>
+              ))}
+
+              {/* Street centre-lines */}
+              {[1,2,3].map(i => (
+                <line key={`vc${i}`} x1={i*110} y1={0} x2={i*110} y2={440}
+                  stroke="rgba(17,166,91,.12)" strokeWidth="1" strokeDasharray="6 5"/>
+              ))}
+              {[1,2,3].map(i => (
+                <line key={`hc${i}`} x1={0} y1={i*110} x2={440} y2={i*110}
+                  stroke="rgba(17,166,91,.12)" strokeWidth="1" strokeDasharray="6 5"/>
+              ))}
+
+              {/* YOU ARE HERE marker at intersection (220, 220) */}
+              <circle cx="220" cy="220" r="13" fill="rgba(196,144,32,.22)"/>
+              <circle cx="220" cy="220" r="8"  fill="rgba(196,144,32,.9)"/>
+              <circle cx="220" cy="220" r="4"  fill="rgba(255,255,255,.4)"/>
+              <circle cx="220" cy="220" r="1.5" fill="#fff"/>
+            </svg>
+
+            {/* Agent kiosk markers (HTML so tooltips work) */}
             {AGENT_DOTS.map((d, i) => (
               <div
                 key={i}
-                className="radar-dot"
+                className="duka-dot"
                 style={{ left: d.left, top: d.top, animationDelay: d.delay }}
               >
-                <div className="radar-dot-inner" />
-                <div className="radar-dot-tip">
-                  <b>{d.label}</b><br />{d.agents} agents nearby
+                {/* Building footprint (two stacked rects = shop body + canopy) */}
+                <svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true" className="duka-icon">
+                  <rect x="2" y="7" width="20" height="13" rx="2" fill="rgba(150,194,68,.32)"/>
+                  <rect x="0" y="4" width="24" height="5" rx="1.5" fill="rgba(150,194,68,.6)"/>
+                  <rect x="8" y="11" width="8" height="9" rx="1" fill="rgba(150,194,68,.2)"/>
+                </svg>
+                <div className="duka-tip">
+                  <b>{d.label}</b><br />{d.agents} agents
                 </div>
               </div>
             ))}
-
-            {/* Center "you" dot */}
-            <div className="radar-center-dot">
-              <div className="radar-center-inner" title="You" />
-            </div>
           </div>
 
           {/* RIGHT — copy */}

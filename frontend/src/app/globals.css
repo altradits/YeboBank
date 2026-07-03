@@ -1181,50 +1181,37 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 #save::before{background:radial-gradient(circle,rgba(224,168,0,.22),transparent 64%);top:-120px;right:-80px}
 #save::after{background:radial-gradient(circle,rgba(10,60,160,.18),transparent 66%);bottom:-200px;left:-100px}
 
-.savings-layout{display:grid;grid-template-columns:1fr 480px;gap:72px;align-items:center;width:100%}
+.savings-layout{display:grid;grid-template-columns:1fr 500px;gap:104px;align-items:center;width:100%}
 
-/* Dial visual */
-.savings-dial-wrap{position:relative;display:flex;justify-content:center;align-items:center;height:520px}
-.savings-ring{position:absolute;border-radius:50%;border-style:solid;border-color:transparent}
-.savings-ring-1{width:460px;height:460px;border-width:1.5px;border-color:rgba(224,168,0,.12);animation:sring1 18s linear infinite}
-.savings-ring-2{width:380px;height:380px;border-width:2px;border-top-color:rgba(224,168,0,.35);border-right-color:rgba(224,168,0,.18);animation:sring2 12s linear infinite reverse}
-.savings-ring-3{width:300px;height:300px;border-width:1.5px;border-top-color:rgba(150,194,68,.28);border-left-color:rgba(150,194,68,.12);animation:sring1 8s linear infinite}
-.savings-ring-4{width:220px;height:220px;border-width:1px;border-color:rgba(255,255,255,.06);animation:sring2 6s linear infinite}
-@keyframes sring1{to{transform:rotate(360deg)}}
-@keyframes sring2{to{transform:rotate(-360deg)}}
+/* ── Vault combination lock ── */
+.vault-scene{position:relative;display:flex;flex-direction:column;align-items:center;gap:32px}
+.vault-svg{display:block;width:440px;height:440px;max-width:100%;filter:drop-shadow(0 0 64px rgba(196,144,32,.18))}
+.vault-svg:hover{filter:drop-shadow(0 0 100px rgba(196,144,32,.32))}
 
-/* Tick marks on outer ring */
-.savings-ticks{position:absolute;width:460px;height:460px;animation:sring1 18s linear infinite}
-.savings-tick{position:absolute;width:2px;background:rgba(224,168,0,.22);transform-origin:50% 230px;border-radius:1px}
+/* Rotating dial — CSS animation, transform-origin set inline on <g> */
+.vault-dial-spin{animation:dial-turn 24s linear infinite}
+@keyframes dial-turn{to{transform:rotate(360deg)}}
 
-/* Center dial card */
-.savings-center-card{position:relative;z-index:2;width:192px;height:192px;border-radius:50%;background:linear-gradient(135deg,rgba(12,16,32,.98),rgba(6,8,20,.98));border:1.5px solid rgba(224,168,0,.28);box-shadow:0 0 80px rgba(224,168,0,.18),0 0 0 8px rgba(224,168,0,.04),inset 0 1px 0 rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:default}
-.savings-center-card:hover{box-shadow:0 0 120px rgba(224,168,0,.28),0 0 0 12px rgba(224,168,0,.06),inset 0 1px 0 rgba(255,255,255,.12);border-color:rgba(224,168,0,.45)}
-.savings-dial-num{font-family:var(--font-mono);font-size:32px;font-weight:700;color:#fff;letter-spacing:-.03em;line-height:1;transition:all .6s}
-.savings-dial-unit{font-family:var(--font-mono);font-size:10px;color:var(--gold-soft);letter-spacing:.12em;text-transform:uppercase}
-.savings-dial-label{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.28);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+/* Sats counter overlay centred over the dial */
+.vault-center-overlay{position:absolute;top:calc(50% - 80px);left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;margin-top:16px}
+.vault-num{font-family:var(--font-mono);font-size:30px;font-weight:700;color:#fff;letter-spacing:-.04em;line-height:1;transition:color .4s}
+.vault-unit{font-family:var(--font-mono);font-size:10px;color:var(--gold-soft);letter-spacing:.14em;text-transform:uppercase;margin-top:6px}
+.vault-sub{font-family:var(--font-mono);font-size:8.5px;color:rgba(255,255,255,.28);letter-spacing:.07em;text-transform:uppercase;margin-top:3px}
 
-/* Orbiting sat particle dots */
-.savings-particle{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold-soft);box-shadow:0 0 8px rgba(224,168,0,.7);pointer-events:none}
-.sp1{animation:sring1 9s linear infinite;top:calc(50% - 3px);left:calc(50% + 225px)}
-.sp2{animation:sring1 9s linear infinite;animation-delay:-3s;top:calc(50% - 3px);left:calc(50% + 225px)}
-.sp3{animation:sring1 9s linear infinite;animation-delay:-6s;top:calc(50% - 3px);left:calc(50% + 225px)}
-.sp-lime{background:var(--lime);box-shadow:0 0 8px rgba(150,194,68,.7)}
+/* Term picker buttons */
+.vault-terms{display:flex;gap:12px;width:440px;max-width:100%}
+.vault-term{flex:1;background:rgba(255,255,255,.04);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.1);border-radius:18px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .25s cubic-bezier(.2,.8,.2,1);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:6px}
+.vault-term::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(224,168,0,.2),transparent 70%);opacity:0;transition:opacity .25s}
+.vault-term:hover{box-shadow:inset 0 0 0 1.5px rgba(224,168,0,.4);transform:translateY(-4px)}
+.vault-term:hover::before{opacity:1}
+.vault-term.active{box-shadow:inset 0 0 0 1.5px rgba(224,168,0,.65),0 0 32px rgba(224,168,0,.14);background:rgba(224,168,0,.07)}
+.vault-term.active::before{opacity:1}
+.vault-term-yr{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--gold-soft);line-height:1}
+.vault-term-yr span{font-size:12px;font-weight:400;opacity:.6;margin-left:1px}
+.vault-term-apy{font-family:var(--font-mono);font-size:11px;color:var(--lime);font-weight:600}
 
-/* Term picker cards */
-.savings-terms{display:flex;gap:12px;margin-top:32px}
-.term-card{flex:1;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .25s cubic-bezier(.2,.8,.2,1);position:relative;overflow:hidden}
-.term-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(224,168,0,.18),transparent 70%);opacity:0;transition:opacity .25s}
-.term-card:hover{border-color:rgba(224,168,0,.4);transform:translateY(-4px)}
-.term-card:hover::before{opacity:1}
-.term-card.active{border-color:rgba(224,168,0,.6);background:rgba(224,168,0,.08);box-shadow:0 0 32px rgba(224,168,0,.12)}
-.term-card.active::before{opacity:1}
-.term-yr{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--gold-soft);line-height:1}
-.term-label{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
-.term-apy{font-family:var(--font-mono);font-size:11px;color:var(--lime);margin-top:8px;font-weight:600}
-
-@media(max-width:1024px){.savings-layout{grid-template-columns:1fr;gap:48px}.savings-dial-wrap{height:400px}.savings-ring-1{width:360px;height:360px}.savings-ring-2{width:300px;height:300px}.savings-ring-3{width:240px;height:240px}.savings-ring-4{width:180px;height:180px}.savings-ticks{width:360px;height:360px}.savings-tick{transform-origin:50% 180px}.sp1,.sp2,.sp3{left:calc(50% + 170px)}}
-@media(max-width:640px){.savings-dial-wrap{height:320px}.savings-ring-1{width:280px;height:280px}.savings-ring-2{width:230px;height:230px}.savings-ring-3{width:180px;height:180px}.savings-ring-4{width:140px;height:140px}.savings-ticks{width:280px;height:280px}.savings-tick{transform-origin:50% 140px}.sp1,.sp2,.sp3{left:calc(50% + 132px)}.savings-center-card{width:150px;height:150px}.savings-dial-num{font-size:24px}}
+@media(max-width:1024px){.savings-layout{grid-template-columns:1fr;gap:56px}.vault-svg{width:360px;height:360px}}
+@media(max-width:480px){.vault-svg{width:300px;height:300px}.vault-terms{width:300px}}
 
 /* =========================================================================
    M-PESA SECTION — "The Bridge"
@@ -1270,28 +1257,26 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 #chama::before{background:radial-gradient(circle,rgba(224,168,0,.20),transparent 64%);top:-100px;left:calc(50% - 310px)}
 #chama::after{background:radial-gradient(circle,rgba(150,194,68,.14),transparent 66%);bottom:-160px;right:-80px}
 
-.chama-layout{display:grid;grid-template-columns:1fr 420px;gap:64px;align-items:center;width:100%;min-height:80dvh}
+.chama-layout{display:grid;grid-template-columns:1fr 460px;gap:104px;align-items:center;width:100%;min-height:80dvh}
 
-/* The circle arena */
+/* The lotus flower circle */
 .chama-arena{position:relative;width:480px;height:480px;flex:none;margin:0 auto}
-.chama-arena-bg{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.06);background:radial-gradient(circle at 50% 50%,rgba(224,168,0,.06),transparent 70%)}
 
-/* SVG arcs layer */
-.chama-arcs-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.chama-arc{fill:none;stroke-width:1.5;stroke-linecap:round;opacity:0;animation:arc-appear 4s ease infinite}
-@keyframes arc-appear{0%,10%,90%,100%{opacity:0}30%,70%{opacity:.6}}
+/* Lotus petals SVG — one path per member, radiating from the shared pool */
+.chama-lotus-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;animation:lotus-breathe 6s ease-in-out infinite}
+@keyframes lotus-breathe{0%,100%{opacity:.88}50%{opacity:1}}
 
-/* Member bubble */
+/* Member seat (circle — glass pill, no CSS border) */
 .chama-member{position:absolute;top:50%;left:50%;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform .5s cubic-bezier(.2,0,.2,1)}
-.chama-av{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:18px;border:2px solid rgba(255,255,255,.2);transition:all .3s;box-shadow:0 4px 20px rgba(0,0,0,.4)}
-.chama-member:hover .chama-av{transform:scale(1.18);border-color:var(--gold);box-shadow:0 0 24px rgba(224,168,0,.4)}
+.chama-av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:17px;transition:all .3s;background:rgba(12,7,2,.72);backdrop-filter:blur(6px)}
+.chama-member:hover .chama-av{transform:scale(1.18);box-shadow:0 0 20px rgba(224,168,0,.5),0 0 0 2px rgba(224,168,0,.7)}
 .chama-member-name{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase;transition:color .25s;white-space:nowrap}
 .chama-member:hover .chama-member-name{color:rgba(255,255,255,.85)}
 .chama-contrib-tip{font-family:var(--font-mono);font-size:10px;color:var(--gold-soft);opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s;white-space:nowrap}
 .chama-member:hover .chama-contrib-tip{opacity:1;transform:none}
 
-/* Center pool card */
-.chama-pool{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:128px;height:128px;border-radius:50%;background:linear-gradient(135deg,rgba(30,18,4,.98),rgba(20,12,2,.98));border:1.5px solid rgba(224,168,0,.35);box-shadow:0 0 60px rgba(224,168,0,.15),inset 0 1px 0 rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;z-index:10;pointer-events:none}
+/* Center pool card (box-shadow ring, no CSS border) */
+.chama-pool{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:128px;height:128px;border-radius:50%;background:linear-gradient(135deg,rgba(30,18,4,.98),rgba(20,12,2,.98));box-shadow:0 0 60px rgba(224,168,0,.15),inset 0 1px 0 rgba(255,255,255,.1),0 0 0 1.5px rgba(224,168,0,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;z-index:10;pointer-events:none}
 .chama-pool-label{font-family:var(--font-mono);font-size:8px;color:rgba(255,255,255,.32);letter-spacing:.12em;text-transform:uppercase}
 .chama-pool-amount{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--gold-soft);letter-spacing:-.02em;line-height:1}
 .chama-pool-sub{font-family:var(--font-mono);font-size:8px;color:rgba(150,194,68,.6);letter-spacing:.06em}
@@ -1311,52 +1296,26 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 #agents::before{background:radial-gradient(circle,rgba(150,194,68,.18),transparent 64%);top:-160px;right:-60px}
 #agents::after{background:radial-gradient(circle,rgba(17,166,91,.12),transparent 66%);bottom:-200px;left:-80px}
 
-.agents-layout{display:grid;grid-template-columns:1fr 440px;gap:64px;align-items:center;width:100%}
+.agents-layout{display:grid;grid-template-columns:1fr 480px;gap:104px;align-items:center;width:100%}
 
-/* Radar display */
-.radar-display{position:relative;width:440px;height:440px;flex:none;margin:0 auto;cursor:crosshair}
-.radar-bg{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(17,166,91,.08) 0%,rgba(4,20,10,.95) 70%,rgba(2,10,5,.98) 100%);border:1.5px solid rgba(17,166,91,.2)}
+/* ── Duka neighbourhood map ── */
+.duka-map-wrap{position:relative;width:440px;height:440px;flex:none;margin:0 auto}
+.duka-map-svg{display:block;width:100%;height:100%;filter:drop-shadow(0 0 40px rgba(17,166,91,.12))}
 
-/* Concentric rings */
-.radar-ring{position:absolute;border-radius:50%;border:1px solid rgba(17,166,91,.14);top:50%;left:50%;transform:translate(-50%,-50%)}
-.radar-ring:nth-child(1){width:25%;height:25%}
-.radar-ring:nth-child(2){width:50%;height:50%}
-.radar-ring:nth-child(3){width:75%;height:75%}
+/* Kiosk dot markers (HTML, positioned on top of SVG) */
+.duka-dot{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:2}
+.duka-icon{display:block;animation:kiosk-pulse 2.2s ease-in-out infinite;filter:drop-shadow(0 0 5px rgba(150,194,68,.7))}
+@keyframes kiosk-pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
+.duka-dot:hover .duka-icon{animation:none;opacity:1;transform:scale(1.3);filter:drop-shadow(0 0 10px rgba(150,194,68,.95))}
 
-/* Cross-hair lines */
-.radar-cross{position:absolute;inset:0;border-radius:50%}
-.radar-cross::before,.radar-cross::after{content:'';position:absolute;background:rgba(17,166,91,.14)}
-.radar-cross::before{width:1px;height:100%;left:50%;transform:translateX(-50%)}
-.radar-cross::after{height:1px;width:100%;top:50%;transform:translateY(-50%)}
-
-/* Rotating sweep */
-.radar-sweep{position:absolute;inset:0;border-radius:50%;animation:radar-rot 3s linear infinite;overflow:hidden}
-.radar-sweep::before{content:'';position:absolute;top:50%;left:50%;width:50%;height:50%;background:conic-gradient(from 0deg,rgba(17,166,91,.0) 0deg,rgba(17,166,91,.45) 50deg,rgba(17,166,91,.0) 60deg);transform-origin:0 0;transform:translate(0,-100%) rotate(180deg)}
-@keyframes radar-rot{to{transform:rotate(360deg)}}
-
-/* Radar sweep glow line */
-.radar-sweep-line{position:absolute;top:0;left:50%;width:2px;height:50%;transform-origin:bottom center;background:linear-gradient(to top,rgba(17,166,91,.7),transparent);animation:radar-rot 3s linear infinite;border-radius:1px;filter:blur(.5px)}
-
-/* Agent dots on radar */
-.radar-dot{position:absolute;transform:translate(-50%,-50%);cursor:pointer}
-.radar-dot-inner{width:10px;height:10px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px rgba(150,194,68,.9);position:relative;z-index:2;transition:transform .2s}
-.radar-dot:hover .radar-dot-inner{transform:scale(1.5)}
-.radar-dot::before{content:'';position:absolute;top:50%;left:50%;width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(150,194,68,.4);transform:translate(-50%,-50%);animation:dot-pulse 2s ease-out infinite}
-.radar-dot::after{content:'';position:absolute;top:50%;left:50%;width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(150,194,68,.2);transform:translate(-50%,-50%);animation:dot-pulse 2s ease-out .7s infinite}
-@keyframes dot-pulse{0%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(3.5);opacity:0}}
-
-/* Dot tooltip */
-.radar-dot-tip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:rgba(4,20,10,.96);border:1px solid rgba(17,166,91,.4);border-radius:10px;padding:7px 12px;font-family:var(--font-mono);font-size:11px;color:#fff;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;z-index:20}
-.radar-dot-tip b{color:var(--lime)}
-.radar-dot:hover .radar-dot-tip{opacity:1}
-
-/* Gold "you" dot at center */
-.radar-center-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5}
-.radar-center-inner{width:14px;height:14px;border-radius:50%;background:var(--gold-soft);box-shadow:0 0 16px rgba(224,168,0,.9);border:2px solid rgba(255,255,255,.6)}
+/* Tooltip */
+.duka-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(3,14,8,.96);box-shadow:0 0 0 1px rgba(17,166,91,.4),0 4px 16px rgba(0,0,0,.5);border-radius:10px;padding:7px 12px;font-family:var(--font-mono);font-size:11px;color:#fff;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;z-index:20}
+.duka-tip b{color:var(--lime)}
+.duka-dot:hover .duka-tip{opacity:1}
 
 /* Coverage stat strip */
 .agents-stats{display:flex;gap:0;margin-bottom:32px}
-.agents-stat{flex:1;padding:16px;border:1px solid rgba(255,255,255,.08);text-align:center}
+.agents-stat{flex:1;padding:16px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);text-align:center}
 .agents-stat:first-child{border-radius:16px 0 0 16px}
 .agents-stat:last-child{border-radius:0 16px 16px 0}
 .agents-stat-n{font-family:var(--font-mono);font-size:28px;font-weight:700;color:var(--lime);letter-spacing:-.03em;line-height:1}
@@ -1367,8 +1326,8 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 #agents .split-li:hover{background:rgba(150,194,68,.06);transform:translateX(6px);border-radius:12px;border-color:rgba(150,194,68,.3)}
 #agents .split-li i{background:rgba(150,194,68,.12);color:var(--lime)}
 
-@media(max-width:1024px){.agents-layout{grid-template-columns:1fr;gap:48px}.radar-display{width:340px;height:340px}}
-@media(max-width:480px){.radar-display{width:280px;height:280px}}
+@media(max-width:1024px){.agents-layout{grid-template-columns:1fr;gap:56px}.duka-map-wrap{width:340px;height:340px}}
+@media(max-width:480px){.duka-map-wrap{width:280px;height:280px}}
 
 /* =========================================================================
    LIGHTNING SECTION — "The Spark" 
@@ -1479,22 +1438,6 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
   will-change:transform;
 }
 
-/* Savings section — fix particle orbit base position using absolute */
-.savings-particle{
-  position:absolute;
-  width:7px;height:7px;border-radius:50%;
-}
-.sp1{top:calc(50% - 3.5px);left:50%;
-  animation:savings-orbit1 9s linear infinite}
-.sp2{top:calc(50% - 3.5px);left:50%;
-  animation:savings-orbit1 9s linear -3s infinite}
-.sp3{top:calc(50% - 3.5px);left:50%;
-  animation:savings-orbit1 9s linear -6s infinite}
-@keyframes savings-orbit1{
-  0%  {transform:translateX(225px) rotate(0deg)   translateX(-225px) rotate(0deg)}
-  100%{transform:translateX(225px) rotate(360deg) translateX(-225px) rotate(-360deg)}
-}
-
 /* Ledger block reveal animation */
 .ledger-block{
   opacity:0;
@@ -1508,27 +1451,6 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
   .chama-layout{grid-template-columns:1fr;gap:48px}
 }
 
-/* Savings particle orbit — proper CSS orbit trick */
-.savings-particle{position:absolute;top:calc(50% - 3.5px);left:calc(50% - 3.5px);width:7px;height:7px;border-radius:50%;background:var(--gold-soft);box-shadow:0 0 10px rgba(224,168,0,.8)}
-.sp-lime{background:var(--lime);box-shadow:0 0 10px rgba(150,194,68,.8)}
-.sp1{animation:sat-orbit 9s linear infinite}
-.sp2{animation:sat-orbit 9s linear -3s infinite}
-.sp3{animation:sat-orbit 9s linear -6s infinite}
-@keyframes sat-orbit{
-  from{transform:rotate(0deg) translateX(225px)}
-  to  {transform:rotate(360deg) translateX(225px)}
-}
-@media(max-width:1024px){
-  .sp1,.sp2,.sp3{animation-name:sat-orbit-md}
-  @keyframes sat-orbit-md{from{transform:rotate(0deg) translateX(175px)}to{transform:rotate(360deg) translateX(175px)}}
-}
-@media(max-width:640px){
-  .sp1,.sp2,.sp3{animation-name:sat-orbit-sm}
-  @keyframes sat-orbit-sm{from{transform:rotate(0deg) translateX(132px)}to{transform:rotate(360deg) translateX(132px)}}
-}
-
-/* Override the earlier conflicting particle rules */
-.savings-particle{background:var(--gold-soft);box-shadow:0 0 10px rgba(224,168,0,.8);animation:sat-orbit 9s linear infinite}
 
 /* =========================================================================
    LANDING PAGE — LIGHT MODE OVERRIDES
@@ -1622,42 +1544,23 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 [data-theme="light"] .infl-stat-label   { color: var(--soft) }
 [data-theme="light"] .infl-stat-div     { background: var(--border) }
 
-/* ── Savings section ──────────────────────────────────────────────────── */
-[data-theme="light"] .savings-ring-1 { border-color: rgba(10,48,32,.12) }
-[data-theme="light"] .savings-ring-2 { border-top-color: var(--forest-mid); border-right-color: rgba(26,92,60,.3) }
-[data-theme="light"] .savings-ring-3 { border-top-color: rgba(150,194,68,.45); border-left-color: rgba(150,194,68,.2) }
-[data-theme="light"] .savings-ring-4 { border-color: var(--border-soft) }
-
-[data-theme="light"] .savings-center-card {
-  background: linear-gradient(135deg, #fff, #f2f8f5);
-  border-color: rgba(10,48,32,.25);
-  box-shadow: 0 0 50px rgba(10,48,32,.1), 0 0 0 8px rgba(10,48,32,.04), inset 0 1px 0 rgba(255,255,255,.9);
-}
-[data-theme="light"] .savings-center-card:hover {
-  box-shadow: 0 0 80px rgba(10,48,32,.16), 0 0 0 12px rgba(10,48,32,.06), inset 0 1px 0 rgba(255,255,255,.9);
-  border-color: rgba(10,48,32,.4);
-}
-[data-theme="light"] .savings-dial-num   { color: var(--text) }
-[data-theme="light"] .savings-dial-unit  { color: var(--forest-mid) }
-[data-theme="light"] .savings-dial-label { color: var(--soft) }
-
-[data-theme="light"] .savings-particle   { background: var(--gold-text);  box-shadow: 0 0 10px rgba(168,116,0,.6) }
-[data-theme="light"] .sp-lime            { background: var(--forest-mid); box-shadow: 0 0 10px rgba(26,92,60,.5) }
-
-[data-theme="light"] .term-card {
+/* ── Savings section (vault) ──────────────────────────────────────────── */
+[data-theme="light"] .vault-svg { filter: drop-shadow(0 0 40px rgba(10,48,32,.14)) }
+[data-theme="light"] .vault-num { color: var(--text) }
+[data-theme="light"] .vault-unit { color: var(--forest-mid) }
+[data-theme="light"] .vault-sub  { color: var(--soft) }
+[data-theme="light"] .vault-term {
   background: rgba(255,255,255,.9);
-  border-color: var(--border);
+  box-shadow: inset 0 0 0 1.5px var(--border);
 }
-[data-theme="light"] .term-card::before { background: radial-gradient(circle at 50% 0%,rgba(168,116,0,.1),transparent 70%) }
-[data-theme="light"] .term-card:hover   { border-color: var(--gold) }
-[data-theme="light"] .term-card.active  {
+[data-theme="light"] .vault-term::before { background: radial-gradient(circle at 50% 0%,rgba(168,116,0,.1),transparent 70%) }
+[data-theme="light"] .vault-term:hover   { box-shadow: inset 0 0 0 1.5px var(--gold) }
+[data-theme="light"] .vault-term.active  {
   background: rgba(255,255,255,.98);
-  border-color: var(--gold);
-  box-shadow: 0 0 24px rgba(168,116,0,.12);
+  box-shadow: inset 0 0 0 1.5px var(--gold), 0 0 24px rgba(168,116,0,.12);
 }
-[data-theme="light"] .term-yr    { color: var(--gold-text) }
-[data-theme="light"] .term-label { color: var(--soft) }
-[data-theme="light"] .term-apy   { color: var(--forest-mid) }
+[data-theme="light"] .vault-term-yr  { color: var(--gold-text) }
+[data-theme="light"] .vault-term-apy { color: var(--forest-mid) }
 
 /* ── M-Pesa section ───────────────────────────────────────────────────── */
 [data-theme="light"] .mpesa-wallet-card {
@@ -1672,25 +1575,20 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 [data-theme="light"] #mpesa .split-li:hover { background: rgba(10,152,80,.05); border-color: rgba(10,152,80,.3) }
 
 /* ── Chama section ────────────────────────────────────────────────────── */
-[data-theme="light"] .chama-arena-bg {
-  border-color: var(--border);
-  background: radial-gradient(circle at 50% 50%, rgba(168,116,0,.06), transparent 70%);
-}
+[data-theme="light"] .chama-lotus-svg { opacity: .78 }
 [data-theme="light"] .chama-av {
-  border-color: rgba(10,48,32,.2);
-  box-shadow: 0 4px 16px rgba(6,18,16,.12);
+  background: rgba(255,251,244,.88);
+  backdrop-filter: blur(6px);
 }
 [data-theme="light"] .chama-member:hover .chama-av {
-  border-color: var(--gold);
-  box-shadow: 0 0 20px rgba(168,116,0,.25);
+  box-shadow: 0 0 16px rgba(168,116,0,.22), 0 0 0 2px rgba(168,116,0,.65);
 }
 [data-theme="light"] .chama-member-name        { color: var(--soft) }
 [data-theme="light"] .chama-member:hover .chama-member-name { color: var(--text) }
 [data-theme="light"] .chama-contrib-tip         { color: var(--gold-text) }
 [data-theme="light"] .chama-pool {
   background: linear-gradient(135deg, #fff, #fdf8f0);
-  border-color: rgba(168,116,0,.3);
-  box-shadow: 0 0 40px rgba(168,116,0,.1), inset 0 1px 0 rgba(255,255,255,.9);
+  box-shadow: 0 0 40px rgba(168,116,0,.1), inset 0 1px 0 rgba(255,255,255,.9), 0 0 0 1.5px rgba(168,116,0,.3);
 }
 [data-theme="light"] .chama-pool-label  { color: var(--soft) }
 [data-theme="light"] .chama-pool-amount { color: var(--gold-text) }
@@ -1698,33 +1596,15 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 [data-theme="light"] #chama .split-li i { background: rgba(168,116,0,.1); color: var(--gold-text) }
 [data-theme="light"] #chama .split-li:hover { background: rgba(168,116,0,.04); border-color: rgba(168,116,0,.25) }
 
-/* ── Agents section ───────────────────────────────────────────────────── */
-[data-theme="light"] .radar-bg {
-  background: radial-gradient(circle, rgba(10,152,80,.06) 0%, #EEF6F2 60%, #E5F0E9 100%);
-  border-color: rgba(10,152,80,.2);
-}
-[data-theme="light"] .radar-ring { border-color: rgba(10,152,80,.16) }
-[data-theme="light"] .radar-cross::before,
-[data-theme="light"] .radar-cross::after { background: rgba(10,152,80,.15) }
-[data-theme="light"] .radar-sweep::before {
-  background: conic-gradient(from 0deg, rgba(10,152,80,.0) 0deg, rgba(10,152,80,.35) 50deg, rgba(10,152,80,.0) 60deg);
-}
-[data-theme="light"] .radar-sweep-line { background: linear-gradient(to top, rgba(10,152,80,.6), transparent) }
-[data-theme="light"] .radar-dot-inner  { background: var(--emerald-deep); box-shadow: 0 0 12px rgba(10,152,80,.7) }
-[data-theme="light"] .radar-dot::before { border-color: rgba(10,152,80,.4) }
-[data-theme="light"] .radar-dot::after  { border-color: rgba(10,152,80,.2) }
-[data-theme="light"] .radar-dot-tip {
+/* ── Agents section (duka map) ────────────────────────────────────────── */
+[data-theme="light"] .duka-map-svg { filter: drop-shadow(0 0 24px rgba(10,152,80,.1)) }
+[data-theme="light"] .duka-tip {
   background: rgba(255,255,255,.97);
-  border-color: rgba(10,152,80,.3);
+  box-shadow: 0 0 0 1px rgba(10,152,80,.3), 0 4px 16px rgba(6,18,16,.12);
   color: var(--text);
-  box-shadow: 0 4px 16px rgba(6,18,16,.12);
 }
-[data-theme="light"] .radar-dot-tip b { color: var(--emerald-deep) }
-[data-theme="light"] .radar-center-inner { background: var(--gold-text); border-color: rgba(255,255,255,.9); box-shadow: 0 0 16px rgba(168,116,0,.7) }
-[data-theme="light"] .agents-stat {
-  background: rgba(255,255,255,.8);
-  border-color: var(--border);
-}
+[data-theme="light"] .duka-tip b { color: var(--emerald-deep) }
+[data-theme="light"] .agents-stat { background: rgba(255,255,255,.8); box-shadow: inset 0 0 0 1px var(--border) }
 [data-theme="light"] .agents-stat-n { color: var(--emerald-deep) }
 [data-theme="light"] .agents-stat-l { color: var(--soft) }
 [data-theme="light"] #agents .split-li i { background: rgba(10,152,80,.1); color: var(--emerald-deep) }
