@@ -1818,3 +1818,24 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 [data-theme="light"] .sec .split-li .ti-tt { color: var(--text) }
 [data-theme="light"] .sec .split-li .ti-dd { color: var(--muted) }
 [data-theme="light"] .sec .split-li        { border-color: var(--border-soft) }
+
+/* ── Nav — always sits over dark background (hero is hardcoded dark;
+          scrolled state uses dark frosted glass) so the primary button
+          must stay forest-mid regardless of theme ── */
+[data-theme="light"] .nav .btn-primary {
+  background: var(--forest-mid);
+  color: #fff;
+}
+[data-theme="light"] .nav .btn-primary:hover {
+  background: var(--emerald-deep);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-3);
+}
+
+/* Ensure brand text, nav links, and login link stay white on dark hero */
+[data-theme="light"] .nav .brand       { color: #fff }
+[data-theme="light"] .nav .navlinks    { color: rgba(255,255,255,.65) }
+[data-theme="light"] .nav .navlinks a  { color: rgba(255,255,255,.65) }
+[data-theme="light"] .nav .navlinks a:hover { color: #fff }
+[data-theme="light"] .nav .login       { color: rgba(255,255,255,.85) }
+[data-theme="light"] .nav .login:hover { color: #fff }
