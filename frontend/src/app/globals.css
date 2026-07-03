@@ -10,6 +10,7 @@
   /* ── Wealth: copper-amber gold — old money, not candy ── */
   --gold:#A87400; --gold-soft:#C49020; --gold-text:#785400;
   --lime:#96C244;
+  --electric:#2fe0ba; --lime-hi:#70ff45;
   /* ── Energy ── */
   --terra:#BC5016; --terra-text:#884010;
   --red:#B03020;
@@ -40,6 +41,8 @@ a{color:inherit;text-decoration:none}
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
 .reveal.in{opacity:1;transform:none}
 .reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}.reveal.d4{transition-delay:.32s}
+@keyframes orb-drift{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(32px,-44px) scale(1.08)}50%{transform:translate(-20px,-16px) scale(.95)}75%{transform:translate(14px,36px) scale(1.05)}}
+@keyframes orb-drift-r{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(-26px,38px) scale(.93)}50%{transform:translate(22px,20px) scale(1.07)}75%{transform:translate(-12px,-30px) scale(.97)}}
 
 /* ===== buttons (material) ===== */
 .btn{position:relative;overflow:hidden;font-family:var(--font-display);font-weight:600;font-size:15px;border:none;cursor:pointer;border-radius:999px;padding:14px 26px;display:inline-flex;align-items:center;gap:9px;transition:transform .2s,box-shadow .25s,background .25s;text-align:center;justify-content:center}
@@ -67,7 +70,7 @@ a{color:inherit;text-decoration:none}
 .ticker{background:var(--ink);color:#fff;font-family:var(--font-mono);font-size:13px}
 .ticker .wrap{display:flex;align-items:center;gap:22px;padding:9px 28px;flex-wrap:wrap}
 .ticker .live{display:flex;align-items:center;gap:8px;color:var(--lime);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
-.pulse{width:7px;height:7px;border-radius:50%;background:var(--emerald);animation:pulse 1.8s infinite}
+.pulse{width:8px;height:8px;border-radius:50%;background:#2fe0ba;animation:pulse 1.8s infinite;box-shadow:0 0 8px rgba(47,224,186,.8)}
 @keyframes pulse{0%,100%{opacity:.3;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
 .ticker .item{display:flex;align-items:center;gap:8px}
 .ticker .k{color:rgba(255,255,255,.5)}
@@ -81,7 +84,7 @@ a{color:inherit;text-decoration:none}
 .nav{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--nav-bg,transparent);backdrop-filter:var(--nav-blur,blur(0px));-webkit-backdrop-filter:var(--nav-blur,blur(0px));border-bottom:1px solid var(--nav-border,transparent);transition:background .4s ease,backdrop-filter .4s ease,-webkit-backdrop-filter .4s ease,border-color .4s ease}
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;padding:16px 28px}
 .brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-.02em;color:#fff}
-.brand .mk{width:34px;height:34px;border-radius:11px;background:var(--forest);color:var(--lime);display:grid;place-items:center;font-weight:700;font-size:17px;box-shadow:var(--shadow-1)}
+.brand .mk{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,var(--forest-mid),var(--emerald-deep));color:#70ff45;display:grid;place-items:center;font-weight:700;font-size:17px;box-shadow:0 0 18px rgba(47,224,186,.22),var(--shadow-1)}
 .navlinks{display:flex;gap:30px;font-size:15px;font-weight:500;color:rgba(255,255,255,.65)}
 .navlinks a:hover{color:#fff}
 .navactions{display:flex;gap:12px;align-items:center}
@@ -94,22 +97,22 @@ a{color:inherit;text-decoration:none}
 @media(max-width:880px){.navlinks{display:none}}
 
 /* ===== landing above-fold slot ===== */
-.landing-above-fold{display:flex;flex-direction:column;height:100dvh;padding-top:72px;background:#050A06}
+.landing-above-fold{display:flex;flex-direction:column;height:100dvh;padding-top:72px;background:#030604}
 .landing-above-fold .hero{flex:1;min-height:0;padding-top:24px;padding-bottom:40px}
 body.landing-page,html:has(body.landing-page){scrollbar-width:none;overflow-x:hidden}
 body.landing-page::-webkit-scrollbar,html:has(body.landing-page)::-webkit-scrollbar{display:none;width:0}
 /* ===== hero ===== */
-.hero{min-height:100dvh;display:flex;align-items:center;padding:100px 0 80px;position:relative;overflow:hidden;background:linear-gradient(135deg,#050A06 0%,#0A2016 50%,#1C1200 100%);color:#fff}
-.hero::before{content:"";position:absolute;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(224,168,0,.18),transparent 64%);top:-180px;right:-140px;z-index:0}
-.hero::after{content:"";position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(17,166,91,.15),transparent 66%);bottom:-240px;left:-160px;z-index:0}
+.hero{min-height:100dvh;display:flex;align-items:center;padding:100px 0 80px;position:relative;overflow:hidden;background:linear-gradient(135deg,#030604 0%,#071610 50%,#110d00 100%);color:#fff}
+.hero::before{content:"";position:absolute;width:720px;height:720px;border-radius:50%;background:radial-gradient(circle,rgba(47,224,186,.20),transparent 64%);top:-210px;right:-160px;z-index:0;animation:orb-drift 18s ease-in-out infinite}
+.hero::after{content:"";position:absolute;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(112,255,69,.16),transparent 66%);bottom:-270px;left:-190px;z-index:0;animation:orb-drift-r 22s ease-in-out infinite}
 .hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;width:100%}
 .eyebrow{font-family:var(--font-mono);font-size:13px;font-weight:500;letter-spacing:.06em;color:var(--terra-text);text-transform:uppercase;display:inline-flex;align-items:center;gap:9px}
 .eyebrow b{width:26px;height:2px;background:var(--terra);display:inline-block}
 h1.hero-h{font-family:var(--font-display);font-weight:700;font-size:clamp(44px,5.6vw,72px);line-height:.96;letter-spacing:-.035em;margin-top:16px}
 h1.hero-h .word{display:inline-block;opacity:0;transform:translateY(16px);transition:opacity .55s,transform .55s;margin-right:0.22em}
 h1.hero-h.go .word{opacity:1;transform:none}
-h1.hero-h .gold{color:var(--gold-soft)}
-h1.hero-h .grn{color:var(--lime)}
+h1.hero-h .gold{color:var(--gold-soft);background:linear-gradient(125deg,#E0C040 0%,#FFD700 45%,#96C244 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#70ff45 60%,#3de0ad 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .hero-sub{font-size:18px;line-height:1.65;color:rgba(255,255,255,.72);max-width:60ch;margin-top:22px;white-space:nowrap}
 .hero-stats{display:flex;gap:0;margin-top:40px;padding-top:32px;border-top:1px solid rgba(255,255,255,.12)}
 .hstat{flex:1;padding-right:18px}
@@ -143,7 +146,7 @@ h1.hero-h .grn{color:var(--lime)}
 .hero-phone{position:relative;justify-self:center;width:320px}
 .hp-vol{position:absolute;left:-4px;top:106px;width:3px;height:30px;background:#050e06;border-radius:2px 0 0 2px;box-shadow:0 42px 0 #050e06}
 .hp-pwr{position:absolute;right:-4px;top:140px;width:3px;height:48px;background:#050e06;border-radius:0 2px 2px 0}
-.hp-body{background:#050e06;border-radius:46px;padding:11px;box-shadow:0 40px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06) inset,0 16px 48px rgba(0,80,30,.25)}
+.hp-body{background:#050e06;border-radius:46px;padding:11px;box-shadow:0 40px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06) inset,0 0 80px rgba(47,224,186,.11),0 16px 48px rgba(0,80,30,.20)}
 .hp-screen{background:var(--forest);border-radius:37px;overflow:hidden;position:relative;min-height:640px;display:flex;flex-direction:column}
 .hp-glow{position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(224,168,0,.28),transparent 70%);top:-80px;right:-60px;pointer-events:none;z-index:0}
 .hp-island{width:92px;height:28px;background:#050e06;border-radius:0 0 18px 18px;margin:0 auto;position:relative;z-index:1}
@@ -200,19 +203,24 @@ h1.hero-h .grn{color:var(--lime)}
 /* ── Hero / section CTA button — restrained ghost, no shouting color ── */
 .hero-cta{margin-top:32px}
 .hero-btn{display:inline-flex;align-items:center;gap:9px;padding:12px 20px;border-radius:999px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);color:rgba(255,255,255,.88);font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:-.01em;cursor:pointer;border:none;transition:background .22s,box-shadow .22s,color .22s}
-.hero-btn:hover{background:rgba(255,255,255,.11);box-shadow:inset 0 0 0 1px rgba(17,166,91,.48);color:#fff}
+.hero-btn:hover{background:rgba(47,224,186,.10);box-shadow:inset 0 0 0 1px rgba(47,224,186,.52),0 0 28px rgba(47,224,186,.17);color:#fff}
+
+/* ===== ghost-reveal — image from the section above echoes into imageless sections ===== */
+.ghost-echo-wrap{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.ghost-reveal{opacity:0;transform:translateY(-52px) scale(1.07);transition:opacity 1.3s cubic-bezier(.2,.7,.2,1),transform 1.3s cubic-bezier(.2,.7,.2,1)}
+.ghost-reveal.in{opacity:var(--ghost-op,1);transform:none}
 
 /* ===== sections — every section mirrors hero: full-viewport dark gradient + glow orbs ===== */
-.sec{min-height:100dvh;display:flex;align-items:center;padding:80px 0;background:linear-gradient(135deg,#050A06 0%,#0A2016 50%,#1C1200 100%);color:#fff;position:relative;overflow:hidden}
-.sec::before{content:"";position:absolute;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(224,168,0,.18),transparent 64%);top:-180px;right:-140px;z-index:0;pointer-events:none}
-.sec::after{content:"";position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(17,166,91,.15),transparent 66%);bottom:-240px;left:-160px;z-index:0;pointer-events:none}
+.sec{min-height:100dvh;display:flex;align-items:center;padding:80px 0;background:linear-gradient(135deg,#040806 0%,#081c12 50%,#130e00 100%);color:#fff;position:relative;overflow:hidden}
+.sec::before{content:"";position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(47,224,186,.15),transparent 64%);top:-200px;right:-140px;z-index:0;pointer-events:none;animation:orb-drift 20s ease-in-out infinite}
+.sec::after{content:"";position:absolute;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(112,255,69,.12),transparent 66%);bottom:-260px;left:-160px;z-index:0;pointer-events:none;animation:orb-drift-r 26s ease-in-out infinite}
 .sec .wrap{position:relative;z-index:1}
-.sec-dark,.sec-cream,.sec-ink{background:linear-gradient(135deg,#050A06 0%,#0A2016 50%,#1C1200 100%);color:#fff}
+.sec-dark,.sec-cream,.sec-ink{background:linear-gradient(135deg,#040806 0%,#081c12 50%,#130e00 100%);color:#fff}
 .kicker{font-family:var(--font-mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;color:var(--lime);display:flex;align-items:center;gap:9px}
 .h2{font-family:var(--font-display);font-weight:700;font-size:clamp(30px,4.4vw,46px);line-height:1.04;letter-spacing:-.03em;margin-top:14px;max-width:18ch}
 .lead{font-size:18px;line-height:1.65;color:rgba(255,255,255,.78);max-width:46ch;margin-top:20px}
 /* auth pages and app shell may use .lead on light bg — keep dark default for .sec via explicit color */
-.h2 .accent{color:var(--gold-soft)}.h2 .grow{color:var(--lime)}
+.h2 .accent{color:var(--gold-soft);background:linear-gradient(125deg,var(--gold-soft) 0%,#FFD060 48%,var(--lime) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.h2 .grow{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#70ff45 70%,var(--lime) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 /* standalone brand-color utilities (for use outside heading context) */
 .gold{color:var(--gold-soft)}.grn-util{color:var(--lime)}.acc-util{color:var(--emerald-deep)}
 
@@ -247,7 +255,7 @@ h1.hero-h .grn{color:var(--lime)}
 
 /* Central stat card */
 .io-center{position:absolute;width:300px;height:clamp(460px,calc(100dvh - 310px),680px);transform:translateZ(-348px);transform-style:preserve-3d}
-.io-center-body{width:100%;height:100%;background:linear-gradient(165deg,rgba(18,18,28,.99),rgba(6,6,12,.99));border:1px solid rgba(255,255,255,.13);border-radius:36px;box-shadow:0 0 120px rgba(212,160,32,.2),0 0 0 1px rgba(212,160,32,.06),0 48px 96px rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:0;padding:40px 32px;backdrop-filter:blur(28px)}
+.io-center-body{width:100%;height:100%;background:linear-gradient(165deg,rgba(18,18,28,.99),rgba(6,6,12,.99));border:1px solid rgba(255,255,255,.13);border-radius:36px;box-shadow:0 0 80px rgba(212,160,32,.18),0 0 160px rgba(47,224,186,.10),0 0 0 1px rgba(212,160,32,.08),0 48px 96px rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:0;padding:40px 32px;backdrop-filter:blur(28px)}
 .io-c-year{font-family:var(--font-mono);font-size:72px;font-weight:700;color:#fff;letter-spacing:-.05em;line-height:1;transition:all .45s;text-shadow:0 0 40px rgba(212,160,32,.25)}
 .io-c-hr{width:85%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
 .io-c-row{display:flex;align-items:center;justify-content:space-between;width:100%;font-family:var(--font-mono);font-size:13px;gap:8px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.05)}
@@ -402,9 +410,10 @@ h1.hero-h .grn{color:var(--lime)}
 .trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:48px}
 .tcard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);padding:24px;transition:transform .25s,background .25s}
 .tcard:hover{transform:translateY(-4px);background:rgba(255,255,255,.09)}
-.tcard i{font-size:26px;color:var(--lime)}
+.tcard i{font-size:26px;color:#2fe0ba}
 .tcard h3{font-family:var(--font-display);font-weight:600;font-size:17px;margin-top:16px;color:#fff}
 .tcard p{font-size:13.5px;color:rgba(255,255,255,.72);margin-top:8px;line-height:1.55}
+.tcard:hover{transform:translateY(-4px);background:rgba(47,224,186,.07);border-color:rgba(47,224,186,.2)}
 @media(max-width:880px){.trust-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.trust-grid{grid-template-columns:1fr}}
 
@@ -762,7 +771,7 @@ h1.hero-h .grn{color:var(--lime)}
 .mkt-nav.scrolled{background:rgba(4,12,7,.94);backdrop-filter:saturate(140%) blur(14px);padding:14px 0;box-shadow:0 1px 0 rgba(255,255,255,.07)}
 .mkt-nav-inner{max-width:var(--maxw);margin:0 auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between}
 .mkt-brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:19px;color:#fff;text-decoration:none}
-.mkt-brand .mk{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--forest-mid),var(--emerald-deep));color:var(--lime);display:grid;place-items:center;font-weight:700;font-size:16px}
+.mkt-brand .mk{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--forest-mid),var(--emerald-deep));color:#70ff45;display:grid;place-items:center;font-weight:700;font-size:16px;box-shadow:0 0 18px rgba(47,224,186,.22)}
 .mkt-links{display:flex;gap:28px;font-size:14px;font-weight:500;color:rgba(255,255,255,.70)}
 .mkt-links a{transition:color .15s}
 .mkt-links a:hover{color:#fff}
@@ -1255,7 +1264,7 @@ h1.hero-h .grn{color:var(--lime)}
 
 /* ── Kenya country map (real ADM1 boundaries, 440 × 557.7 viewBox) ── */
 .kenya-map-wrap{position:relative;width:400px;aspect-ratio:440/557.7;height:auto;flex:none;margin:0 auto}
-.kenya-svg{display:block;width:100%;height:100%;filter:drop-shadow(0 0 48px rgba(17,166,91,.14))}
+.kenya-svg{display:block;width:100%;height:100%;filter:drop-shadow(0 0 60px rgba(47,224,186,.22)) drop-shadow(0 0 120px rgba(17,166,91,.12))}
 
 /* Counties — tap/hover to explore coverage */
 .kenya-county{fill:rgba(17,166,91,.07);stroke:rgba(150,194,68,.45);stroke-width:.7;stroke-linejoin:round;cursor:pointer;transition:fill .2s}
@@ -1272,9 +1281,9 @@ h1.hero-h .grn{color:var(--lime)}
 .kenya-dot{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:2}
 
 /* Pulse ring — scale animation (GPU-composited, no layout reflow) */
-.kenya-ring{position:absolute;top:50%;left:50%;width:10px;height:10px;border-radius:50%;background:rgba(17,166,91,.62);transform:translate(-50%,-50%) scale(1);animation:kenya-pulse 2.8s ease-out infinite}
+.kenya-ring{position:absolute;top:50%;left:50%;width:10px;height:10px;border-radius:50%;background:rgba(47,224,186,.72);transform:translate(-50%,-50%) scale(1);animation:kenya-pulse 2.8s ease-out infinite;box-shadow:0 0 10px rgba(47,224,186,.8)}
 .kenya-dot--capital .kenya-ring{background:rgba(196,144,32,.65);animation-duration:2.2s}
-@keyframes kenya-pulse{0%{transform:translate(-50%,-50%) scale(1);opacity:.75}100%{transform:translate(-50%,-50%) scale(4.2);opacity:0}}
+@keyframes kenya-pulse{0%{transform:translate(-50%,-50%) scale(1);opacity:.85;box-shadow:0 0 12px rgba(47,224,186,.9)}100%{transform:translate(-50%,-50%) scale(5);opacity:0;box-shadow:0 0 0 rgba(47,224,186,0)}}
 
 /* Tooltip */
 .kenya-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(3,14,8,.96);box-shadow:0 0 0 1px rgba(17,166,91,.4),0 4px 16px rgba(0,0,0,.5);border-radius:10px;padding:7px 12px;font-family:var(--font-mono);font-size:11px;color:#fff;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .18s;z-index:20}
@@ -1302,18 +1311,18 @@ h1.hero-h .grn{color:var(--lime)}
    Inner grid has NO overflow so position:sticky reaches the viewport. ── */
 .section-pair-shell{position:relative;overflow:hidden;color:#fff}
 .section-pair-shell::before,.section-pair-shell::after{content:'';position:absolute;border-radius:50%;pointer-events:none;z-index:0}
-.section-pair-shell::before{width:620px;height:620px;top:-120px;right:-80px}
-.section-pair-shell::after{width:560px;height:560px;bottom:-160px;left:-80px}
+.section-pair-shell::before{width:700px;height:700px;top:-140px;right:-100px;animation:orb-drift 24s ease-in-out infinite}
+.section-pair-shell::after{width:640px;height:640px;bottom:-180px;left:-100px;animation:orb-drift-r 30s ease-in-out infinite}
 
 /* Community pair (Chama + Agents) — forest green */
 .section-pair-shell--community{background:linear-gradient(150deg,#040807 0%,#071410 50%,#040c08 100%)}
-.section-pair-shell--community::before{background:radial-gradient(circle,rgba(150,194,68,.18),transparent 64%)}
-.section-pair-shell--community::after{background:radial-gradient(circle,rgba(224,168,0,.12),transparent 66%)}
+.section-pair-shell--community::before{background:radial-gradient(circle,rgba(112,255,69,.18),transparent 64%)}
+.section-pair-shell--community::after{background:radial-gradient(circle,rgba(224,168,0,.18),transparent 66%)}
 
 /* Deposit pair (Savings + M-Pesa) — deep blue */
 .section-pair-shell--deposit{background:linear-gradient(150deg,#030810 0%,#081520 50%,#050b14 100%)}
-.section-pair-shell--deposit::before{background:radial-gradient(circle,rgba(17,166,91,.2),transparent 64%)}
-.section-pair-shell--deposit::after{background:radial-gradient(circle,rgba(28,140,200,.12),transparent 66%)}
+.section-pair-shell--deposit::before{background:radial-gradient(circle,rgba(47,224,186,.22),transparent 64%)}
+.section-pair-shell--deposit::after{background:radial-gradient(circle,rgba(112,255,69,.14),transparent 66%)}
 
 /* Inner grid — no overflow, so sticky hits the viewport scroll container */
 .section-pair{display:grid;grid-template-columns:1fr 1fr;align-items:start;position:relative}
@@ -1335,25 +1344,25 @@ h1.hero-h .grn{color:var(--lime)}
 .section-pair[data-active="chama"] .kenya-county.on{fill:rgba(224,168,0,.32);stroke:rgba(224,168,0,.85)}
 .section-pair[data-active="chama"] .kenya-ring{background:rgba(224,168,0,.55)}
 .section-pair[data-active="chama"] .kenya-dot--capital .kenya-ring{background:rgba(224,168,0,.75)}
-.section-pair[data-active="chama"] .kenya-svg{filter:drop-shadow(0 0 48px rgba(224,168,0,.18))}
+.section-pair[data-active="chama"] .kenya-svg{filter:drop-shadow(0 0 60px rgba(224,168,0,.28)) drop-shadow(0 0 120px rgba(224,168,0,.12))}
 
 /* Agents state — green palette, network presence */
-.section-pair[data-active="agents"] .kenya-county{fill:rgba(17,166,91,.07);stroke:rgba(150,194,68,.45)}
+.section-pair[data-active="agents"] .kenya-county{fill:rgba(47,224,186,.07);stroke:rgba(112,255,69,.48)}
 .section-pair[data-active="agents"] .kenya-county:hover{fill:rgba(150,194,68,.22)}
 .section-pair[data-active="agents"] .kenya-county.on{fill:rgba(196,144,32,.32);stroke:rgba(196,144,32,.8)}
-.section-pair[data-active="agents"] .kenya-ring{background:rgba(17,166,91,.62)}
+.section-pair[data-active="agents"] .kenya-ring{background:rgba(47,224,186,.72);box-shadow:0 0 10px rgba(47,224,186,.8)}
 .section-pair[data-active="agents"] .kenya-dot--capital .kenya-ring{background:rgba(196,144,32,.65)}
-.section-pair[data-active="agents"] .kenya-svg{filter:drop-shadow(0 0 48px rgba(17,166,91,.14));transition:filter .65s cubic-bezier(.2,0,0,1)}
+.section-pair[data-active="agents"] .kenya-svg{filter:drop-shadow(0 0 60px rgba(47,224,186,.28)) drop-shadow(0 0 100px rgba(112,255,69,.12));transition:filter .65s cubic-bezier(.2,0,0,1)}
 
 /* Phone palette — deposit pair (SavingsMpesaPair) */
 .section-pair .mpesa-phone-3d{transition:filter .65s cubic-bezier(.2,0,0,1)}
 .section-pair .mp-card,.section-pair .mp-ok{transition:opacity .65s cubic-bezier(.2,0,0,1)}
 /* Save state — deposit confirmed, sats earning */
-.section-pair[data-active="save"] .mpesa-phone-3d{filter:drop-shadow(0 0 48px rgba(17,166,91,.42))}
+.section-pair[data-active="save"] .mpesa-phone-3d{filter:drop-shadow(0 0 60px rgba(47,224,186,.50)) drop-shadow(0 0 120px rgba(47,224,186,.20))}
 .section-pair[data-active="save"] .mp-card{opacity:.32}
 .section-pair[data-active="save"] .mp-ok{opacity:1}
 /* Mpesa state — STK push, entering PIN */
-.section-pair[data-active="mpesa"] .mpesa-phone-3d{filter:drop-shadow(0 0 24px rgba(17,166,91,.14))}
+.section-pair[data-active="mpesa"] .mpesa-phone-3d{filter:drop-shadow(0 0 48px rgba(112,255,69,.30)) drop-shadow(0 0 100px rgba(112,255,69,.12))}
 .section-pair[data-active="mpesa"] .mp-card{opacity:1}
 .section-pair[data-active="mpesa"] .mp-ok{opacity:.32}
 
@@ -1365,6 +1374,12 @@ h1.hero-h .grn{color:var(--lime)}
 #lightning::after{background:radial-gradient(circle,rgba(90,60,200,.15),transparent 66%);bottom:-160px;left:-60px}
 
 .lightning-layout{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;width:100%}
+/* Ghost Kenya map that echoes from CommunityPair above */
+.ghost-echo-wrap--kenya{display:flex;align-items:center;justify-content:flex-start;padding-left:2%}
+.ghost-kenya{width:min(46%,300px);--ghost-op:.072;filter:saturate(1.4)}
+/* Ghost bolt that echoes from Lightning above */
+.ghost-echo-wrap--bolt{display:flex;align-items:center;justify-content:center}
+.ghost-bolt{width:min(28%,220px);--ghost-op:.055}
 
 /* Big bolt visual — clean vertical stack, no absolute positioning */
 .bolt-visual{display:flex;flex-direction:column;align-items:center;gap:28px;position:relative;padding:32px 24px}
