@@ -230,45 +230,10 @@ function Inflation() {
               </p>
             </div>
 
-            <div className="io-compare">
-              <div className="io-cmp-side">
-                <div className="io-cmp-label">KES 100 buys</div>
-                <div className="io-cmp-cups io-cups-kes">{kesCups}</div>
-                <div className="io-cmp-sub">cups · KES {chaiKES} each</div>
-                <div className="io-cmp-badge io-badge-kes">
-                  {n === 0 ? "baseline" : `−${Math.round((1 - kesCups / 10) * 100)}% power`}
-                </div>
-              </div>
-              <div className="io-cmp-mid"><div className="io-cmp-vs">vs</div></div>
-              <div className="io-cmp-side">
-                <div className="io-cmp-label">333,334 sats buys</div>
-                <div className="io-cmp-cups io-cups-sat">{fmtN(satCups)}</div>
-                <div className="io-cmp-sub">cups · {fmtSats(satsPerCup)} sats each</div>
-                <div className="io-cmp-badge io-badge-sat">= KES {fmtN(Math.round(kesValue))}</div>
-              </div>
-            </div>
-
-            <div className="infl-stats">
-              <div className="infl-stat">
-                <div className="infl-stat-num gold">266×</div>
-                <div className="infl-stat-label">more purchasing power</div>
-              </div>
-              <div className="infl-stat-div" />
-              <div className="infl-stat">
-                <div className="infl-stat-num gold">1,332</div>
-                <div className="infl-stat-label">cups from 333k sats</div>
-              </div>
-              <div className="infl-stat-div" />
-              <div className="infl-stat">
-                <div className="infl-stat-num gold">KES 26,645</div>
-                <div className="infl-stat-label">value of KES 100 in sats</div>
-              </div>
-            </div>
-
             <div className="infl-cta">
-              <Button variant="gold" onClick={() => router.push("/register")}>
+              <button className="hero-btn" onClick={() => router.push("/register")}>
                 Protect my savings with sats <i className="ti ti-arrow-right" />
-              </Button>
+              </button>
             </div>
           </div>
         </div>
