@@ -217,7 +217,7 @@ export default function Hero() {
           </p>
           <div className="hero-cta reveal d2">
             <button className="hero-btn" onClick={() => router.push("/register")}>
-              Open a free account <i className="ti ti-arrow-right" />
+              Open a free account
             </button>
           </div>
         </div>
