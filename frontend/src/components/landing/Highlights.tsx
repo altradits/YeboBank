@@ -142,18 +142,6 @@ export function Lightning() {
 
           {/* LEFT — animated bolt + stats, clean stack layout */}
           <div className="bolt-visual reveal">
-            {/* Speed stats row */}
-            <div className="bolt-stats-row">
-              <div className="bolt-stat">
-                <div className="bolt-stat-n">0¢</div>
-                <div className="bolt-stat-l">send fee</div>
-              </div>
-              <div className="bolt-stat" style={{ textAlign: "right" }}>
-                <div className="bolt-stat-n">&lt;1s</div>
-                <div className="bolt-stat-l">settlement</div>
-              </div>
-            </div>
-
             {/* Bolt SVG */}
             <div className="bolt-svg-wrap">
               <svg className="bolt-svg" width="120" height="200" viewBox="0 0 120 200" fill="none">
@@ -173,43 +161,10 @@ export function Lightning() {
               </svg>
             </div>
 
-            {/* Global reach stat */}
-            <div className="bolt-stat" style={{ textAlign: "center" }}>
-              <div className="bolt-stat-n">Global</div>
-              <div className="bolt-stat-l">reach — any country</div>
-            </div>
-
-            {/* Transmitting address — appears char-by-char on hover */}
-            <div className="transmit-wrap">
-              <div
-                className="transmit-chip"
-                onMouseEnter={startTransmit}
-                onMouseLeave={() => setTransmit(false)}
-              >
-                <span className="transmit-addr">
-                  {transmitting
-                    ? ADDR.split("").map((ch, i) => (
-                        <span
-                          key={i}
-                          className="transmit-char"
-                          style={{ animationDelay: `${i * 44}ms`, color: i < visibleChars ? "#fff" : "transparent" }}
-                        >
-                          {ch}
-                        </span>
-                      ))
-                    : ADDR
-                  }
-                </span>
-                <button className="transmit-cpy" onClick={copy} aria-label="Copy address">
-                  <i className={`ti ${copied ? "ti-check" : "ti-copy"}`} />
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* RIGHT — copy */}
           <div className="reveal d1">
-            <div className="kicker"><i className="ti ti-bolt bolt-anim" /> Lightning network</div>
             <h2 className="h2">Send money anywhere, <span className="accent">in seconds.</span></h2>
             <p className="lead">
               Your Lightning address works like an email for money. Anyone,

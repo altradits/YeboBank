@@ -1136,6 +1136,7 @@ h1.hero-h .grn{color:var(--lime)}
 #save::after{background:radial-gradient(circle,rgba(10,60,160,.18),transparent 66%);bottom:-200px;left:-100px}
 
 .savings-layout{display:grid;grid-template-columns:1fr 500px;gap:104px;align-items:center;width:100%}
+.savings-copy{max-width:640px;margin:0 auto}
 
 /* ── The earnings card — one number, one choice (elevation level 3) ── */
 .save-card{max-width:480px;margin:0 auto;background:linear-gradient(150deg,rgba(30,18,4,.92),rgba(16,10,3,.96));box-shadow:0 14px 44px rgba(0,0,0,.5),0 0 0 1px rgba(224,168,0,.22);border-radius:var(--r-lg);padding:26px 28px;display:flex;flex-direction:column;gap:22px}
@@ -1296,8 +1297,68 @@ h1.hero-h .grn{color:var(--lime)}
 @media(max-width:1024px){.agents-layout{grid-template-columns:1fr;gap:56px}.kenya-map-wrap{width:340px}}
 @media(max-width:480px){.kenya-map-wrap{width:280px}}
 
+/* ── section-pair: sticky shared visual ────────────────────────────────────
+   Shell handles overflow:hidden + ambient glows.
+   Inner grid has NO overflow so position:sticky reaches the viewport. ── */
+.section-pair-shell{position:relative;overflow:hidden;color:#fff}
+.section-pair-shell::before,.section-pair-shell::after{content:'';position:absolute;border-radius:50%;pointer-events:none;z-index:0}
+.section-pair-shell::before{width:620px;height:620px;top:-120px;right:-80px}
+.section-pair-shell::after{width:560px;height:560px;bottom:-160px;left:-80px}
+
+/* Community pair (Chama + Agents) — forest green */
+.section-pair-shell--community{background:linear-gradient(150deg,#040807 0%,#071410 50%,#040c08 100%)}
+.section-pair-shell--community::before{background:radial-gradient(circle,rgba(150,194,68,.18),transparent 64%)}
+.section-pair-shell--community::after{background:radial-gradient(circle,rgba(224,168,0,.12),transparent 66%)}
+
+/* Deposit pair (Savings + M-Pesa) — deep blue */
+.section-pair-shell--deposit{background:linear-gradient(150deg,#030810 0%,#081520 50%,#050b14 100%)}
+.section-pair-shell--deposit::before{background:radial-gradient(circle,rgba(17,166,91,.2),transparent 64%)}
+.section-pair-shell--deposit::after{background:radial-gradient(circle,rgba(28,140,200,.12),transparent 66%)}
+
+/* Inner grid — no overflow, so sticky hits the viewport scroll container */
+.section-pair{display:grid;grid-template-columns:1fr 1fr;align-items:start;position:relative}
+.section-pair-visual{position:sticky;top:0;height:100dvh;display:flex;align-items:center;justify-content:center;padding:0 24px 0 48px;z-index:1}
+.section-pair-panels{position:relative;z-index:1}
+.section-pair-panel{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:80px 56px;position:relative}
+.section-pair #chama,.section-pair #agents,.section-pair #save,.section-pair #mpesa{background:transparent}
+.section-pair-panel+.section-pair-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(255,255,255,.07)}
+@media(max-width:1024px){.section-pair{display:block}.section-pair-visual{position:relative;height:auto;padding:56px 24px 24px;min-height:340px}.section-pair-panel{min-height:auto;padding:48px 24px}}
+
+/* Map palette shifts with active panel — M3 smooth transition */
+.section-pair .kenya-county{transition:fill .65s cubic-bezier(.2,0,0,1),stroke .65s cubic-bezier(.2,0,0,1)}
+.section-pair .kenya-ring{transition:background .65s cubic-bezier(.2,0,0,1),animation-duration .65s}
+.section-pair .kenya-dot--capital .kenya-ring{transition:background .65s cubic-bezier(.2,0,0,1)}
+
+/* Chama state — gold palette, community warmth */
+.section-pair[data-active="chama"] .kenya-county{fill:rgba(224,168,0,.10);stroke:rgba(224,168,0,.40)}
+.section-pair[data-active="chama"] .kenya-county:hover{fill:rgba(224,168,0,.26)}
+.section-pair[data-active="chama"] .kenya-county.on{fill:rgba(224,168,0,.32);stroke:rgba(224,168,0,.85)}
+.section-pair[data-active="chama"] .kenya-ring{background:rgba(224,168,0,.55)}
+.section-pair[data-active="chama"] .kenya-dot--capital .kenya-ring{background:rgba(224,168,0,.75)}
+.section-pair[data-active="chama"] .kenya-svg{filter:drop-shadow(0 0 48px rgba(224,168,0,.18))}
+
+/* Agents state — green palette, network presence */
+.section-pair[data-active="agents"] .kenya-county{fill:rgba(17,166,91,.07);stroke:rgba(150,194,68,.45)}
+.section-pair[data-active="agents"] .kenya-county:hover{fill:rgba(150,194,68,.22)}
+.section-pair[data-active="agents"] .kenya-county.on{fill:rgba(196,144,32,.32);stroke:rgba(196,144,32,.8)}
+.section-pair[data-active="agents"] .kenya-ring{background:rgba(17,166,91,.62)}
+.section-pair[data-active="agents"] .kenya-dot--capital .kenya-ring{background:rgba(196,144,32,.65)}
+.section-pair[data-active="agents"] .kenya-svg{filter:drop-shadow(0 0 48px rgba(17,166,91,.14));transition:filter .65s cubic-bezier(.2,0,0,1)}
+
+/* Phone palette — deposit pair (SavingsMpesaPair) */
+.section-pair .mpesa-phone-3d{transition:filter .65s cubic-bezier(.2,0,0,1)}
+.section-pair .mp-card,.section-pair .mp-ok{transition:opacity .65s cubic-bezier(.2,0,0,1)}
+/* Save state — deposit confirmed, sats earning */
+.section-pair[data-active="save"] .mpesa-phone-3d{filter:drop-shadow(0 0 48px rgba(17,166,91,.42))}
+.section-pair[data-active="save"] .mp-card{opacity:.32}
+.section-pair[data-active="save"] .mp-ok{opacity:1}
+/* Mpesa state — STK push, entering PIN */
+.section-pair[data-active="mpesa"] .mpesa-phone-3d{filter:drop-shadow(0 0 24px rgba(17,166,91,.14))}
+.section-pair[data-active="mpesa"] .mp-card{opacity:1}
+.section-pair[data-active="mpesa"] .mp-ok{opacity:.32}
+
 /* =========================================================================
-   LIGHTNING SECTION — "The Spark" 
+   LIGHTNING SECTION — "The Spark"
    ========================================================================= */
 #lightning{background:linear-gradient(150deg,#020208 0%,#08081e 50%,#060418 100%)}
 #lightning::before{background:radial-gradient(circle,rgba(224,168,0,.18),transparent 64%);top:-100px;right:calc(50% - 280px)}
@@ -1450,6 +1511,23 @@ h1.hero-h .grn{color:var(--lime)}
 
 [data-theme="light"] #agents    { background: linear-gradient(150deg,#EEF6F2 0%,#E5F0E9 50%,#EBF5EF 100%) }
 [data-theme="light"] #agents::before { background: radial-gradient(circle,rgba(10,152,80,.1),transparent 64%) }
+
+[data-theme="light"] .section-pair-shell{color:var(--text)}
+[data-theme="light"] .section-pair-shell--community{background:linear-gradient(150deg,#EEF6F2 0%,#E5F0E9 50%,#EBF5EF 100%)}
+[data-theme="light"] .section-pair-shell--community::before{background:radial-gradient(circle,rgba(10,152,80,.1),transparent 64%)}
+[data-theme="light"] .section-pair-shell--community::after{background:radial-gradient(circle,rgba(150,140,20,.08),transparent 66%)}
+[data-theme="light"] .section-pair-shell--deposit{background:linear-gradient(150deg,#EBF4F8 0%,#E4EEF6 50%,#E8F2F8 100%)}
+[data-theme="light"] .section-pair-shell--deposit::before{background:radial-gradient(circle,rgba(10,152,80,.1),transparent 64%)}
+[data-theme="light"] .section-pair-shell--deposit::after{background:radial-gradient(circle,rgba(28,100,180,.07),transparent 66%)}
+[data-theme="light"] .section-pair-panel+.section-pair-panel::before{background:rgba(0,0,0,.06)}
+[data-theme="light"] .section-pair[data-active="chama"] .kenya-county{fill:rgba(168,116,0,.07);stroke:rgba(168,116,0,.38)}
+[data-theme="light"] .section-pair[data-active="chama"] .kenya-county:hover{fill:rgba(168,116,0,.2)}
+[data-theme="light"] .section-pair[data-active="chama"] .kenya-ring{background:rgba(168,116,0,.52)}
+[data-theme="light"] .section-pair[data-active="chama"] .kenya-dot--capital .kenya-ring{background:rgba(168,116,0,.72)}
+[data-theme="light"] .section-pair[data-active="agents"] .kenya-county{fill:rgba(10,152,80,.05);stroke:rgba(10,152,80,.42)}
+[data-theme="light"] .section-pair[data-active="agents"] .kenya-county:hover{fill:rgba(10,152,80,.18)}
+[data-theme="light"] .section-pair[data-active="agents"] .kenya-ring{background:rgba(10,152,80,.6)}
+[data-theme="light"] .section-pair[data-active="agents"] .kenya-dot--capital .kenya-ring{background:rgba(168,116,0,.65)}
 
 [data-theme="light"] #lightning  { background: linear-gradient(150deg,#EEEEF8 0%,#E8E8F4 50%,#ECEBF6 100%) }
 [data-theme="light"] #lightning::before { background: radial-gradient(circle,rgba(168,116,0,.12),transparent 64%) }
