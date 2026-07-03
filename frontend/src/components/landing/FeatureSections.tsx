@@ -706,18 +706,25 @@ function Chama() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   AGENTS — "The Radar": tactical display with pulsing agent dots
+   AGENTS — Kenya country map with agent network coverage
    ══════════════════════════════════════════════════════════════════════════ */
 
-const AGENT_DOTS = [
-  { left: "50%",  top: "50%", label: "Nairobi CBD",   agents: 48, isCenter: false, delay: "0s"    },
-  { left: "38%",  top: "32%", label: "Westlands",     agents: 23, isCenter: false, delay: "0.4s"  },
-  { left: "65%",  top: "35%", label: "Embakasi",      agents: 31, isCenter: false, delay: "0.8s"  },
-  { left: "28%",  top: "58%", label: "Kibera",        agents: 19, isCenter: false, delay: "1.2s"  },
-  { left: "72%",  top: "62%", label: "Kasarani",      agents: 27, isCenter: false, delay: "1.6s"  },
-  { left: "18%",  top: "72%", label: "Mombasa Rd",    agents: 14, isCenter: false, delay: "2.0s"  },
-  { left: "82%",  top: "24%", label: "Ruiru",         agents: 16, isCenter: false, delay: "2.4s"  },
-  { left: "55%",  top: "80%", label: "Rongai",        agents: 12, isCenter: false, delay: "2.8s"  },
+// Simplified Kenya outline — key features: NE Mandera bulge, eastern coast,
+// Lake Victoria western indentation, southern Tanzania border.
+const KENYA_PATH =
+  "M 90,60 L 180,38 L 268,32 L 395,62 L 405,175 L 382,295 " +
+  "L 330,370 L 260,390 L 168,375 L 100,305 L 115,248 L 82,175 Z";
+
+// Cities placed at geographic coordinates mapped into the 440×440 SVG
+const KENYA_AGENTS = [
+  { x: 222, y: 268, label: "Nairobi",  n: 48, delay: "0s",    capital: true  },
+  { x: 325, y: 348, label: "Mombasa",  n: 31, delay: "0.5s",  capital: false },
+  { x: 122, y: 240, label: "Kisumu",   n: 23, delay: "1.0s",  capital: false },
+  { x: 172, y: 238, label: "Nakuru",   n: 19, delay: "1.5s",  capital: false },
+  { x: 148, y: 215, label: "Eldoret",  n: 16, delay: "2.0s",  capital: false },
+  { x: 232, y: 235, label: "Meru",     n: 14, delay: "2.5s",  capital: false },
+  { x: 318, y: 240, label: "Garissa",  n: 12, delay: "3.0s",  capital: false },
+  { x: 162, y: 112, label: "Lodwar",   n:  8, delay: "3.5s",  capital: false },
 ] as const;
 
 function Agents() {
@@ -728,62 +735,47 @@ function Agents() {
       <div className="wrap">
         <div className="agents-layout">
 
-          {/* LEFT — duka neighbourhood map */}
-          <div className="duka-map-wrap reveal">
-            {/* Street grid SVG backdrop (no CSS border-width anywhere) */}
-            <svg className="duka-map-svg" viewBox="0 0 440 440" aria-hidden="true">
-              {/* Map surface */}
-              <rect width="440" height="440" rx="18" fill="rgba(3,14,8,.97)"/>
+          {/* LEFT — Kenya country map with agent coverage */}
+          <div className="kenya-map-wrap reveal">
+            {/* Country outline SVG (SVG stroke only — no CSS border-width) */}
+            <svg className="kenya-svg" viewBox="0 0 440 440" aria-hidden="true">
+              {/* Lake Victoria hint (outside the border, to the west) */}
+              <ellipse cx="72" cy="262" rx="22" ry="48"
+                fill="rgba(28,90,200,.1)" stroke="rgba(28,90,200,.18)" strokeWidth="1"/>
 
-              {/* City blocks — filled rects between streets */}
-              {[0,1,2,3].map(row => [0,1,2,3].map(col => (
-                <rect key={`${row}-${col}`}
-                  x={col * 110} y={row * 110}
-                  width="96" height="96"
-                  fill={(row + col) % 2 === 0 ? "rgba(10,32,18,.72)" : "rgba(7,24,13,.72)"}
-                />
-              )))}
+              {/* Kenya landmass */}
+              <path d={KENYA_PATH}
+                fill="rgba(17,166,91,.07)"
+                stroke="rgba(150,194,68,.52)"
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
 
-              {/* Street gutters (the roads — lighter fills between blocks) */}
-              {[1,2,3].map(i => (
-                <rect key={`v${i}`} x={i*110-7} y={0} width="14" height="440" fill="rgba(17,166,91,.07)"/>
-              ))}
-              {[1,2,3].map(i => (
-                <rect key={`h${i}`} x={0} y={i*110-7} width="440" height="14" fill="rgba(17,166,91,.07)"/>
-              ))}
+              {/* Subtle interior — main rift valley line */}
+              <line x1="175" y1="80" x2="200" y2="350"
+                stroke="rgba(150,194,68,.12)" strokeWidth="1" strokeDasharray="8 6"/>
 
-              {/* Street centre-lines */}
-              {[1,2,3].map(i => (
-                <line key={`vc${i}`} x1={i*110} y1={0} x2={i*110} y2={440}
-                  stroke="rgba(17,166,91,.12)" strokeWidth="1" strokeDasharray="6 5"/>
+              {/* Static city dots (SVG — drawn first, below HTML rings) */}
+              {KENYA_AGENTS.map((a, i) => (
+                <g key={i}>
+                  <circle cx={a.x} cy={a.y} r={a.capital ? 8 : 5.5}
+                    fill={a.capital ? "rgba(196,144,32,.9)" : "rgba(17,166,91,.88)"}/>
+                  <circle cx={a.x} cy={a.y} r={a.capital ? 3.5 : 2}
+                    fill="rgba(255,255,255,.55)"/>
+                </g>
               ))}
-              {[1,2,3].map(i => (
-                <line key={`hc${i}`} x1={0} y1={i*110} x2={440} y2={i*110}
-                  stroke="rgba(17,166,91,.12)" strokeWidth="1" strokeDasharray="6 5"/>
-              ))}
-
-              {/* YOU ARE HERE marker at intersection (220, 220) */}
-              <circle cx="220" cy="220" r="13" fill="rgba(196,144,32,.22)"/>
-              <circle cx="220" cy="220" r="8"  fill="rgba(196,144,32,.9)"/>
-              <circle cx="220" cy="220" r="4"  fill="rgba(255,255,255,.4)"/>
-              <circle cx="220" cy="220" r="1.5" fill="#fff"/>
             </svg>
 
-            {/* Agent kiosk markers (HTML so tooltips work) */}
-            {AGENT_DOTS.map((d, i) => (
+            {/* HTML dots — pulse rings + tooltips */}
+            {KENYA_AGENTS.map((a, i) => (
               <div
                 key={i}
-                className="duka-dot"
-                style={{ left: d.left, top: d.top, animationDelay: d.delay }}
+                className={`kenya-dot${a.capital ? " kenya-dot--capital" : ""}`}
+                style={{ left: `${(a.x / 440) * 100}%`, top: `${(a.y / 440) * 100}%` }}
               >
-                {/* Building footprint (two stacked rects = shop body + canopy) */}
-                <svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true" className="duka-icon">
-                  <rect x="2" y="7" width="20" height="13" rx="2" fill="rgba(150,194,68,.32)"/>
-                  <rect x="0" y="4" width="24" height="5" rx="1.5" fill="rgba(150,194,68,.6)"/>
-                  <rect x="8" y="11" width="8" height="9" rx="1" fill="rgba(150,194,68,.2)"/>
-                </svg>
-                <div className="duka-tip">
-                  <b>{d.label}</b><br />{d.agents} agents
+                <div className="kenya-ring" style={{ animationDelay: a.delay }} />
+                <div className="kenya-tip">
+                  <b>{a.label}</b><br />{a.n} agents
                 </div>
               </div>
             ))}

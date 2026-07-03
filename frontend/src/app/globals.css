@@ -1298,20 +1298,22 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 
 .agents-layout{display:grid;grid-template-columns:1fr 480px;gap:104px;align-items:center;width:100%}
 
-/* ── Duka neighbourhood map ── */
-.duka-map-wrap{position:relative;width:440px;height:440px;flex:none;margin:0 auto}
-.duka-map-svg{display:block;width:100%;height:100%;filter:drop-shadow(0 0 40px rgba(17,166,91,.12))}
+/* ── Kenya country map ── */
+.kenya-map-wrap{position:relative;width:440px;height:440px;flex:none;margin:0 auto}
+.kenya-svg{display:block;width:100%;height:100%;filter:drop-shadow(0 0 48px rgba(17,166,91,.14))}
 
-/* Kiosk dot markers (HTML, positioned on top of SVG) */
-.duka-dot{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:2}
-.duka-icon{display:block;animation:kiosk-pulse 2.2s ease-in-out infinite;filter:drop-shadow(0 0 5px rgba(150,194,68,.7))}
-@keyframes kiosk-pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
-.duka-dot:hover .duka-icon{animation:none;opacity:1;transform:scale(1.3);filter:drop-shadow(0 0 10px rgba(150,194,68,.95))}
+/* City marker dots (HTML, positioned over SVG) */
+.kenya-dot{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:2}
+
+/* Pulse ring — scale animation (GPU-composited, no layout reflow) */
+.kenya-ring{position:absolute;top:50%;left:50%;width:10px;height:10px;border-radius:50%;background:rgba(17,166,91,.62);transform:translate(-50%,-50%) scale(1);animation:kenya-pulse 2.8s ease-out infinite}
+.kenya-dot--capital .kenya-ring{background:rgba(196,144,32,.65);animation-duration:2.2s}
+@keyframes kenya-pulse{0%{transform:translate(-50%,-50%) scale(1);opacity:.75}100%{transform:translate(-50%,-50%) scale(4.2);opacity:0}}
 
 /* Tooltip */
-.duka-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(3,14,8,.96);box-shadow:0 0 0 1px rgba(17,166,91,.4),0 4px 16px rgba(0,0,0,.5);border-radius:10px;padding:7px 12px;font-family:var(--font-mono);font-size:11px;color:#fff;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;z-index:20}
-.duka-tip b{color:var(--lime)}
-.duka-dot:hover .duka-tip{opacity:1}
+.kenya-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(3,14,8,.96);box-shadow:0 0 0 1px rgba(17,166,91,.4),0 4px 16px rgba(0,0,0,.5);border-radius:10px;padding:7px 12px;font-family:var(--font-mono);font-size:11px;color:#fff;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .18s;z-index:20}
+.kenya-tip b{color:var(--lime)}
+.kenya-dot:hover .kenya-tip{opacity:1}
 
 /* Coverage stat strip */
 .agents-stats{display:flex;gap:0;margin-bottom:32px}
@@ -1326,8 +1328,8 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 #agents .split-li:hover{background:rgba(150,194,68,.06);transform:translateX(6px);border-radius:12px;border-color:rgba(150,194,68,.3)}
 #agents .split-li i{background:rgba(150,194,68,.12);color:var(--lime)}
 
-@media(max-width:1024px){.agents-layout{grid-template-columns:1fr;gap:56px}.duka-map-wrap{width:340px;height:340px}}
-@media(max-width:480px){.duka-map-wrap{width:280px;height:280px}}
+@media(max-width:1024px){.agents-layout{grid-template-columns:1fr;gap:56px}.kenya-map-wrap{width:340px;height:340px}}
+@media(max-width:480px){.kenya-map-wrap{width:280px;height:280px}}
 
 /* =========================================================================
    LIGHTNING SECTION — "The Spark" 
@@ -1597,13 +1599,15 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 [data-theme="light"] #chama .split-li:hover { background: rgba(168,116,0,.04); border-color: rgba(168,116,0,.25) }
 
 /* ── Agents section (duka map) ────────────────────────────────────────── */
-[data-theme="light"] .duka-map-svg { filter: drop-shadow(0 0 24px rgba(10,152,80,.1)) }
-[data-theme="light"] .duka-tip {
+[data-theme="light"] .kenya-svg { filter: drop-shadow(0 0 24px rgba(10,152,80,.1)) }
+[data-theme="light"] .kenya-svg path { fill: rgba(10,152,80,.05); stroke: rgba(10,152,80,.42) }
+[data-theme="light"] .kenya-svg ellipse { fill: rgba(28,90,200,.07); stroke: rgba(28,90,200,.15) }
+[data-theme="light"] .kenya-tip {
   background: rgba(255,255,255,.97);
   box-shadow: 0 0 0 1px rgba(10,152,80,.3), 0 4px 16px rgba(6,18,16,.12);
   color: var(--text);
 }
-[data-theme="light"] .duka-tip b { color: var(--emerald-deep) }
+[data-theme="light"] .kenya-tip b { color: var(--emerald-deep) }
 [data-theme="light"] .agents-stat { background: rgba(255,255,255,.8); box-shadow: inset 0 0 0 1px var(--border) }
 [data-theme="light"] .agents-stat-n { color: var(--emerald-deep) }
 [data-theme="light"] .agents-stat-l { color: var(--soft) }
