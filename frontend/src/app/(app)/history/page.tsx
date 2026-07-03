@@ -33,10 +33,10 @@ export default function HistoryPage() {
           { label: "Transactions", value: `${history.length}`, sub: `${history.filter(t => t.direction === "credit").length} in · ${history.filter(t => t.direction === "debit").length} out` },
         ]}
         actions={[
-          { icon: "ti-arrow-down", label: "Add Money", path: "/deposit" },
-          { icon: "ti-arrow-up", label: "Withdraw", path: "/withdraw" },
-          { icon: "ti-send", label: "Send", path: "/send" },
-          { icon: "ti-piggy-bank", label: "Savings", path: "/savings" },
+          { icon: "ti-arrow-down", label: "Add Money", action: "deposit" as const },
+          { icon: "ti-arrow-up",   label: "Withdraw",  action: "withdraw" as const },
+          { icon: "ti-send",       label: "Send",      action: "send" as const },
+          { icon: "ti-piggy-bank", label: "Savings",   path: "/savings" },
         ]}
       />
 

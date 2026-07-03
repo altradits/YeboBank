@@ -116,10 +116,8 @@ export default function InvestPage() {
           { label: "Return rate", value: apyStr, sub: position?.compounding ? "Compounded" : "Simple" },
         ]}
         actions={[
-          { icon: "ti-layout-dashboard", label: "Dashboard", path: "/dashboard" },
-          { icon: "ti-piggy-bank", label: "Savings", path: "/savings" },
-          { icon: "ti-history", label: "History", path: "/history" },
-          { icon: "ti-arrow-bar-down", label: "Withdraw", onClick: () => document.getElementById("withdraw-section")?.scrollIntoView({ behavior: "smooth" }) },
+          { icon: "ti-arrow-down",    label: "Add Money", action: "deposit" as const },
+          { icon: "ti-arrow-bar-down", label: "Withdraw",  onClick: () => document.getElementById("withdraw-section")?.scrollIntoView({ behavior: "smooth" }) },
         ]}
       />
       <div className="notif-banner" style={{ marginTop: 14 }}><i className="ti ti-shield-lock" /><span>{PILOT_BANNER}</span></div>

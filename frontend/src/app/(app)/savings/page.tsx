@@ -75,10 +75,10 @@ export default function SavingsPage() {
           { label: "Target APY", value: "~5.2%", sub: "From real yield" },
         ]}
         actions={[
-          { icon: "ti-plus", label: "New Lock", path: "/savings/lock" },
-          { icon: "ti-arrow-down", label: "Add Money", path: "/deposit" },
-          { icon: "ti-arrow-up", label: "Withdraw", path: "/withdraw" },
-          { icon: "ti-history", label: "History", path: "/history" },
+          { icon: "ti-plus",       label: "New Lock",  path: "/savings/lock" },
+          { icon: "ti-arrow-down", label: "Add Money", action: "deposit" as const },
+          { icon: "ti-arrow-up",   label: "Withdraw",  action: "withdraw" as const },
+          { icon: "ti-history",    label: "History",   path: "/history" },
         ]}
       />
 

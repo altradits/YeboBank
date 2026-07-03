@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 import { getWallet, getUser } from "@/lib/api";
+import QuickActionModal, { type QuickActionKind } from "@/components/app/QuickActionModal";
 
 const LAST4  = "2370";
 const EXPIRY = "12/29";
@@ -21,9 +22,12 @@ export interface ActionItem {
   icon: string;
   label: string;
   path?: string;
+  action?: QuickActionKind;
   onClick?: () => void;
   badge?: number;
 }
+
+export type { QuickActionKind };
 
 interface Props {
   /** Pre-loaded balance in sats. If omitted the component fetches it. */
@@ -135,6 +139,7 @@ export function ATMCard({
   const [walletSats, setWalletSats] = useState<number | null>(null);
   const [name,       setName]       = useState("—");
   const [view,       setView]       = useState<"kes" | "sats">("kes");
+  const [quickAction, setQuickAction] = useState<QuickActionKind | null>(null);
 
   useEffect(() => {
     if (propSats === undefined) getWallet().then(w => setWalletSats(w.balanceSats));
@@ -169,15 +174,16 @@ export function ATMCard({
       { label: "Target APY", value: "~5.2%", sub: "From real yield" },
     ];
     const defaultActions: ActionItem[] = [
-      { icon: "ti-arrow-down", label: "Add money", path: "/deposit" },
-      { icon: "ti-arrow-up",   label: "Withdraw",  path: "/withdraw" },
-      { icon: "ti-send",       label: "Send",      path: "/send" },
-      { icon: "ti-lock",       label: "Lock",      path: "/savings/lock" },
+      { icon: "ti-arrow-down", label: "Add money", action: "deposit" },
+      { icon: "ti-arrow-up",   label: "Withdraw",  action: "withdraw" },
+      { icon: "ti-send",       label: "Send",      action: "send" },
+      { icon: "ti-lock",       label: "Lock",      action: "lock" },
     ];
     const displayStats   = stats   ?? defaultStats;
     const displayActions = actions ?? defaultActions;
 
     return (
+      <>
       <div style={{ ...sharedBg, borderRadius: 18, padding: "24px 28px", boxShadow: "0 14px 44px rgba(0,0,0,.5)" }}>
         {/* Glow orbs */}
         <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,168,76,.2) 0%, transparent 70%)", pointerEvents: "none" }} />
@@ -239,7 +245,14 @@ export function ATMCard({
         {/* Quick actions */}
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${displayActions.length}, 1fr)`, gap: 8, marginTop: 16 }}>
           {displayActions.map((a) => (
-            <button key={a.label} onClick={a.path ? () => router.push(a.path!) : a.onClick} style={{
+            <button
+              key={a.label}
+              onClick={
+                a.action ? () => setQuickAction(a.action!)
+                : a.path ? () => router.push(a.path!)
+                : a.onClick
+              }
+              style={{
               background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.1)",
               color: "#fff", borderRadius: 12, padding: "12px 6px",
               fontSize: 12, fontWeight: 500, cursor: "pointer",
@@ -269,6 +282,11 @@ export function ATMCard({
           ))}
         </div>
       </div>
+
+      {quickAction && (
+        <QuickActionModal kind={quickAction} onClose={() => setQuickAction(null)} />
+      )}
+      </>
     );
   }
 

@@ -10,6 +10,7 @@ import { addToLock, getLock, getLockMessages, postLockMessage } from "@/lib/api"
 import { ATMCard } from "@/components/app/ATMCard";
 import type { LockMessage, Rate, SavingsLock } from "@/types";
 import ContributeModal from "@/components/app/ContributeModal";
+import WhatsAppBar from "@/components/app/WhatsAppBar";
 
 // TODO(backend): derive from session cookie on the server
 const CURRENT_HANDLE = "@wanjiku";
@@ -113,8 +114,6 @@ export default function LockDetailPage() {
   const [contributeModal, setContributeModal] = useState(false);
   const [contributing, setContributing]       = useState(false);
   const [justDepositedId, setJustDepositedId] = useState<string | null>(null);
-  const [input, setInput]   = useState("");
-  const [sending, setSending] = useState(false);
   const [chatExpanded, setChatExpanded] = useState(false);
 
   const highlightRef    = useRef<HTMLDivElement>(null);
@@ -177,21 +176,6 @@ export default function LockDetailPage() {
     setLock(updated);
     setContributing(false);
     setContributeModal(false);
-  }
-
-  async function handleSendText() {
-    const raw = input.trim();
-    if (!raw || sending || !lock) return;
-    setSending(true);
-    setInput("");
-    const msg = await postLockMessage(lock.id, {
-      kind: "text",
-      authorHandle: CURRENT_HANDLE,
-      authorName: CURRENT_NAME,
-      body: raw,
-    });
-    setMessages((prev) => [msg, ...prev]);
-    setSending(false);
   }
 
   if (pageLoading) {
@@ -316,10 +300,10 @@ export default function LockDetailPage() {
             ))}
           </div>
 
-          {/* Chat / activity panel — reuses .chama-chat CSS */}
+          {/* Activity panel — reuses .chama-chat CSS */}
           <div className={`card chama-chat${chatExpanded ? " chat-fs" : ""}`}>
             <div className="chat-head">
-              <h2>Chat</h2>
+              <h2>Activity</h2>
               <button
                 className="chat-expand-btn"
                 onClick={() => setChatExpanded((v) => !v)}
@@ -329,7 +313,6 @@ export default function LockDetailPage() {
                 <i className={`ti ${chatExpanded ? "ti-arrows-minimize" : "ti-arrows-maximize"}`} />
               </button>
             </div>
-            {/* TODO(backend): poll or subscribe for shared realtime state */}
             <div className="chat-msgs">
               {messages.length === 0 && (
                 <p className="note" style={{ textAlign: "center", padding: "20px 0" }}>
@@ -345,31 +328,7 @@ export default function LockDetailPage() {
                 </div>
               ))}
             </div>
-            {/* Composer — multi-member only */}
-            <div className="chat-composer">
-              <div className="composer-row">
-                <textarea
-                  rows={1}
-                  placeholder="Message…"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      void handleSendText();
-                    }
-                  }}
-                />
-                <button
-                  className="composer-send"
-                  onClick={() => void handleSendText()}
-                  disabled={sending || !input.trim()}
-                  aria-label="Send"
-                >
-                  <i className="ti ti-send" />
-                </button>
-              </div>
-            </div>
+            <WhatsAppBar groupName={lock.title ?? "Group Savings"} />
           </div>
         </div>
       ) : (
