@@ -564,115 +564,61 @@ function Mpesa() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   CHAMA — "The Circle": mouse-magnet member nodes
+   CHAMA — the shared ledger, shown as it really is (BRANDKIT §7.2: a card is
+   one idea; §9: charts minimal, one accent series; mono digits per §4.3)
    ══════════════════════════════════════════════════════════════════════════ */
 
-const MEMBERS = [
-  { name: "Wanjiku", initial: "W", contrib: "KES 12,000", color: "#C49020", bg: "rgba(196,144,32,.22)", angle: 0   },
-  { name: "Kamau",   initial: "K", contrib: "KES  8,500", color: "#96C244", bg: "rgba(150,194,68,.2)",  angle: 60  },
-  { name: "Aisha",   initial: "A", contrib: "KES 15,000", color: "#C49020", bg: "rgba(196,144,32,.22)", angle: 120 },
-  { name: "Otieno",  initial: "O", contrib: "KES  9,200", color: "#96C244", bg: "rgba(150,194,68,.2)",  angle: 180 },
-  { name: "Nafula",  initial: "N", contrib: "KES 11,400", color: "#C49020", bg: "rgba(196,144,32,.22)", angle: 240 },
-  { name: "Mwenda",  initial: "M", contrib: "KES  7,800", color: "#96C244", bg: "rgba(150,194,68,.2)",  angle: 300 },
+const LEDGER_MEMBERS = [
+  { initial: "W", name: "Wanjiku", amount: "15,000", pct: 100 },
+  { initial: "A", name: "Aisha",   amount: "12,000", pct: 80  },
+  { initial: "N", name: "Nafula",  amount: "11,400", pct: 76  },
+  { initial: "O", name: "Otieno",  amount: "9,200",  pct: 61  },
+  { initial: "K", name: "Kamau",   amount: "8,500",  pct: 57  },
 ] as const;
 
-const RADIUS = 115;
-
 function Chama() {
-  const router     = useRouter();
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const sec = sectionRef.current;
-    if (!sec) return;
-
-    const members = sec.querySelectorAll<HTMLElement>(".chama-member");
-
-    const onMove = (e: MouseEvent) => {
-      const rect = sec.getBoundingClientRect();
-      const cx   = rect.left + rect.width / 2;
-      const cy   = rect.top  + rect.height / 2;
-      const dx   = (e.clientX - cx) / rect.width;
-      const dy   = (e.clientY - cy) / rect.height;
-
-      members.forEach((m, i) => {
-        const pull = 14 + i * 2.5;
-        m.style.setProperty("--pull-x", `${dx * pull}px`);
-        m.style.setProperty("--pull-y", `${dy * pull}px`);
-      });
-    };
-
-    const onLeave = () => {
-      members.forEach(m => {
-        m.style.setProperty("--pull-x", "0px");
-        m.style.setProperty("--pull-y", "0px");
-      });
-    };
-
-    sec.addEventListener("mousemove", onMove);
-    sec.addEventListener("mouseleave", onLeave);
-    return () => {
-      sec.removeEventListener("mousemove", onMove);
-      sec.removeEventListener("mouseleave", onLeave);
-    };
-  }, []);
+  const router = useRouter();
 
   return (
-    <section className="sec" id="chama" ref={sectionRef}>
+    <section className="sec" id="chama">
       <div className="wrap">
         <div className="chama-layout">
 
-          {/* LEFT — the circle */}
-          <div className="chama-arena reveal" style={{ width: 480, height: 480, position: "relative", flexShrink: 0, margin: "0 auto" }}>
-            {/* Lotus — 6 petals radiating from the shared pool, one per member */}
-            <svg className="chama-lotus-svg" viewBox="0 0 480 480" aria-hidden="true">
-              {MEMBERS.map((m, i) => (
-                <path key={i}
-                  d="M 240,240 Q 294,145 240,58 Q 186,145 240,240 Z"
-                  fill={i % 2 === 0 ? "rgba(196,144,32,.14)" : "rgba(150,194,68,.11)"}
-                  stroke={i % 2 === 0 ? "rgba(196,144,32,.55)" : "rgba(150,194,68,.45)"}
-                  strokeWidth="1.5"
-                  strokeLinejoin="round"
-                  transform={`rotate(${m.angle + 90}, 240, 240)`}
-                />
-              ))}
-              {/* Sepal ring — where all petals converge */}
-              <circle cx="240" cy="240" r="32" fill="rgba(196,144,32,.07)" stroke="rgba(196,144,32,.22)" strokeWidth="1"/>
-            </svg>
+          {/* LEFT — the shared ledger card, exactly as members see it */}
+          <div className="chama-ledger reveal" role="img"
+            aria-label="A chama's shared ledger: group pool balance, each member's contribution, and an open vote">
+            <div className="chama-ledger-head">
+              <div>
+                <div className="chama-ledger-title">Mama Mboga Chama</div>
+                <div className="chama-ledger-sub">6 members · every entry visible to all</div>
+              </div>
+              <span className="chama-ledger-badge">OPEN BOOKS</span>
+            </div>
 
-            {/* Member bubbles — positioned via CSS transform from center */}
-            {MEMBERS.map((m, i) => {
-              const rad = (m.angle * Math.PI) / 180;
-              const bx  = RADIUS * Math.cos(rad);
-              const by  = RADIUS * Math.sin(rad);
-              return (
-                <div
-                  key={i}
-                  className="chama-member"
-                  style={{
-                    "--bx": `${bx}px`,
-                    "--by": `${by}px`,
-                    transform: `translate(calc(-50% + ${bx}px + var(--pull-x, 0px)), calc(-50% + ${by}px + var(--pull-y, 0px)))`,
-                  } as React.CSSProperties}
-                  title={`${m.name} — ${m.contrib}`}
-                >
-                  <div
-                    className="chama-av"
-                    style={{ color: m.color }}
-                  >
-                    {m.initial}
-                  </div>
-                  <div className="chama-member-name">{m.name}</div>
-                  <div className="chama-contrib-tip">{m.contrib}</div>
+            <div className="chama-ledger-pool">
+              <span className="l">GROUP POOL</span>
+              <span className="v">KES 63,900</span>
+              <span className="s">≈ 505,100 sats · held in Bitcoin</span>
+            </div>
+
+            <div className="chama-ledger-rows">
+              {LEDGER_MEMBERS.map((m, i) => (
+                <div key={m.name} className={`chama-ledger-row reveal d${Math.min(i + 1, 3)}`}>
+                  <span className="av">{m.initial}</span>
+                  <span className="nm">{m.name}</span>
+                  <span className="bar"><span style={{ width: `${m.pct}%` }} /></span>
+                  <span className="amt">KES {m.amount}</span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
 
-            {/* Center pool */}
-            <div className="chama-pool">
-              <div className="chama-pool-label">Group pool</div>
-              <div className="chama-pool-amount">KES 63.9k</div>
-              <div className="chama-pool-sub">6 members · active</div>
+            <div className="chama-ledger-vote">
+              <i className="ti ti-checkbox" />
+              <div>
+                <div className="q">Raise monthly contribution to KES 3,000?</div>
+                <div className="t">4 of 6 votes · payouts move only when the group agrees</div>
+              </div>
+              <span className="chama-ledger-pending">VOTING</span>
             </div>
           </div>
 
@@ -684,9 +630,6 @@ function Chama() {
               Run your chama with a shared wallet every member can read.
               The savings tradition you already trust — now it can&apos;t be raided,
               and it doesn&apos;t lose value to inflation.
-            </p>
-            <p style={{ marginTop: 14, fontSize: 14, color: "rgba(255,255,255,.45)", fontStyle: "italic" }}>
-              ↑ Move your cursor over the circle to see the group lean toward you.
             </p>
             <div className="split-list">
               <SplitLi icon="ti-eye"       title="Open books"       desc="Every contribution and payout visible to all members." />
