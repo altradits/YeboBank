@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
+import LogoMark from "@/components/ui/LogoMark";
 
 export function ClosingCTA() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export function SiteFooter() {
         <div className="top">
           <div>
             <div className="brand" style={{ color: "#fff" }}>
-              <span className="mk">Y</span> YeboBank
+              <LogoMark size={34} /> YeboBank
             </div>
             <p style={{ maxWidth: "30ch", marginTop: 14, fontSize: 14 }}>
               An open-source Bitcoin savings bank built for the hard-working many.

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
+import LogoMark from "@/components/ui/LogoMark";
 
 // Subtle warm/cool tints per section — all share the same dark gradient,
 // so the frosted glass picks up whichever tint is active underneath.
@@ -61,7 +62,7 @@ export default function SiteNav() {
     >
       <div className="wrap">
         <Link href="/" className="brand">
-          <span className="mk">Y</span> YeboBank
+          <LogoMark size={34} /> YeboBank
         </Link>
         <div className="navlinks">
           <a href="#inflation">Inflation</a>

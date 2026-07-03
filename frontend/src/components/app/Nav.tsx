@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logout } from "@/lib/api";
 import { mockUser } from "@/lib/mock";
+import LogoMark from "@/components/ui/LogoMark";
 
 const WALLET = [
   { href: "/dashboard", icon: "ti-home", label: "Dashboard" },
@@ -34,7 +35,7 @@ export function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <Link href="/dashboard" className="brand"><span className="mk">Y</span> YeboBank</Link>
+      <Link href="/dashboard" className="brand"><LogoMark size={34} /> YeboBank</Link>
       <div className="side-sec">Wallet</div>
       {WALLET.map((l) => (
         <Link key={l.href} href={l.href} className={`side-link${isActive(l.href) ? " active" : ""}`}>
