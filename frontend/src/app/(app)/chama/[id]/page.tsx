@@ -16,6 +16,7 @@ import { ATMCard } from "@/components/app/ATMCard";
 import type { Chama, ChamaMember, ChamaMessage, ChamaVote, JoinRequest, Rate, MyChamaStake as StakeType, ChamaGrowthPoint } from "@/types";
 import MyChamaStakePanel from "@/components/app/MyChamaStake";
 import ChamaGrowthChart from "@/components/app/ChamaGrowthChart";
+import WhatsAppBar from "@/components/app/WhatsAppBar";
 
 // TODO(backend): realtime/polling — replace these one-shot loads with
 // WebSocket subscription or polling (every ~5s) so all members see live state.
@@ -34,75 +35,93 @@ function initials(name: string): string {
   return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
-type ParseResult =
-  | { kind: "text" }
-  | { kind: "deposit"; sats: number; displayBody: string }
-  | { kind: "transfer"; toHandle: string; sats: number; displayBody: string }
-  | { kind: "vote"; question: string; options: string[] }
-  | { kind: "error"; message: string };
-
-function parseCommand(raw: string, rate: Rate, chamaMembers: ChamaMember[]): ParseResult {
-  const trimmed = raw.trim().replace(/^\//, ""); // strip optional leading /
-
-  // Deposit: deposit [Ksh|KES] <amount> [sats]
-  const depMatch = trimmed.match(/^deposit\s+(?:(ksh|kes)\s+)?(\d+(?:\.\d+)?)\s*(sats?)?$/i);
-  if (depMatch) {
-    const amount = parseFloat(depMatch[2]);
-    const isSats = !!depMatch[3];
-    if (isNaN(amount) || amount <= 0) return { kind: "error", message: "Invalid amount." };
-    const sats = isSats ? Math.round(amount) : kesToSats(amount, rate);
-    const displayBody = isSats
-      ? `${CURRENT_NAME} deposited ${num(sats)} sats.`
-      : `${CURRENT_NAME} deposited KES ${num(amount)} (~${num(sats)} sats).`;
-    return { kind: "deposit", sats, displayBody };
-  }
-
-  // Send: send @handle [Ksh|KES] <amount> [sats]
-  const sendMatch = trimmed.match(/^send\s+(@\w+)\s+(?:(ksh|kes)\s+)?(\d+(?:\.\d+)?)\s*(sats?)?$/i);
-  if (sendMatch) {
-    const toHandle = sendMatch[1].toLowerCase();
-    const amount = parseFloat(sendMatch[3]);
-    const isSats = !!sendMatch[4];
-    if (isNaN(amount) || amount <= 0) return { kind: "error", message: "Invalid amount." };
-    const inChama = chamaMembers.some((m) => m.handle.toLowerCase() === toHandle);
-    if (!inChama) return { kind: "error", message: `${toHandle} is not a member of this chama.` };
-    if (toHandle === CURRENT_HANDLE) return { kind: "error", message: "You cannot send to yourself." };
-    const sats = isSats ? Math.round(amount) : kesToSats(amount, rate);
-    const recipient = chamaMembers.find((m) => m.handle.toLowerCase() === toHandle);
-    const displayBody = isSats
-      ? `${CURRENT_NAME} sent ${num(sats)} sats to ${recipient?.name ?? toHandle}.`
-      : `${CURRENT_NAME} sent KES ${num(amount)} (~${num(sats)} sats) to ${recipient?.name ?? toHandle}.`;
-    return { kind: "transfer", toHandle, sats, displayBody };
-  }
-
-  // Vote: vote "question" opt1 opt2 [opt3 opt4]
-  const voteMatch = trimmed.match(/^vote\s+"([^"]+)"\s+(.+)$/i);
-  if (voteMatch) {
-    const question = voteMatch[1].trim();
-    const options = voteMatch[2].trim().split(/\s+/).filter(Boolean);
-    if (options.length < 2) {
-      return { kind: "error", message: 'Vote needs at least 2 options. Example: vote "Increase contribution?" yes no' };
-    }
-    if (options.length > 4) {
-      return { kind: "error", message: "Vote supports at most 4 options." };
-    }
-    return { kind: "vote", question, options };
-  }
-
-  // Looks like a command attempt but didn't match
-  if (/^(deposit|send|vote)\s/i.test(trimmed)) {
-    return {
-      kind: "error",
-      message: 'Command not recognized. Try: deposit Ksh 500 · send @jane 200 · vote "question" yes no',
-    };
-  }
-
-  return { kind: "text" };
-}
-
 function approvalThreshold(memberCount: number): number {
   // Need strictly > 75% — e.g. 12 members → need 10
   return Math.floor(memberCount * 0.75) + 1;
+}
+
+function TransferModal({
+  members,
+  rate,
+  onConfirm,
+  onCancel,
+}: {
+  members: ChamaMember[];
+  rate: Rate;
+  onConfirm: (toHandle: string, sats: number) => void;
+  onCancel: () => void;
+}) {
+  const eligible = members.filter((m) => m.handle !== CURRENT_HANDLE);
+  const [toHandle, setToHandle] = useState(eligible[0]?.handle ?? "");
+  const [kes, setKes] = useState("");
+
+  return (
+    <>
+      <div
+        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", backdropFilter: "blur(3px)", zIndex: 300 }}
+        onClick={onCancel}
+      />
+      <div style={{
+        position: "fixed", top: "50%", left: "50%",
+        transform: "translate(-50%,-50%)",
+        zIndex: 301, width: "min(400px, 94vw)",
+        background: "var(--card-bg)",
+        border: "1px solid var(--border-soft)",
+        borderRadius: 14, padding: "24px",
+        boxShadow: "0 20px 60px rgba(0,0,0,.45)",
+      }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, marginBottom: 18 }}>
+          Send to member
+        </h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 12, color: "var(--soft)", marginBottom: 6 }}>Recipient</label>
+            <select
+              value={toHandle}
+              onChange={(e) => setToHandle(e.target.value)}
+              style={{
+                width: "100%", padding: "10px 12px", borderRadius: 8,
+                border: "1px solid var(--border-soft)",
+                background: "var(--card-bg)", color: "var(--fg)", fontSize: 14,
+              }}
+            >
+              {eligible.map((m) => (
+                <option key={m.handle} value={m.handle}>{m.name} ({m.handle})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: 12, color: "var(--soft)", marginBottom: 6 }}>Amount (KES)</label>
+            <input
+              type="number" min="1" placeholder="500"
+              value={kes}
+              onChange={(e) => setKes(e.target.value)}
+              style={{
+                width: "100%", boxSizing: "border-box",
+                padding: "10px 12px", borderRadius: 8,
+                border: "1px solid var(--border-soft)",
+                background: "transparent", color: "var(--fg)", fontSize: 14,
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <Button variant="ghost" onClick={onCancel} style={{ flex: 1 }}>Cancel</Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                const n = parseFloat(kes);
+                if (n > 0 && toHandle) onConfirm(toHandle, kesToSats(n, rate));
+              }}
+              disabled={!kes || parseFloat(kes) <= 0 || !toHandle}
+              style={{ flex: 1 }}
+            >
+              Send
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
 
 function downloadStatement(chama: Chama, messages: ChamaMessage[]) {
@@ -623,9 +642,8 @@ export default function ChamaDashboard() {
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState(false);
 
-  // composer
-  const [input, setInput] = useState("");
-  const [cmdError, setCmdError] = useState<string | null>(null);
+  // transfer modal
+  const [transferModal, setTransferModal] = useState(false);
   const [sending, setSending] = useState(false);
 
   // PIN modal
@@ -693,90 +711,26 @@ export default function ChamaDashboard() {
     }
   }, [searchParams]);
 
-  async function handleSend() {
-    const raw = input.trim();
-    if (!raw || sending || !chama) return;
-    setCmdError(null);
-
-    const parsed = parseCommand(raw, rate, members);
-
-    if (parsed.kind === "error") {
-      setCmdError(parsed.message);
-      return;
-    }
-
-    if (parsed.kind === "text") {
-      setSending(true);
-      setInput("");
-      const msg = await postChamaMessage(id, {
-        kind: "text",
-        authorHandle: CURRENT_HANDLE,
-        authorName: CURRENT_NAME,
-        body: raw,
-      });
-      setMessages((p) => [...p, msg]);
-      setSending(false);
-      return;
-    }
-
-    if (parsed.kind === "deposit") {
-      setSending(true);
-      setInput("");
-      await chamaDeposit(id, parsed.sats);
-      const msg = await postChamaMessage(id, {
-        kind: "deposit",
-        authorHandle: CURRENT_HANDLE,
-        authorName: CURRENT_NAME,
-        body: parsed.displayBody,
-        meta: { sats: parsed.sats, fromHandle: CURRENT_HANDLE },
-      });
-      setMessages((p) => [...p, msg]);
-      setChama((c) => c ? { ...c, balanceSats: c.balanceSats + parsed.sats } : c);
-      setSending(false);
-      return;
-    }
-
-    if (parsed.kind === "transfer") {
-      setInput("");
-      const { toHandle, sats, displayBody } = parsed;
-      const label = displayBody;
-      setPinModal({
-        label,
-        action: async () => {
-          // TODO(backend): verify PIN — currently accepts any 6-digit input
-          setSending(true);
-          await chamaTransfer(id, toHandle, sats);
-          const msg = await postChamaMessage(id, {
-            kind: "transfer",
-            authorHandle: CURRENT_HANDLE,
-            authorName: CURRENT_NAME,
-            body: displayBody,
-            meta: { sats, fromHandle: CURRENT_HANDLE, toHandle },
-          });
-          setMessages((p) => [...p, msg]);
-          setSending(false);
-        },
-      });
-      return;
-    }
-
-    if (parsed.kind === "vote") {
-      setInput("");
-      const { question, options } = parsed;
-      setSending(true);
-      const vote = await createChamaVote(id, question, options);
-      setVotes((p) => [...p, vote]);
-      const msg = await postChamaMessage(id, {
-        kind: "vote",
-        authorHandle: CURRENT_HANDLE,
-        authorName: CURRENT_NAME,
-        body: `New vote: ${question}`,
-        meta: { voteId: vote.id },
-      });
-      setMessages((p) => [...p, msg]);
-      setSending(false);
-      return;
-    }
+  async function handleTransfer(toHandle: string, sats: number) {
+    const recipient = members.find((m) => m.handle === toHandle);
+    const displayBody = `${CURRENT_NAME} sent ${fmtKES(sats, rate, 0)} (~${num(sats)} sats) to ${recipient?.name ?? toHandle}.`;
+    setPinModal({
+      label: displayBody,
+      action: async () => {
+        setSending(true);
+        await chamaTransfer(id, toHandle, sats);
+        const msg = await postChamaMessage(id, {
+          kind: "transfer",
+          authorHandle: CURRENT_HANDLE,
+          authorName: CURRENT_NAME,
+          body: displayBody,
+          meta: { sats, fromHandle: CURRENT_HANDLE, toHandle },
+        });
+        setMessages((p) => [...p, msg]);
+        setSending(false);
+      },
+    });
+    setTransferModal(false);
   }
 
   async function handleCastVote(voteId: string, option: string) {
@@ -923,6 +877,9 @@ export default function ChamaDashboard() {
         <Button variant="ghost" onClick={() => setWithdrawModal(true)} disabled={!stake || stake.myValueSats <= 0}>
           <i className="ti ti-arrow-up" /> Withdraw
         </Button>
+        <Button variant="ghost" onClick={() => setTransferModal(true)} disabled={members.length <= 1}>
+          <i className="ti ti-send" /> Send
+        </Button>
         <Button variant="ghost" onClick={handleCopyInvite}>
           <i className="ti ti-share" /> Invite/Share
         </Button>
@@ -991,10 +948,10 @@ export default function ChamaDashboard() {
           ))}
         </div>
 
-        {/* Chat panel */}
+        {/* Activity panel */}
         <div className={`card chama-chat${chatExpanded ? " chat-fs" : ""}`}>
           <div className="chat-head">
-            <h2>Chat</h2>
+            <h2>Activity</h2>
             <button
               className="chat-expand-btn"
               onClick={() => setChatExpanded((v) => !v)}
@@ -1021,36 +978,19 @@ export default function ChamaDashboard() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="chat-composer">
-            {cmdError && <div className="cmd-error"><i className="ti ti-alert-circle" /> {cmdError}</div>}
-            <div className="composer-row">
-              <textarea
-                rows={1}
-                placeholder="Message or /command…"
-                value={input}
-                onChange={(e) => { setInput(e.target.value); setCmdError(null); }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-              />
-              <button
-                className="composer-send"
-                onClick={handleSend}
-                disabled={sending || !input.trim()}
-                aria-label="Send"
-              >
-                <i className="ti ti-send" />
-              </button>
-            </div>
-            <p className="cmd-hint">
-              Try: <code>deposit Ksh 500</code> · <code>send @jane 200</code> · <code>vote &quot;question&quot; yes no</code>
-            </p>
-          </div>
+          <WhatsAppBar groupName={chama.name} />
         </div>
       </div>
+
+      {/* Transfer modal */}
+      {transferModal && (
+        <TransferModal
+          members={members}
+          rate={rate}
+          onConfirm={(toHandle, sats) => void handleTransfer(toHandle, sats)}
+          onCancel={() => setTransferModal(false)}
+        />
+      )}
 
       {/* PIN modal */}
       {pinModal && (

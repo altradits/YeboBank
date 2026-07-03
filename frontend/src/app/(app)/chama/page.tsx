@@ -59,7 +59,7 @@ export default function ChamaPage() {
           { icon: "ti-plus", label: "New Chama", path: "/chama/create" },
           { icon: "ti-search", label: "Discover", path: "/chama/discover" },
           { icon: "ti-chart-bar", label: "My Total", path: "/chama/portfolio" },
-          { icon: "ti-layout-dashboard", label: "Dashboard", path: "/dashboard" },
+          { icon: "ti-arrow-down", label: "Add Money", action: "deposit" as const },
         ]}
       />
 
