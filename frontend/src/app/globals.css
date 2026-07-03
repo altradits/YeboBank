@@ -224,6 +224,7 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 .kicker{font-family:var(--font-mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;color:var(--lime);display:flex;align-items:center;gap:9px}
 .h2{font-family:var(--font-display);font-weight:700;font-size:clamp(30px,4.4vw,46px);line-height:1.04;letter-spacing:-.03em;margin-top:14px;max-width:18ch}
 .lead{font-size:18px;line-height:1.65;color:rgba(255,255,255,.78);max-width:46ch;margin-top:20px}
+/* auth pages and app shell may use .lead on light bg — keep dark default for .sec via explicit color */
 .h2 .accent{color:var(--gold-soft)}.h2 .grow{color:var(--lime)}
 /* standalone brand-color utilities (for use outside heading context) */
 .gold{color:var(--gold-soft)}.grn-util{color:var(--lime)}.acc-util{color:var(--emerald-deep)}
@@ -1526,3 +1527,294 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 
 /* Override the earlier conflicting particle rules */
 .savings-particle{background:var(--gold-soft);box-shadow:0 0 10px rgba(224,168,0,.8);animation:sat-orbit 9s linear infinite}
+
+/* =========================================================================
+   LANDING PAGE — LIGHT MODE OVERRIDES
+   The hero stays always-dark (nav contrast requires it).
+   All scrolling sections adapt to the `:root` light palette.
+   ========================================================================= */
+
+/* ── Section base ─────────────────────────────────────────────────────── */
+[data-theme="light"] .sec {
+  background: linear-gradient(150deg, #EDF5F1 0%, #E4EFE9 50%, #EAF4EE 100%);
+  color: var(--text);
+}
+[data-theme="light"] .sec::before {
+  background: radial-gradient(circle, rgba(10,48,32,.09), transparent 64%);
+}
+[data-theme="light"] .sec::after {
+  background: radial-gradient(circle, rgba(150,194,68,.1), transparent 66%);
+}
+
+/* Section-specific light backgrounds */
+[data-theme="light"] #save      { background: linear-gradient(150deg,#EEF3FD 0%,#E6EEF9 50%,#EBF2FD 100%) }
+[data-theme="light"] #save::before  { background: radial-gradient(circle,rgba(10,48,160,.07),transparent 64%) }
+[data-theme="light"] #save::after   { background: radial-gradient(circle,rgba(150,194,68,.09),transparent 66%) }
+
+[data-theme="light"] #mpesa     { background: linear-gradient(150deg,#EAF6F2 0%,#E0F2EA 50%,#E6F5EE 100%) }
+[data-theme="light"] #mpesa::before { background: radial-gradient(circle,rgba(10,152,80,.12),transparent 64%);top:-140px;left:-80px }
+[data-theme="light"] #mpesa::after  { background: radial-gradient(circle,rgba(168,116,0,.08),transparent 66%) }
+
+[data-theme="light"] #chama     { background: linear-gradient(150deg,#FBF7EE 0%,#F6F1E4 50%,#F9F5EC 100%) }
+[data-theme="light"] #chama::before { background: radial-gradient(circle,rgba(168,116,0,.12),transparent 64%) }
+[data-theme="light"] #chama::after  { background: radial-gradient(circle,rgba(150,194,68,.1),transparent 66%) }
+
+[data-theme="light"] #agents    { background: linear-gradient(150deg,#EEF6F2 0%,#E5F0E9 50%,#EBF5EF 100%) }
+[data-theme="light"] #agents::before { background: radial-gradient(circle,rgba(10,152,80,.1),transparent 64%) }
+
+[data-theme="light"] #lightning  { background: linear-gradient(150deg,#EEEEF8 0%,#E8E8F4 50%,#ECEBF6 100%) }
+[data-theme="light"] #lightning::before { background: radial-gradient(circle,rgba(168,116,0,.12),transparent 64%) }
+[data-theme="light"] #lightning::after  { background: radial-gradient(circle,rgba(80,60,200,.07),transparent 66%) }
+
+[data-theme="light"] #trust     { background: linear-gradient(150deg,#EDF5F1 0%,#E4EFE9 50%,#EAF4EE 100%) }
+[data-theme="light"] #convert   { background: linear-gradient(150deg,#F1F6F3 0%,#E8EFE9 50%,#EDF4EF 100%) }
+
+/* ── Shared text tokens used across all sections ──────────────────────── */
+[data-theme="light"] .lead          { color: var(--muted) }
+[data-theme="light"] .kicker        { color: var(--forest-mid) }
+[data-theme="light"] .h2            { color: var(--text) }
+[data-theme="light"] .h2 .accent    { color: var(--gold-text) }
+[data-theme="light"] .h2 .grow      { color: var(--forest-mid) }
+[data-theme="light"] .h2 .gold      { color: var(--gold-text) }
+[data-theme="light"] .gold          { color: var(--gold-text) }
+
+[data-theme="light"] .split-li            { border-color: var(--border) }
+[data-theme="light"] .split-li .ti-tt    { color: var(--text) }
+[data-theme="light"] .split-li .ti-dd    { color: var(--muted) }
+[data-theme="light"] .split-li i         { background: rgba(10,152,80,.12); color: var(--forest-mid) }
+
+/* ── Inflation section ────────────────────────────────────────────────── */
+[data-theme="light"] .io-year-nav       { border-color: var(--border) }
+[data-theme="light"] .io-yr-tab         { color: rgba(6,18,16,.25) }
+[data-theme="light"] .io-yr-tab.active  { color: var(--gold-text) }
+[data-theme="light"] .io-yr-tab:hover:not(.active) { color: var(--forest-mid) }
+
+[data-theme="light"] .infl-side .lead   { color: var(--muted) }
+
+[data-theme="light"] .io-center-body {
+  background: linear-gradient(165deg, #fff, #f5faf7);
+  border-color: rgba(10,48,32,.15);
+  box-shadow: 0 0 60px rgba(168,116,0,.12), 0 0 0 1px rgba(168,116,0,.06), 0 24px 60px rgba(6,18,16,.1);
+}
+[data-theme="light"] .io-c-year         { color: var(--text);    text-shadow: none }
+[data-theme="light"] .io-c-hr           { background: linear-gradient(90deg,transparent,var(--border),transparent) }
+[data-theme="light"] .io-c-row          { border-color: var(--border-soft) }
+[data-theme="light"] .io-c-rate         { color: var(--soft) }
+[data-theme="light"] .io-c-kes          { color: rgba(160,50,34,.7) }
+[data-theme="light"] .io-c-sat          { color: rgba(140,90,10,.7) }
+
+[data-theme="light"] .io-compare {
+  background: rgba(255,255,255,.8);
+  border-color: var(--border);
+  backdrop-filter: none;
+}
+[data-theme="light"] .io-cmp-label { color: var(--soft) }
+[data-theme="light"] .io-cmp-sub   { color: var(--soft) }
+[data-theme="light"] .io-cmp-vs    { color: var(--soft) }
+[data-theme="light"] .io-cmp-cups  { color: var(--text) }
+[data-theme="light"] .io-cups-kes  { color: rgba(176,48,32,.9) }
+[data-theme="light"] .io-cups-sat  { color: var(--gold-text) }
+
+[data-theme="light"] .infl-stats        { background: rgba(255,255,255,.8); border-color: var(--border) }
+[data-theme="light"] .infl-stat-num     { color: var(--gold-text) }
+[data-theme="light"] .infl-stat-label   { color: var(--soft) }
+[data-theme="light"] .infl-stat-div     { background: var(--border) }
+
+/* ── Savings section ──────────────────────────────────────────────────── */
+[data-theme="light"] .savings-ring-1 { border-color: rgba(10,48,32,.12) }
+[data-theme="light"] .savings-ring-2 { border-top-color: var(--forest-mid); border-right-color: rgba(26,92,60,.3) }
+[data-theme="light"] .savings-ring-3 { border-top-color: rgba(150,194,68,.45); border-left-color: rgba(150,194,68,.2) }
+[data-theme="light"] .savings-ring-4 { border-color: var(--border-soft) }
+
+[data-theme="light"] .savings-center-card {
+  background: linear-gradient(135deg, #fff, #f2f8f5);
+  border-color: rgba(10,48,32,.25);
+  box-shadow: 0 0 50px rgba(10,48,32,.1), 0 0 0 8px rgba(10,48,32,.04), inset 0 1px 0 rgba(255,255,255,.9);
+}
+[data-theme="light"] .savings-center-card:hover {
+  box-shadow: 0 0 80px rgba(10,48,32,.16), 0 0 0 12px rgba(10,48,32,.06), inset 0 1px 0 rgba(255,255,255,.9);
+  border-color: rgba(10,48,32,.4);
+}
+[data-theme="light"] .savings-dial-num   { color: var(--text) }
+[data-theme="light"] .savings-dial-unit  { color: var(--forest-mid) }
+[data-theme="light"] .savings-dial-label { color: var(--soft) }
+
+[data-theme="light"] .savings-particle   { background: var(--gold-text);  box-shadow: 0 0 10px rgba(168,116,0,.6) }
+[data-theme="light"] .sp-lime            { background: var(--forest-mid); box-shadow: 0 0 10px rgba(26,92,60,.5) }
+
+[data-theme="light"] .term-card {
+  background: rgba(255,255,255,.9);
+  border-color: var(--border);
+}
+[data-theme="light"] .term-card::before { background: radial-gradient(circle at 50% 0%,rgba(168,116,0,.1),transparent 70%) }
+[data-theme="light"] .term-card:hover   { border-color: var(--gold) }
+[data-theme="light"] .term-card.active  {
+  background: rgba(255,255,255,.98);
+  border-color: var(--gold);
+  box-shadow: 0 0 24px rgba(168,116,0,.12);
+}
+[data-theme="light"] .term-yr    { color: var(--gold-text) }
+[data-theme="light"] .term-label { color: var(--soft) }
+[data-theme="light"] .term-apy   { color: var(--forest-mid) }
+
+/* ── M-Pesa section ───────────────────────────────────────────────────── */
+[data-theme="light"] .mpesa-wallet-card {
+  background: rgba(10,152,80,.06);
+  border-color: rgba(10,152,80,.25);
+}
+[data-theme="light"] .mpesa-wallet-card:hover { background: rgba(10,152,80,.12); border-color: rgba(10,152,80,.5) }
+[data-theme="light"] .mpesa-wallet-icon { background: rgba(10,152,80,.14); color: var(--emerald-deep) }
+[data-theme="light"] .mpesa-wallet-text { color: var(--soft) }
+[data-theme="light"] .mpesa-wallet-val  { color: var(--emerald-deep) }
+[data-theme="light"] #mpesa .split-li i { background: rgba(10,152,80,.12); color: var(--emerald-deep) }
+[data-theme="light"] #mpesa .split-li:hover { background: rgba(10,152,80,.05); border-color: rgba(10,152,80,.3) }
+
+/* ── Chama section ────────────────────────────────────────────────────── */
+[data-theme="light"] .chama-arena-bg {
+  border-color: var(--border);
+  background: radial-gradient(circle at 50% 50%, rgba(168,116,0,.06), transparent 70%);
+}
+[data-theme="light"] .chama-av {
+  border-color: rgba(10,48,32,.2);
+  box-shadow: 0 4px 16px rgba(6,18,16,.12);
+}
+[data-theme="light"] .chama-member:hover .chama-av {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(168,116,0,.25);
+}
+[data-theme="light"] .chama-member-name        { color: var(--soft) }
+[data-theme="light"] .chama-member:hover .chama-member-name { color: var(--text) }
+[data-theme="light"] .chama-contrib-tip         { color: var(--gold-text) }
+[data-theme="light"] .chama-pool {
+  background: linear-gradient(135deg, #fff, #fdf8f0);
+  border-color: rgba(168,116,0,.3);
+  box-shadow: 0 0 40px rgba(168,116,0,.1), inset 0 1px 0 rgba(255,255,255,.9);
+}
+[data-theme="light"] .chama-pool-label  { color: var(--soft) }
+[data-theme="light"] .chama-pool-amount { color: var(--gold-text) }
+[data-theme="light"] .chama-pool-sub    { color: var(--forest-mid) }
+[data-theme="light"] #chama .split-li i { background: rgba(168,116,0,.1); color: var(--gold-text) }
+[data-theme="light"] #chama .split-li:hover { background: rgba(168,116,0,.04); border-color: rgba(168,116,0,.25) }
+
+/* ── Agents section ───────────────────────────────────────────────────── */
+[data-theme="light"] .radar-bg {
+  background: radial-gradient(circle, rgba(10,152,80,.06) 0%, #EEF6F2 60%, #E5F0E9 100%);
+  border-color: rgba(10,152,80,.2);
+}
+[data-theme="light"] .radar-ring { border-color: rgba(10,152,80,.16) }
+[data-theme="light"] .radar-cross::before,
+[data-theme="light"] .radar-cross::after { background: rgba(10,152,80,.15) }
+[data-theme="light"] .radar-sweep::before {
+  background: conic-gradient(from 0deg, rgba(10,152,80,.0) 0deg, rgba(10,152,80,.35) 50deg, rgba(10,152,80,.0) 60deg);
+}
+[data-theme="light"] .radar-sweep-line { background: linear-gradient(to top, rgba(10,152,80,.6), transparent) }
+[data-theme="light"] .radar-dot-inner  { background: var(--emerald-deep); box-shadow: 0 0 12px rgba(10,152,80,.7) }
+[data-theme="light"] .radar-dot::before { border-color: rgba(10,152,80,.4) }
+[data-theme="light"] .radar-dot::after  { border-color: rgba(10,152,80,.2) }
+[data-theme="light"] .radar-dot-tip {
+  background: rgba(255,255,255,.97);
+  border-color: rgba(10,152,80,.3);
+  color: var(--text);
+  box-shadow: 0 4px 16px rgba(6,18,16,.12);
+}
+[data-theme="light"] .radar-dot-tip b { color: var(--emerald-deep) }
+[data-theme="light"] .radar-center-inner { background: var(--gold-text); border-color: rgba(255,255,255,.9); box-shadow: 0 0 16px rgba(168,116,0,.7) }
+[data-theme="light"] .agents-stat {
+  background: rgba(255,255,255,.8);
+  border-color: var(--border);
+}
+[data-theme="light"] .agents-stat-n { color: var(--emerald-deep) }
+[data-theme="light"] .agents-stat-l { color: var(--soft) }
+[data-theme="light"] #agents .split-li i { background: rgba(10,152,80,.1); color: var(--emerald-deep) }
+[data-theme="light"] #agents .split-li:hover { background: rgba(10,152,80,.05); border-color: rgba(10,152,80,.28) }
+
+/* ── Lightning section ────────────────────────────────────────────────── */
+[data-theme="light"] .bolt-svg {
+  filter: drop-shadow(0 0 18px rgba(168,116,0,.45)) drop-shadow(0 0 50px rgba(168,116,0,.2));
+}
+@keyframes bolt-breathe-light {
+  0%,100% { filter: drop-shadow(0 0 14px rgba(168,116,0,.35)) drop-shadow(0 0 40px rgba(168,116,0,.16)) }
+  50%      { filter: drop-shadow(0 0 30px rgba(168,116,0,.65)) drop-shadow(0 0 70px rgba(168,116,0,.3)) }
+}
+[data-theme="light"] .bolt-svg        { animation: bolt-breathe-light 2.4s ease-in-out infinite }
+[data-theme="light"] .bolt-stat-n     { color: var(--text) }
+[data-theme="light"] .bolt-stat-l     { color: var(--soft) }
+[data-theme="light"] .transmit-chip   { background: rgba(255,255,255,.9); border-color: var(--border) }
+[data-theme="light"] .transmit-chip:hover { border-color: var(--gold) }
+[data-theme="light"] .transmit-addr   { color: var(--text) }
+[data-theme="light"] .transmit-cpy    { background: var(--gold-text); color: #fff }
+[data-theme="light"] .transmit-cpy:hover { background: var(--gold) }
+[data-theme="light"] #lightning .split-li i { background: rgba(168,116,0,.1); color: var(--gold-text) }
+[data-theme="light"] #lightning .split-li:hover { background: rgba(168,116,0,.05); border-color: rgba(168,116,0,.25) }
+
+/* ── Trust section ────────────────────────────────────────────────────── */
+[data-theme="light"] .trust-chain { }
+[data-theme="light"] .ledger-block {
+  background: rgba(255,255,255,.85);
+  border-color: var(--border);
+}
+[data-theme="light"] .ledger-block::before { background: linear-gradient(to bottom,transparent,rgba(10,152,80,.5),transparent) }
+[data-theme="light"] .ledger-block:hover   { background: rgba(255,255,255,.98); border-color: rgba(10,152,80,.35) }
+[data-theme="light"] .ledger-block-icon  { background: rgba(10,152,80,.1); border-color: rgba(10,152,80,.2); color: var(--emerald-deep) }
+[data-theme="light"] .ledger-block:hover .ledger-block-icon { background: rgba(10,152,80,.16); box-shadow: 0 0 20px rgba(10,152,80,.12) }
+[data-theme="light"] .ledger-block-body h3 { color: var(--text) }
+[data-theme="light"] .ledger-block-body p  { color: var(--muted) }
+[data-theme="light"] .ledger-block-hash    { color: rgba(10,152,80,.28) }
+[data-theme="light"] .ledger-block:hover .ledger-block-hash { color: rgba(10,152,80,.65) }
+[data-theme="light"] .ledger-confirm       { color: var(--emerald-deep) }
+[data-theme="light"] .ledger-connector     { background: linear-gradient(to bottom, rgba(10,152,80,.3), rgba(10,152,80,.1)) }
+
+/* ── Converter section ────────────────────────────────────────────────── */
+[data-theme="light"] .calc {
+  background: rgba(255,255,255,.85);
+  border-color: var(--border);
+}
+[data-theme="light"] .calc input {
+  background: var(--ivory);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+}
+[data-theme="light"] .calc input:focus { outline-color: rgba(10,152,80,.3) }
+[data-theme="light"] .calc .unit { background: var(--cream) }
+[data-theme="light"] .calc .unit button { color: var(--soft) }
+[data-theme="light"] .calc .unit button.on { background: var(--gold-text); color: #fff }
+[data-theme="light"] .calc .ocard { background: var(--surface); border-color: var(--border-soft); }
+[data-theme="light"] .calc .ocard .ok { color: var(--soft) }
+[data-theme="light"] .calc .ocard .ov { color: var(--text) }
+[data-theme="light"] .calc .ocard.gold .ov { color: var(--gold-text) }
+[data-theme="light"] .calc .ocard.grn  .ov { color: var(--emerald-deep) }
+[data-theme="light"] .calc .rate-note       { color: var(--soft) }
+
+/* ── CTA section ──────────────────────────────────────────────────────── */
+[data-theme="light"] .cta {
+  background: linear-gradient(135deg, #EDF5F1 0%, #E4EFE9 50%, #EAF4EE 100%);
+  color: var(--text);
+}
+[data-theme="light"] .cta::before { background: radial-gradient(circle,rgba(168,116,0,.14),transparent 64%) }
+[data-theme="light"] .cta::after  { background: radial-gradient(circle,rgba(10,152,80,.1),transparent 66%) }
+[data-theme="light"] .cta .sw-lead { color: var(--forest-mid) }
+[data-theme="light"] .cta h2       { color: var(--text) }
+[data-theme="light"] .cta h2 .gold { color: var(--gold-text) }
+
+/* ── Footer ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .foot {
+  background: var(--ink);
+  color: rgba(255,255,255,.78);
+}
+
+/* ── Kicker section accent overrides ──────────────────────────────────── */
+[data-theme="light"] #save .kicker      { color: var(--forest-mid) }
+[data-theme="light"] #mpesa .kicker     { color: var(--emerald-deep) }
+[data-theme="light"] #chama .kicker     { color: var(--gold-text) }
+[data-theme="light"] #agents .kicker    { color: var(--emerald-deep) }
+[data-theme="light"] #lightning .kicker { color: var(--gold-text) }
+[data-theme="light"] #trust .kicker     { color: var(--emerald-deep) }
+
+/* ── Inflation — year tab underline and orbit cup text in light ── */
+[data-theme="light"] .io-yr-tab.active::after { background: var(--gold-text) }
+[data-theme="light"] .io-yr-tab:focus-visible  { outline-color: var(--gold-text) }
+
+/* ── General landing text colour fixes for light sections ── */
+[data-theme="light"] .sec .split-li .ti-tt { color: var(--text) }
+[data-theme="light"] .sec .split-li .ti-dd { color: var(--muted) }
+[data-theme="light"] .sec .split-li        { border-color: var(--border-soft) }
