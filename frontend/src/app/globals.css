@@ -1821,6 +1821,9 @@ input.hp-amt{background:none;border:none;outline:none;cursor:text;caret-color:va
 [data-theme="light"] .sec .split-li .ti-dd { color: var(--muted) }
 [data-theme="light"] .sec .split-li        { border-color: var(--border-soft) }
 
+/* ── Auth pages ───────────────────────────────────────────────────────── */
+[data-theme="light"] .auth .brand { color: var(--text) }
+
 /* ── Nav — always sits over dark background (hero is hardcoded dark;
           scrolled state uses dark frosted glass) so the primary button
           must stay forest-mid regardless of theme ── */
