@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 import Button from "@/components/ui/Button";
+import { KENYA_COUNTIES, KENYA_CITIES } from "@/lib/kenya-counties";
 
 export default function FeatureSections() {
   return (
@@ -66,11 +67,11 @@ function MugSVG({
         fill={`rgba(${rgb},.38)`} />
       {label && (
         <text x={bw / 2} y={st + bh * 0.44} textAnchor="middle" dominantBaseline="middle"
-          fill="#fff" fontSize={fs} fontWeight="700" fontFamily="'IBM Plex Mono',monospace">{label}</text>
+          fill="#fff" fontSize={fs} fontWeight="700" fontFamily="'JetBrains Mono',monospace">{label}</text>
       )}
       {sub && (
         <text x={bw / 2} y={st + bh * 0.72} textAnchor="middle" dominantBaseline="middle"
-          fill="rgba(255,255,255,.52)" fontSize={fs * 0.76} fontFamily="'IBM Plex Mono',monospace">{sub}</text>
+          fill="rgba(255,255,255,.52)" fontSize={fs * 0.76} fontFamily="'JetBrains Mono',monospace">{sub}</text>
       )}
     </svg>
   );
@@ -706,58 +707,76 @@ function Chama() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   AGENTS — Kenya country map with agent network coverage
+   AGENTS — real Kenya county map (geoBoundaries ADM1) with agent coverage
    ══════════════════════════════════════════════════════════════════════════ */
 
-// Simplified Kenya outline — key features: NE Mandera bulge, eastern coast,
-// Lake Victoria western indentation, southern Tanzania border.
-const KENYA_PATH =
-  "M 90,60 L 180,38 L 268,32 L 395,62 L 405,175 L 382,295 " +
-  "L 330,370 L 260,390 L 168,375 L 100,305 L 115,248 L 82,175 Z";
+const MAP_W = 440;
+const MAP_H = 557.7;
 
-// Cities placed at geographic coordinates mapped into the 440×440 SVG
-const KENYA_AGENTS = [
-  { x: 222, y: 268, label: "Nairobi",  n: 48, delay: "0s",    capital: true  },
-  { x: 325, y: 348, label: "Mombasa",  n: 31, delay: "0.5s",  capital: false },
-  { x: 122, y: 240, label: "Kisumu",   n: 23, delay: "1.0s",  capital: false },
-  { x: 172, y: 238, label: "Nakuru",   n: 19, delay: "1.5s",  capital: false },
-  { x: 148, y: 215, label: "Eldoret",  n: 16, delay: "2.0s",  capital: false },
-  { x: 232, y: 235, label: "Meru",     n: 14, delay: "2.5s",  capital: false },
-  { x: 318, y: 240, label: "Garissa",  n: 12, delay: "3.0s",  capital: false },
-  { x: 162, y: 112, label: "Lodwar",   n:  8, delay: "3.5s",  capital: false },
-] as const;
+// Great-circle distance, good enough to rank nearest agent hubs.
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371, toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
 
 function Agents() {
   const router = useRouter();
+  const [selected, setSelected] = useState<string | null>(null);
+  const [nearest, setNearest] = useState<{ label: string; n: number; km: number } | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  const selectedCounty = KENYA_COUNTIES.find((c) => c.name === selected) ?? null;
+
+  function findNearMe() {
+    setGeoError(null);
+    if (!navigator.geolocation) {
+      setGeoError("Location isn't available in this browser — tap your county on the map instead.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const ranked = KENYA_CITIES
+          .map((c) => ({ label: c.label, n: c.n, km: haversineKm(latitude, longitude, c.lat, c.lon) }))
+          .sort((a, b) => a.km - b.km);
+        setNearest(ranked[0]);
+        setLocating(false);
+      },
+      () => {
+        setGeoError("Couldn't get your location — tap your county on the map instead.");
+        setLocating(false);
+      },
+      { timeout: 8000 },
+    );
+  }
 
   return (
     <section className="sec" id="agents">
       <div className="wrap">
         <div className="agents-layout">
 
-          {/* LEFT — Kenya country map with agent coverage */}
+          {/* LEFT — Kenya, all 47 counties, drawn from real boundary data */}
           <div className="kenya-map-wrap reveal">
-            {/* Country outline SVG (SVG stroke only — no CSS border-width) */}
-            <svg className="kenya-svg" viewBox="0 0 440 440" aria-hidden="true">
-              {/* Lake Victoria hint (outside the border, to the west) */}
-              <ellipse cx="72" cy="262" rx="22" ry="48"
-                fill="rgba(28,90,200,.1)" stroke="rgba(28,90,200,.18)" strokeWidth="1"/>
+            <svg className="kenya-svg" viewBox={`0 0 ${MAP_W} ${MAP_H}`} role="img"
+              aria-label="Map of Kenya's 47 counties showing YeboBank agent coverage">
+              {/* Counties — tap one to see its agent coverage */}
+              {KENYA_COUNTIES.map((c) => (
+                <path key={c.name} d={c.d}
+                  className={`kenya-county${selected === c.name ? " on" : ""}`}
+                  onClick={() => setSelected(selected === c.name ? null : c.name)}
+                >
+                  <title>{`${c.name} — ${c.agents} agents`}</title>
+                </path>
+              ))}
 
-              {/* Kenya landmass */}
-              <path d={KENYA_PATH}
-                fill="rgba(17,166,91,.07)"
-                stroke="rgba(150,194,68,.52)"
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
-
-              {/* Subtle interior — main rift valley line */}
-              <line x1="175" y1="80" x2="200" y2="350"
-                stroke="rgba(150,194,68,.12)" strokeWidth="1" strokeDasharray="8 6"/>
-
-              {/* Static city dots (SVG — drawn first, below HTML rings) */}
-              {KENYA_AGENTS.map((a, i) => (
-                <g key={i}>
+              {/* Static city dots (SVG — drawn below HTML rings) */}
+              {KENYA_CITIES.map((a, i) => (
+                <g key={i} pointerEvents="none">
                   <circle cx={a.x} cy={a.y} r={a.capital ? 8 : 5.5}
                     fill={a.capital ? "rgba(196,144,32,.9)" : "rgba(17,166,91,.88)"}/>
                   <circle cx={a.x} cy={a.y} r={a.capital ? 3.5 : 2}
@@ -767,11 +786,11 @@ function Agents() {
             </svg>
 
             {/* HTML dots — pulse rings + tooltips */}
-            {KENYA_AGENTS.map((a, i) => (
+            {KENYA_CITIES.map((a, i) => (
               <div
                 key={i}
-                className={`kenya-dot${a.capital ? " kenya-dot--capital" : ""}`}
-                style={{ left: `${(a.x / 440) * 100}%`, top: `${(a.y / 440) * 100}%` }}
+                className={`kenya-dot${a.capital ? " kenya-dot--capital" : ""}${nearest?.label === a.label ? " kenya-dot--nearest" : ""}`}
+                style={{ left: `${(a.x / MAP_W) * 100}%`, top: `${(a.y / MAP_H) * 100}%` }}
               >
                 <div className="kenya-ring" style={{ animationDelay: a.delay }} />
                 <div className="kenya-tip">
@@ -779,6 +798,19 @@ function Agents() {
                 </div>
               </div>
             ))}
+
+            {/* Selection / nearest readout */}
+            {(selectedCounty || nearest || geoError) && (
+              <div className="kenya-readout">
+                {geoError ? (
+                  <span>{geoError}</span>
+                ) : nearest ? (
+                  <span><b>{nearest.label}</b> is your nearest hub — {nearest.n} agents, ≈{Math.round(nearest.km)} km away</span>
+                ) : selectedCounty ? (
+                  <span><b>{selectedCounty.name}</b> county — {selectedCounty.agents} YeboBank agents</span>
+                ) : null}
+              </div>
+            )}
           </div>
 
           {/* RIGHT — copy */}
@@ -809,9 +841,12 @@ function Agents() {
               <SplitLi icon="ti-heart-handshake"  title="Community first"   desc="Local agents, local trust, local livelihoods." />
               <SplitLi icon="ti-cash"             title="No internet needed" desc="Agents bridge the digital gap — cash works everywhere." />
             </div>
-            <div style={{ marginTop: 32 }}>
-              <Button variant="gold" onClick={() => router.push("/register?redirect=/agent")}>
-                Find an agent near you <i className="ti ti-arrow-right" />
+            <div style={{ marginTop: 32, display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Button variant="gold" onClick={findNearMe} disabled={locating}>
+                <i className="ti ti-current-location" /> {locating ? "Locating…" : "Find agents near me"}
+              </Button>
+              <Button variant="ghost" onClick={() => router.push("/register?redirect=/agent")}>
+                Become an agent <i className="ti ti-arrow-right" />
               </Button>
             </div>
           </div>
