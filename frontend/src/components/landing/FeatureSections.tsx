@@ -278,7 +278,8 @@ function Inflation() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SAVINGS — "The Vault": animated dial, interactive term picker
+   SAVINGS — one number, one choice: pick a term, see what a lock earns
+   (BRANDKIT §9: no decorative drawings; §4.3: money in mono)
    ══════════════════════════════════════════════════════════════════════════ */
 
 const TERMS = [
@@ -286,8 +287,6 @@ const TERMS = [
   { yr: 7,  label: "7 years",  sats: 78_000,  apy: "~5.4% APY" },
   { yr: 10, label: "10 years", sats: 124_000, apy: "~5.8% APY" },
 ] as const;
-
-const TICK_COUNT = 36;
 
 function Savings() {
   const router     = useRouter();
@@ -318,88 +317,18 @@ function Savings() {
       <div className="wrap">
         <div className="savings-layout">
 
-          {/* LEFT — combination vault lock */}
-          <div className="vault-scene reveal">
-            <svg className="vault-svg" viewBox="0 0 440 440" aria-hidden="true">
-              <defs>
-                <radialGradient id="vbg" cx="48%" cy="42%" r="54%">
-                  <stop offset="0%" stopColor="#1C1008"/>
-                  <stop offset="100%" stopColor="#050302"/>
-                </radialGradient>
-                <radialGradient id="vface" cx="40%" cy="35%" r="60%">
-                  <stop offset="0%" stopColor="#261A0A"/>
-                  <stop offset="100%" stopColor="#0E0906"/>
-                </radialGradient>
-                <linearGradient id="vbolt" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#E0C840"/>
-                  <stop offset="100%" stopColor="#8C6010"/>
-                </linearGradient>
-                <radialGradient id="vdial" cx="50%" cy="40%" r="50%">
-                  <stop offset="0%" stopColor="#1A1208"/>
-                  <stop offset="100%" stopColor="#080604"/>
-                </radialGradient>
-              </defs>
+          {/* LEFT — the earnings card: pick a term, see the number */}
+          <div className="save-card reveal" role="img"
+            aria-label="What a locked savings account earns: pick a term, see sats earned per year">
+            <div className="save-card-head">
+              <span className="l"><i className="ti ti-lock" /> LOCKED SAVINGS</span>
+              <span className="save-card-badge">PAID MONTHLY</span>
+            </div>
 
-              {/* Vault body — solid filled circle, no CSS border */}
-              <circle cx="220" cy="220" r="208" fill="url(#vbg)"/>
-              {/* Outer rim (SVG stroke, not CSS border-width) */}
-              <circle cx="220" cy="220" r="204" fill="none" stroke="rgba(196,144,32,.22)" strokeWidth="4"/>
-
-              {/* Door face */}
-              <circle cx="220" cy="220" r="180" fill="url(#vface)"/>
-              {/* Concentric door ridges (detailing) */}
-              <circle cx="220" cy="220" r="176" fill="none" stroke="rgba(196,144,32,.34)" strokeWidth="3"/>
-              <circle cx="220" cy="220" r="158" fill="none" stroke="rgba(196,144,32,.16)" strokeWidth="1.5"/>
-              <circle cx="220" cy="220" r="136" fill="none" stroke="rgba(196,144,32,.09)" strokeWidth="1"/>
-
-              {/* LOCKING BOLTS — N, S, E, W — extend from door edge into outer rim */}
-              {/* North */}
-              <rect x="211" y="12" width="18" height="28" rx="6" fill="url(#vbolt)"/>
-              <rect x="214.5" y="15" width="11" height="3.5" rx="2" fill="rgba(255,255,255,.28)"/>
-              {/* South */}
-              <rect x="211" y="400" width="18" height="28" rx="6" fill="url(#vbolt)"/>
-              <rect x="214.5" y="421.5" width="11" height="3.5" rx="2" fill="rgba(255,255,255,.28)"/>
-              {/* East */}
-              <rect x="400" y="211" width="28" height="18" rx="6" fill="url(#vbolt)"/>
-              <rect x="421.5" y="214.5" width="3.5" height="11" rx="2" fill="rgba(255,255,255,.28)"/>
-              {/* West */}
-              <rect x="12" y="211" width="28" height="18" rx="6" fill="url(#vbolt)"/>
-              <rect x="15" y="214.5" width="3.5" height="11" rx="2" fill="rgba(255,255,255,.28)"/>
-
-              {/* Combination dial — slowly rotates */}
-              <g className="vault-dial-spin" style={{ transformOrigin: "220px 220px" }}>
-                <circle cx="220" cy="220" r="92" fill="url(#vdial)"/>
-                <circle cx="220" cy="220" r="88" fill="none" stroke="rgba(196,144,32,.42)" strokeWidth="2.5"/>
-                {/* Tick marks around dial */}
-                {Array.from({ length: 40 }).map((_, i) => {
-                  const angle = (i * 9 * Math.PI) / 180;
-                  const isMajor = i % 5 === 0;
-                  const r1 = isMajor ? 71 : 78;
-                  return (
-                    <line key={i}
-                      x1={220 + r1 * Math.cos(angle)}     y1={220 + r1 * Math.sin(angle)}
-                      x2={220 + 86  * Math.cos(angle)}     y2={220 + 86  * Math.sin(angle)}
-                      stroke={isMajor ? "rgba(196,144,32,.62)" : "rgba(196,144,32,.25)"}
-                      strokeWidth={isMajor ? 1.8 : 0.9}
-                    />
-                  );
-                })}
-              </g>
-
-              {/* Fixed indicator arrow — outside the spinning group */}
-              <polygon points="220,127 215.5,143 224.5,143" fill="rgba(224,168,0,.95)"/>
-
-              {/* Dial center knob */}
-              <circle cx="220" cy="220" r="15" fill="rgba(196,144,32,.6)"/>
-              <circle cx="220" cy="220" r="8"  fill="rgba(255,255,255,.18)"/>
-              <circle cx="220" cy="220" r="3"  fill="rgba(255,255,255,.45)"/>
-            </svg>
-
-            {/* Animated sats counter — HTML overlay centred on the dial */}
-            <div className="vault-center-overlay">
-              <div className="vault-num" ref={numRef}>0</div>
-              <div className="vault-unit">sats</div>
-              <div className="vault-sub">earned / year</div>
+            <div className="save-card-earn">
+              <div className="save-card-num"><span ref={numRef}>0</span></div>
+              <div className="save-card-unit">sats earned per year</div>
+              <div className="save-card-sub">on a 1,000,000-sat lock · {TERMS[term].apy}</div>
             </div>
 
             {/* Term picker */}
@@ -415,6 +344,11 @@ function Savings() {
                   <div className="vault-term-apy">{t.apy}</div>
                 </button>
               ))}
+            </div>
+
+            <div className="save-card-foot">
+              <div><i className="ti ti-shield-check" /> Principal never touched for fees</div>
+              <div><i className="ti ti-arrow-back-up" /> Leave early — full principal back</div>
             </div>
           </div>
 
