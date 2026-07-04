@@ -5,7 +5,21 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import LogoMark from "@/components/ui/LogoMark";
-import { login } from "@/lib/api";
+import { login, getUser } from "@/lib/api";
+import { homePath } from "@/lib/useRoleGate";
+
+function SkipLink({ redirect }: { redirect: string }) {
+  const router = useRouter();
+  async function skip() {
+    const u = await getUser();
+    router.push(redirect || homePath(u));
+  }
+  return (
+    <button onClick={skip} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--soft)", fontSize: 13 }}>
+      Skip — enter demo directly →
+    </button>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,7 +34,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(phone, password); // mock — always succeeds for now
-      router.push(redirect || "/dashboard");
+      const u = await getUser();
+      router.push(redirect || homePath(u));
     } finally {
       setLoading(false);
     }
@@ -51,9 +66,7 @@ export default function LoginPage() {
           New to YeboBank? <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : "/register"}>Open an account</Link>
         </p>
         <p className="foot-link" style={{ marginTop: 8 }}>
-          <Link href={redirect || "/dashboard"} style={{ color: "var(--soft)", fontSize: 13 }}>
-            Skip — enter demo directly →
-          </Link>
+          <SkipLink redirect={redirect} />
         </p>
       </div>
     </main>

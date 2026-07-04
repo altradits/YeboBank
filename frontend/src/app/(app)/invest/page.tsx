@@ -116,8 +116,9 @@ export default function InvestPage() {
           { label: "Return rate", value: apyStr, sub: position?.compounding ? "Compounded" : "Simple" },
         ]}
         actions={[
-          { icon: "ti-arrow-down",    label: "Add Money", action: "deposit" as const },
-          { icon: "ti-arrow-bar-down", label: "Withdraw",  onClick: () => document.getElementById("withdraw-section")?.scrollIntoView({ behavior: "smooth" }) },
+          { icon: "ti-arrow-bar-down", label: "Withdraw request", onClick: () => document.getElementById("withdraw-section")?.scrollIntoView({ behavior: "smooth" }) },
+          { icon: "ti-chart-bar",      label: "Statements",       onClick: () => document.getElementById("statements-section")?.scrollIntoView({ behavior: "smooth" }) },
+          { icon: "ti-calculator",     label: "FI calc",          onClick: () => document.getElementById("fi-section")?.scrollIntoView({ behavior: "smooth" }) },
         ]}
       />
       <div className="notif-banner" style={{ marginTop: 14 }}><i className="ti ti-shield-lock" /><span>{PILOT_BANNER}</span></div>
@@ -147,7 +148,7 @@ export default function InvestPage() {
       )}
 
       {/* Monthly statements */}
-      <div className="card" style={{ marginTop: 16 }}>
+      <div id="statements-section" className="card" style={{ marginTop: 16 }}>
         <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>Monthly statements</h2>
         {(!position || position.monthlyStatements.length === 0) && <p className="note">No statements posted yet.</p>}
         {position?.monthlyStatements.slice().reverse().map((m) => (
@@ -162,7 +163,7 @@ export default function InvestPage() {
       </div>
 
       {/* FI calculator */}
-      {fi && <FICalculator fi={fi} currentValueKes={currentValueKes} onSave={onSaveFI} />}
+      <div id="fi-section">{fi && <FICalculator fi={fi} currentValueKes={currentValueKes} onSave={onSaveFI} />}</div>
 
       {/* Request withdrawal */}
       <div id="withdraw-section" className="card" style={{ marginTop: 16 }}>

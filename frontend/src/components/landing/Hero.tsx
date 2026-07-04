@@ -68,7 +68,7 @@ const WORDS: { t: string; cls?: string }[] = [
   { t: "Save" }, { t: "in" }, { t: "Bitcoin.", cls: "gold" },
   { t: "Spend" }, { t: "in" }, { t: "shillings.", cls: "grn" },
 ];
-const DEMO_PHONE = "+254712345678";
+const DEMO_PHONE = "0707172370";
 const DEMO_KES   = 500;
 
 export default function Hero() {

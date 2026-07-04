@@ -11,9 +11,34 @@ export default function FeatureSections() {
   return (
     <>
       <Inflation />
+      <StatementBridge />
       <SavingsMpesaPair />
       <CommunityPair />
     </>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   STATEMENT BRIDGE — full-width animated text between Inflation and Savings.
+   No image; the typography IS the content. Alethia-style breathing space.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function StatementBridge() {
+  return (
+    <div className="statement-sec">
+      <div className="wrap" style={{ position: "relative", zIndex: 1 }}>
+        <div className="sw-stack">
+          <div className="sw-row">
+            <span className="sw-word reveal" style={{ transitionDelay: "0s" }}>Save in</span>
+            <span className="sw-word sw-electric reveal" style={{ transitionDelay: "0.1s" }}>sats.</span>
+          </div>
+          <div className="sw-row">
+            <span className="sw-word reveal" style={{ transitionDelay: "0.22s" }}>Spend in</span>
+            <span className="sw-word sw-gold reveal" style={{ transitionDelay: "0.32s" }}>shillings.</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -247,11 +272,12 @@ function Inflation() {
    ══════════════════════════════════════════════════════════════════════════ */
 
 function SavingsMpesaPair() {
-  const router  = useRouter();
-  const rate    = useRate();
-  const sats    = Math.round(500 * rate.satsPerKes);
-  const visRef  = useRef<HTMLDivElement>(null);
-  const saveRef = useRef<HTMLDivElement>(null);
+  const router   = useRouter();
+  const rate     = useRate();
+  const sats     = Math.round(500 * rate.satsPerKes);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const visRef   = useRef<HTMLDivElement>(null);
+  const saveRef  = useRef<HTMLDivElement>(null);
   const mpesaRef = useRef<HTMLDivElement>(null);
   const [activePanel, setActivePanel] = useState<"save" | "mpesa">("save");
 
@@ -271,6 +297,22 @@ function SavingsMpesaPair() {
     return () => io.disconnect();
   }, []);
 
+  /* JS-driven sticky: CSS sticky stops at the midpoint when element height = container height / 2 */
+  useEffect(() => {
+    const shell = shellRef.current;
+    const vis   = visRef.current;
+    if (!shell || !vis) return;
+    const update = () => {
+      if (window.matchMedia("(max-width:1024px)").matches) { vis.style.transform = ""; return; }
+      const { top, height } = shell.getBoundingClientRect();
+      const tx = Math.max(0, Math.min(-top, height - vis.offsetHeight));
+      vis.style.transform = tx > 0 ? `translateY(${tx}px)` : "";
+    };
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+
   /* 3D tilt */
   useEffect(() => {
     const el = visRef.current;
@@ -287,7 +329,7 @@ function SavingsMpesaPair() {
   }, []);
 
   return (
-    <div className="section-pair-shell section-pair-shell--deposit">
+    <div className="section-pair-shell section-pair-shell--deposit" ref={shellRef}>
       <div className="section-pair" data-active={activePanel}>
 
         {/* STICKY LEFT — phone persists across both copy panels */}
@@ -321,19 +363,27 @@ function SavingsMpesaPair() {
           <div className="section-pair-panel" id="save" ref={saveRef} data-panel="save">
             <div className="savings-copy reveal">
               <h2 className="h2">Your money earns <span className="accent">while you sleep.</span></h2>
-              <p className="lead">
-                Lock your sats and earn a share of real treasury yield, distributed
-                every month. We take a flat 2% of the yield — nothing else. If the
-                pool earns nothing, we earn nothing.
-              </p>
-              <div className="split-list">
-                <SplitLi icon="ti-lock"         title="Set it and forget it"  desc="Choose a term, lock your sats, let compound interest run." />
-                <SplitLi icon="ti-scale"         title="Honest by design"      desc="Your principal is never touched for fees — ever." />
-                <SplitLi icon="ti-arrow-back-up" title="Leave early if needed" desc="Your full principal comes back to you, no questions asked." />
+              <div className="stat-row">
+                <div className="stat-item">
+                  <div className="s-num">2%</div>
+                  <div className="s-lbl">yield fee — flat</div>
+                </div>
+                <div className="stat-item">
+                  <div className="s-num">Monthly</div>
+                  <div className="s-lbl">distributions</div>
+                </div>
+                <div className="stat-item">
+                  <div className="s-num">100%</div>
+                  <div className="s-lbl">principal back, early exit</div>
+                </div>
               </div>
-              <div style={{ marginTop: 32 }}>
+              <p className="stat-pull">If the pool earns nothing, we earn nothing.</p>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Button variant="gold" onClick={() => router.push("/register?redirect=/savings")}>
                   Start saving today <i className="ti ti-arrow-right" />
+                </Button>
+                <Button variant="ghost" onDark onClick={() => router.push("/savings")}>
+                  Try savings demo
                 </Button>
               </div>
             </div>
@@ -343,19 +393,35 @@ function SavingsMpesaPair() {
           <div className="section-pair-panel" id="mpesa" ref={mpesaRef} data-panel="mpesa">
             <div className="reveal d1">
               <h2 className="h2">Top up the way you <span className="grow">already pay.</span></h2>
-              <p className="lead">
-                Deposit and withdraw in shillings through the M-Pesa network
-                51 million Kenyans already use. No new habits, no cards —
-                just an STK Push and a PIN you already know.
-              </p>
-              <div className="split-list">
-                <SplitLi icon="ti-arrow-down" title="Deposit in seconds"  desc="A prompt on your phone, your PIN, done. Sats land instantly." />
-                <SplitLi icon="ti-arrow-up"   title="Cash out to M-Pesa" desc="Withdraw shillings straight back to your M-Pesa line." />
-                <SplitLi icon="ti-shield"     title="No new app to learn" desc="The same STK Push you've used a thousand times." />
+              <div className="step-flow">
+                <div className="step">
+                  <div className="step-n">01</div>
+                  <div>
+                    <div className="step-title">Open M-Pesa, pay to YeboBank</div>
+                    <div className="step-desc">Enter any shilling amount — paybill or till number.</div>
+                  </div>
+                </div>
+                <div className="step">
+                  <div className="step-n">02</div>
+                  <div>
+                    <div className="step-title">STK Push arrives on your phone</div>
+                    <div className="step-desc">Confirm with the M-Pesa PIN you already know.</div>
+                  </div>
+                </div>
+                <div className="step">
+                  <div className="step-n">03</div>
+                  <div>
+                    <div className="step-title">Sats land in your wallet</div>
+                    <div className="step-desc">Balance updates the moment your PIN confirms — no waiting.</div>
+                  </div>
+                </div>
               </div>
-              <div style={{ marginTop: 32 }}>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Button variant="gold" onClick={() => router.push("/register?redirect=/deposit")}>
                   Deposit via M-Pesa <i className="ti ti-arrow-right" />
+                </Button>
+                <Button variant="ghost" onDark onClick={() => router.push("/dashboard")}>
+                  Try deposit demo
                 </Button>
               </div>
             </div>
@@ -385,13 +451,15 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
 }
 
 function CommunityPair() {
-  const router = useRouter();
+  const router    = useRouter();
+  const shellRef  = useRef<HTMLDivElement>(null);
+  const visRef    = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [nearest, setNearest] = useState<{ label: string; n: number; km: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
   const [activePanel, setActivePanel] = useState<"chama" | "agents">("chama");
-  const chamaRef = useRef<HTMLDivElement>(null);
+  const chamaRef  = useRef<HTMLDivElement>(null);
   const agentsRef = useRef<HTMLDivElement>(null);
 
   /* Switch map palette when a panel crosses the viewport centre */
@@ -409,6 +477,22 @@ function CommunityPair() {
     if (chamaRef.current) io.observe(chamaRef.current);
     if (agentsRef.current) io.observe(agentsRef.current);
     return () => io.disconnect();
+  }, []);
+
+  /* JS-driven sticky: CSS sticky stops at the midpoint when element height = container height / 2 */
+  useEffect(() => {
+    const shell = shellRef.current;
+    const vis   = visRef.current;
+    if (!shell || !vis) return;
+    const update = () => {
+      if (window.matchMedia("(max-width:1024px)").matches) { vis.style.transform = ""; return; }
+      const { top, height } = shell.getBoundingClientRect();
+      const tx = Math.max(0, Math.min(-top, height - vis.offsetHeight));
+      vis.style.transform = tx > 0 ? `translateY(${tx}px)` : "";
+    };
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+    return () => window.removeEventListener("scroll", update);
   }, []);
 
   const selectedCounty = KENYA_COUNTIES.find((c) => c.name === selected) ?? null;
@@ -438,11 +522,11 @@ function CommunityPair() {
   }
 
   return (
-    <div className="section-pair-shell section-pair-shell--community">
+    <div className="section-pair-shell section-pair-shell--community" ref={shellRef}>
     <div className="section-pair" data-active={activePanel}>
 
-      {/* STICKY LEFT — Kenya map persists across both copy panels */}
-      <div className="section-pair-visual">
+      {/* LEFT — Kenya map pinned via JS scroll handler */}
+      <div className="section-pair-visual" ref={visRef}>
         <div className="kenya-map-wrap reveal">
           <svg className="kenya-svg" viewBox={`0 0 ${MAP_W} ${MAP_H}`} role="img"
             aria-label="Map of Kenya's 47 counties showing YeboBank coverage">
@@ -499,18 +583,32 @@ function CommunityPair() {
           <div className="reveal d1">
             <h2 className="h2">Save together.<br /><span className="grow">See everything.</span></h2>
             <p className="lead">
-              Run your chama with a shared wallet every member can read.
-              The savings tradition you already trust — now it can&apos;t be raided,
+              The savings tradition you already trust — now it can&apos;t be raided
               and it doesn&apos;t lose value to inflation.
             </p>
-            <div className="split-list">
-              <SplitLi icon="ti-eye"         title="Open books"      desc="Every contribution and payout visible to all members." />
-              <SplitLi icon="ti-checkbox"    title="Group decisions" desc="Payouts move only when the group votes to release them." />
-              <SplitLi icon="ti-trending-up" title="Sats, not KES"   desc="The group pool holds value instead of shrinking to inflation." />
+            <div className="feat-grid">
+              <div className="feat-card">
+                <i className="ti ti-eye" />
+                <div className="fc-title">Open books</div>
+                <div className="fc-desc">Every shilling in and out visible to every member.</div>
+              </div>
+              <div className="feat-card">
+                <i className="ti ti-checkbox" />
+                <div className="fc-title">Group vote</div>
+                <div className="fc-desc">Payouts only move when members vote to release them.</div>
+              </div>
+              <div className="feat-card">
+                <i className="ti ti-trending-up" />
+                <div className="fc-title">Holds value</div>
+                <div className="fc-desc">Sats, not KES — the pool grows instead of shrinking.</div>
+              </div>
             </div>
-            <div style={{ marginTop: 32 }}>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Button variant="gold" onClick={() => router.push("/register?redirect=/chama")}>
                 Start or join a chama <i className="ti ti-arrow-right" />
+              </Button>
+              <Button variant="ghost" onDark onClick={() => router.push("/chama")}>
+                Explore chamas demo
               </Button>
             </div>
           </div>
@@ -521,21 +619,24 @@ function CommunityPair() {
           <div className="reveal d1">
             <h2 className="h2">Cash in and out, <span className="accent">down the street.</span></h2>
             <p className="lead">
-              No smartphone? No bundles? Walk to a neighbourhood agent — a shop
-              you already know — to turn cash into savings and savings back into
-              cash. Agents earn commission for serving their community.
+              No smartphone, no bundles needed. Walk to a neighbourhood agent
+              and turn cash into savings — and savings back into cash.
             </p>
-            <div className="split-list">
-              <SplitLi icon="ti-walk"            title="Always nearby"      desc="A growing network of mawakala covering every county." />
-              <SplitLi icon="ti-heart-handshake" title="Community first"    desc="Local agents, local trust, local livelihoods." />
-              <SplitLi icon="ti-cash"            title="No internet needed" desc="Agents bridge the digital gap — cash works everywhere." />
+            <div className="agent-stat">
+              <span className="as-big">47</span>
+              <span className="as-unit">counties covered</span>
+              <div className="agent-pills">
+                <span className="agent-pill"><i className="ti ti-walk" />Always nearby</span>
+                <span className="agent-pill"><i className="ti ti-wifi-off" />No internet needed</span>
+                <span className="agent-pill"><i className="ti ti-heart-handshake" />Community-run</span>
+              </div>
             </div>
-            <div style={{ marginTop: 32, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Button variant="gold" onClick={findNearMe} disabled={locating}>
                 <i className="ti ti-current-location" /> {locating ? "Locating…" : "Find agents near me"}
               </Button>
-              <Button variant="ghost" onClick={() => router.push("/register?redirect=/agent")}>
-                Become an agent <i className="ti ti-arrow-right" />
+              <Button variant="ghost" onDark onClick={() => router.push("/agent")}>
+                Open agent dashboard <i className="ti ti-arrow-right" />
               </Button>
             </div>
           </div>

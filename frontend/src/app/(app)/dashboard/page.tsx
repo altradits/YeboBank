@@ -1,10 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ATMCard } from "@/components/app/ATMCard";
+import { ATMCard, type ActionItem } from "@/components/app/ATMCard";
 import TransactionRow from "@/components/app/TransactionRow";
 import { getWallet, getHistory, getUser } from "@/lib/api";
+import { mockUser } from "@/lib/mock";
 import type { LedgerEntry } from "@/types";
+
+// Base feature buttons — every user sees these
+const BASE_ACTIONS: ActionItem[] = [
+  { icon: "ti-arrow-down",  label: "Add money", action: "deposit" },
+  { icon: "ti-arrow-up",    label: "Withdraw",  action: "withdraw" },
+  { icon: "ti-send",        label: "Send",      action: "send" },
+  { icon: "ti-lock",        label: "Savings",   path: "/savings" },
+  { icon: "ti-users",       label: "Chamas",    path: "/chama" },
+  { icon: "ti-list",        label: "History",   path: "/history" },
+];
 
 export default function DashboardPage() {
   const [balance, setBalance] = useState(0);
@@ -18,6 +29,17 @@ export default function DashboardPage() {
     getUser().then((u) => setFirstName(u.fullName.split(" ")[0]));
   }, []);
 
+  const isMlinzi  = mockUser.role === "mlinzi";
+  const isAgent   = mockUser.isAgent;
+  const canInvest = isMlinzi || mockUser.accessStatus === "accepted";
+
+  const actions: ActionItem[] = [
+    ...BASE_ACTIONS,
+    ...(isAgent   ? [{ icon: "ti-cash",        label: "Agent",   path: "/agent" }]   : []),
+    ...(canInvest ? [{ icon: "ti-trending-up", label: "Invest",  path: "/invest" }]  : []),
+    ...(isMlinzi  ? [{ icon: "ti-shield-lock", label: "Console", path: "/steward" }] : []),
+  ];
+
   const shown = showAll ? history : history.slice(0, 5);
 
   return (
@@ -26,7 +48,7 @@ export default function DashboardPage() {
       <p className="page-sub">Here&apos;s how your money is doing today.</p>
 
       <div style={{ marginTop: 18 }}>
-        <ATMCard sats={balance} variant="dashboard" />
+        <ATMCard sats={balance} variant="dashboard" actions={actions} />
       </div>
 
       <div className="card" style={{ marginTop: 18 }}>

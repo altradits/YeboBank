@@ -2,82 +2,90 @@
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
-import { num, kesToSats } from "@/lib/format";
+import { num } from "@/lib/format";
 import { depositMpesa, depositLightning, withdrawMpesa, sendLightning, createLock } from "@/lib/api";
 
 export type QuickActionKind = "deposit" | "withdraw" | "send" | "lock";
 
-const TITLES: Record<QuickActionKind, string> = {
-  deposit:  "Add Money",
-  withdraw: "Withdraw",
-  send:     "Send",
-  lock:     "Lock Savings",
+const META: Record<QuickActionKind, { title: string; icon: string }> = {
+  deposit:  { title: "Add Money",    icon: "ti-arrow-down" },
+  withdraw: { title: "Withdraw",     icon: "ti-arrow-up" },
+  send:     { title: "Send",         icon: "ti-send" },
+  lock:     { title: "Lock Savings", icon: "ti-lock" },
 };
 
 interface Props {
-  kind:     QuickActionKind;
-  onClose:  () => void;
-  onDone?:  () => void;
+  kind:    QuickActionKind;
+  onClose: () => void;
+  onDone?: () => void;
 }
 
 export default function QuickActionModal({ kind, onClose, onDone }: Props) {
   const rate = useRate();
-  const [phase, setPhase]   = useState<"form" | "result">("form");
+  const [phase,   setPhase]   = useState<"form" | "result">("form");
   const [loading, setLoading] = useState(false);
-  const [error, setError]   = useState<string | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
 
-  // shared number field (KES for deposit-mpesa, sats otherwise)
-  const [amount, setAmount] = useState("");
-  // method toggle
+  // KES amount — used for deposit and withdraw
+  const [kes, setKes] = useState("");
+  // deposit method toggle
   const [method, setMethod] = useState<"mpesa" | "lightning">("mpesa");
   // send fields
-  const [destination, setDestination] = useState("");
-  const [sendSats, setSendSats]       = useState("");
-  // lock field
+  const [dest,     setDest]     = useState("");
+  const [sendSats, setSendSats] = useState("");
+  // lock fields
+  const [lockSats,  setLockSats]  = useState("");
   const [lockYears, setLockYears] = useState(1);
-  // results
+  // result
+  const [resultAmt, setResultAmt] = useState("");
   const [resultMsg, setResultMsg] = useState("");
-  const [invoice, setInvoice]     = useState("");
+  const [invoice,   setInvoice]   = useState("");
+  const [copied,    setCopied]    = useState(false);
 
-  const amountLabel = (() => {
-    if (kind === "deposit") return method === "mpesa" ? "Amount (KES)" : "Amount (sats)";
-    if (kind === "withdraw") return "Amount (sats)";
-    return "Amount (sats)";
-  })();
+  const kesNum      = parseFloat(kes.replace(/[^0-9.]/g, "")) || 0;
+  const satsFromKes = Math.round(kesNum * rate.satsPerKes);
+  const sendSatsNum = parseInt(sendSats.replace(/[^0-9]/g, ""), 10) || 0;
+  const lockSatsNum = parseInt(lockSats.replace(/[^0-9]/g, ""), 10) || 0;
+
+  function copyInvoice() {
+    if (navigator.clipboard) navigator.clipboard.writeText(invoice);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  }
 
   async function handleSubmit() {
     setLoading(true);
     setError(null);
     try {
-      const n = parseFloat(amount);
-
       if (kind === "deposit") {
-        if (!n || n <= 0) throw new Error("Enter a valid amount");
+        if (!kesNum || kesNum <= 0) throw new Error("Enter a valid amount");
         if (method === "mpesa") {
-          const sats = kesToSats(n, rate);
-          await depositMpesa(sats);
-          setResultMsg(`M-Pesa STK push sent for KES ${num(n, 0)}. Check your phone.`);
+          await depositMpesa(kesNum);
+          setResultAmt(`KES ${num(kesNum, 0)}`);
+          setResultMsg("STK Push sent to your phone. Enter your M-Pesa PIN to confirm the deposit.");
         } else {
-          const res = await depositLightning(Math.round(n));
+          const res = await depositLightning(satsFromKes);
           setInvoice(res.invoice);
-          setResultMsg(`Lightning invoice ready for ${num(Math.round(n))} sats.`);
+          setResultAmt(`${num(satsFromKes)} sats`);
+          setResultMsg("Lightning invoice ready. Scan or copy it to complete the deposit.");
         }
       } else if (kind === "withdraw") {
-        if (!n || n <= 0) throw new Error("Enter a valid amount");
-        await withdrawMpesa(Math.round(n));
-        setResultMsg(`Withdrawal of ${num(Math.round(n))} sats initiated via M-Pesa.`);
+        if (!kesNum || kesNum <= 0) throw new Error("Enter a valid amount");
+        await withdrawMpesa(satsFromKes);
+        setResultAmt(`KES ${num(kesNum, 0)}`);
+        setResultMsg("On its way — shillings will arrive in your M-Pesa within moments.");
       } else if (kind === "send") {
-        const s = parseFloat(sendSats);
-        if (!destination.trim()) throw new Error("Enter a Lightning address or invoice");
-        if (!s || s <= 0) throw new Error("Enter a valid amount in sats");
-        await sendLightning(destination.trim(), Math.round(s));
-        setResultMsg(`Sent ${num(Math.round(s))} sats to ${destination.trim()}.`);
+        if (!dest.trim()) throw new Error("Enter a Lightning address or invoice");
+        if (!sendSatsNum || sendSatsNum <= 0) throw new Error("Enter a valid amount");
+        await sendLightning(dest.trim(), sendSatsNum);
+        setResultAmt(`${num(sendSatsNum)} sats`);
+        setResultMsg(`Sent to ${dest.trim()}.`);
       } else {
-        if (!n || n <= 0) throw new Error("Enter a valid amount");
-        await createLock(Math.round(n), lockYears);
-        setResultMsg(`Locked ${num(Math.round(n))} sats for ${lockYears} year${lockYears > 1 ? "s" : ""}.`);
+        if (!lockSatsNum || lockSatsNum <= 0) throw new Error("Enter an amount to lock");
+        await createLock(lockSatsNum, lockYears);
+        setResultAmt(`${num(lockSatsNum)} sats`);
+        setResultMsg(`Locked for ${lockYears} year${lockYears > 1 ? "s" : ""}. Your savings are growing.`);
       }
-
       setPhase("result");
       onDone?.();
     } catch (e) {
@@ -87,184 +95,192 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
     }
   }
 
+  const meta = META[kind];
+
+  const submitLabel =
+    kind === "deposit" && method === "mpesa"      ? "Send STK Push"      :
+    kind === "deposit" && method === "lightning"  ? "Generate invoice"   :
+    kind === "withdraw"                           ? "Withdraw to M-Pesa" :
+    kind === "send"                               ? "Send now"           :
+    "Lock savings";
+
   return (
     <>
-      {/* Backdrop */}
-      <div
-        style={{
-          position: "fixed", inset: 0,
-          background: "rgba(0,0,0,.6)", backdropFilter: "blur(4px)",
-          zIndex: 400,
-        }}
-        onClick={onClose}
-      />
+      <div className="qa-backdrop" onClick={onClose} />
 
-      {/* Modal card */}
-      <div style={{
-        position: "fixed", top: "50%", left: "50%",
-        transform: "translate(-50%,-50%)",
-        zIndex: 401, width: "min(420px, 94vw)",
-        background: "var(--card-bg)",
-        border: "1px solid var(--border-soft)",
-        borderRadius: 16, padding: "24px 28px",
-        boxShadow: "0 24px 64px rgba(0,0,0,.5)",
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
-            {TITLES[kind]}
-          </h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--soft)", fontSize: 20, lineHeight: 1 }}>
+      <div className="qa-modal" role="dialog" aria-modal="true">
+
+        {/* Header */}
+        <div className="qa-hd">
+          <span className={`qa-hd-icon qa-hd-icon--${kind}`}>
+            <i className={`ti ${meta.icon}`} />
+          </span>
+          <span className="qa-hd-title">{meta.title}</span>
+          <button className="qa-hd-close" onClick={onClose} aria-label="Close">
             <i className="ti ti-x" />
           </button>
         </div>
 
-        {phase === "form" ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Method toggle — deposit and withdraw */}
-            {kind === "deposit" && (
-              <div className="seg">
-                <button className={method === "mpesa" ? "on" : ""} onClick={() => setMethod("mpesa")}>M-Pesa</button>
-                <button className={method === "lightning" ? "on" : ""} onClick={() => setMethod("lightning")}>Lightning</button>
-              </div>
-            )}
+        <div className="qa-body">
+          {phase === "form" ? (
+            <>
+              {/* Deposit: method toggle */}
+              {kind === "deposit" && (
+                <div className="seg">
+                  <button className={method === "mpesa"     ? "on" : ""} onClick={() => setMethod("mpesa")}>
+                    <i className="ti ti-device-mobile" /> M-Pesa
+                  </button>
+                  <button className={method === "lightning" ? "on" : ""} onClick={() => setMethod("lightning")}>
+                    <i className="ti ti-bolt" /> Lightning
+                  </button>
+                </div>
+              )}
 
-            {/* Send fields */}
-            {kind === "send" ? (
-              <>
-                <div>
-                  <label style={{ display: "block", fontSize: 12, color: "var(--soft)", marginBottom: 6 }}>
-                    Lightning address or invoice
-                  </label>
+              {/* Send: destination */}
+              {kind === "send" && (
+                <div className="qa-field">
+                  <label className="qa-lbl">To</label>
                   <input
+                    className="qa-input"
                     type="text"
                     placeholder="you@wallet.com or lnbc…"
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                    style={{
-                      width: "100%", boxSizing: "border-box",
-                      padding: "10px 12px", borderRadius: 8,
-                      border: "1px solid var(--border-soft)",
-                      background: "transparent", color: "var(--fg)", fontSize: 14,
-                    }}
+                    value={dest}
+                    onChange={(e) => setDest(e.target.value)}
+                    autoComplete="off"
+                    spellCheck={false}
                   />
                 </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 12, color: "var(--soft)", marginBottom: 6 }}>
-                    Amount (sats)
-                  </label>
-                  <input
-                    type="number" min="1" placeholder="10000"
-                    value={sendSats}
-                    onChange={(e) => setSendSats(e.target.value)}
-                    style={{
-                      width: "100%", boxSizing: "border-box",
-                      padding: "10px 12px", borderRadius: 8,
-                      border: "1px solid var(--border-soft)",
-                      background: "transparent", color: "var(--fg)", fontSize: 14,
-                    }}
-                  />
-                </div>
-              </>
-            ) : kind === "lock" ? (
-              <>
-                <div>
-                  <label style={{ display: "block", fontSize: 12, color: "var(--soft)", marginBottom: 6 }}>
-                    Amount (sats)
-                  </label>
-                  <input
-                    type="number" min="1" placeholder="100000"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    style={{
-                      width: "100%", boxSizing: "border-box",
-                      padding: "10px 12px", borderRadius: 8,
-                      border: "1px solid var(--border-soft)",
-                      background: "transparent", color: "var(--fg)", fontSize: 14,
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 12, color: "var(--soft)", marginBottom: 6 }}>
-                    Lock duration
-                  </label>
-                  <div className="seg">
-                    {([1, 3, 5, 7] as const).map((y) => (
-                      <button key={y} className={lockYears === y ? "on" : ""} onClick={() => setLockYears(y)}>
-                        {y}y
-                      </button>
-                    ))}
+              )}
+
+              {/* Amount input — variant per kind */}
+              {kind === "send" ? (
+                <div className="qa-field">
+                  <label className="qa-lbl">Amount in sats</label>
+                  <div className="qa-amount-wrap">
+                    <input
+                      className="qa-amount-input"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="10 000"
+                      value={sendSats}
+                      onChange={(e) => setSendSats(e.target.value)}
+                    />
                   </div>
+                  {sendSatsNum > 0 && (
+                    <div className="qa-hint">
+                      <i className="ti ti-arrows-exchange" />
+                      ≈ KES {num(sendSatsNum * rate.kesPerSat, 2)} &middot; free to other YeboBank members
+                    </div>
+                  )}
                 </div>
-              </>
-            ) : (
-              /* deposit or withdraw */
-              <div>
-                <label style={{ display: "block", fontSize: 12, color: "var(--soft)", marginBottom: 6 }}>
-                  {amountLabel}
-                </label>
-                <input
-                  type="number" min="1"
-                  placeholder={kind === "deposit" && method === "mpesa" ? "500" : "10000"}
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  style={{
-                    width: "100%", boxSizing: "border-box",
-                    padding: "10px 12px", borderRadius: 8,
-                    border: "1px solid var(--border-soft)",
-                    background: "transparent", color: "var(--fg)", fontSize: 14,
-                  }}
-                />
-                {kind === "deposit" && method === "mpesa" && amount && parseFloat(amount) > 0 && (
-                  <p style={{ fontSize: 11, color: "var(--soft)", marginTop: 5 }}>
-                    ≈ {num(kesToSats(parseFloat(amount), rate))} sats
-                  </p>
-                )}
+              ) : kind === "lock" ? (
+                <>
+                  <div className="qa-field">
+                    <label className="qa-lbl">Amount to lock (sats)</label>
+                    <div className="qa-amount-wrap">
+                      <input
+                        className="qa-amount-input"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="100 000"
+                        value={lockSats}
+                        onChange={(e) => setLockSats(e.target.value)}
+                      />
+                    </div>
+                    {lockSatsNum > 0 && (
+                      <div className="qa-hint">
+                        <i className="ti ti-trending-up" />
+                        ≈ KES {num(lockSatsNum * rate.kesPerSat, 2)} at today&apos;s rate
+                      </div>
+                    )}
+                  </div>
+                  <div className="qa-field">
+                    <label className="qa-lbl">Lock duration</label>
+                    <div className="seg">
+                      {([1, 3, 5, 7] as const).map((y) => (
+                        <button key={y} className={lockYears === y ? "on" : ""} onClick={() => setLockYears(y)}>
+                          {y}y
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* deposit or withdraw — KES amount */
+                <div className="qa-field">
+                  <label className="qa-lbl">
+                    {kind === "withdraw" ? "Amount to withdraw (KES)" : "Amount (KES)"}
+                  </label>
+                  <div className="qa-amount-wrap">
+                    <span className="qa-amount-pfx">KES</span>
+                    <input
+                      className="qa-amount-input qa-amount-input--kes"
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="500"
+                      value={kes}
+                      onChange={(e) => setKes(e.target.value)}
+                    />
+                  </div>
+                  {kesNum > 0 && (
+                    <div className="qa-hint">
+                      <i className="ti ti-arrows-exchange" />
+                      {kind === "deposit"
+                        ? `You'll receive ≈ ${num(satsFromKes)} sats at today's rate`
+                        : `Debits ≈ ${num(satsFromKes)} sats from your balance`
+                      }
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {error && <div className="qa-error">{error}</div>}
+
+              <Button
+                variant="primary"
+                onClick={() => void handleSubmit()}
+                disabled={loading}
+                block
+              >
+                {loading ? "Processing…" : submitLabel}
+              </Button>
+            </>
+          ) : (
+            /* ── Result phase ── */
+            <div className="qa-result">
+              <div className="qa-check-ring">
+                <i className="ti ti-circle-check" />
               </div>
-            )}
 
-            {error && (
-              <p style={{
-                fontSize: 12, color: "var(--red, #e03)",
-                padding: "8px 12px", borderRadius: 8,
-                background: "rgba(220,30,30,.1)",
-              }}>
-                {error}
-              </p>
-            )}
+              <div className="qa-result-amount">{resultAmt}</div>
+              <p className="qa-result-msg">{resultMsg}</p>
 
-            <Button
-              variant="primary"
-              onClick={() => void handleSubmit()}
-              disabled={loading}
-              style={{ width: "100%" }}
-            >
-              {loading ? "Processing…" : `Confirm ${TITLES[kind]}`}
-            </Button>
-          </div>
-        ) : (
-          /* Result phase */
-          <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "center", textAlign: "center" }}>
-            <div style={{
-              width: 52, height: 52, borderRadius: "50%",
-              background: "rgba(17,166,91,.15)",
-              display: "grid", placeItems: "center",
-            }}>
-              <i className="ti ti-circle-check" style={{ fontSize: 26, color: "var(--emerald-deep, #11a65b)" }} />
+              {/* Lightning invoice */}
+              {invoice && (
+                <div className="qa-invoice">
+                  <span>{invoice}</span>
+                  <button
+                    className={`qa-invoice-cpy${copied ? " copied" : ""}`}
+                    onClick={copyInvoice}
+                  >
+                    <i className={`ti ${copied ? "ti-check" : "ti-copy"}`} />
+                    {copied ? "Copied!" : "Copy invoice"}
+                  </button>
+                </div>
+              )}
+
+              {/* M-Pesa STK push notice */}
+              {kind === "deposit" && method === "mpesa" && (
+                <div className="qa-stk-notice">
+                  <i className="ti ti-device-mobile" />
+                  <span>A prompt has been sent to your phone. Open it and enter your M-Pesa PIN to confirm.</span>
+                </div>
+              )}
+
+              <Button variant="ghost" onClick={onClose} block>Done</Button>
             </div>
-            <p style={{ fontSize: 14, lineHeight: 1.6 }}>{resultMsg}</p>
-            {invoice && (
-              <div style={{
-                background: "rgba(0,0,0,.2)", padding: "10px 14px",
-                borderRadius: 8, wordBreak: "break-all",
-                fontSize: 11, fontFamily: "var(--font-mono)", textAlign: "left",
-                width: "100%", boxSizing: "border-box",
-              }}>
-                {invoice}
-              </div>
-            )}
-            <Button variant="ghost" onClick={onClose} style={{ width: "100%" }}>Done</Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </>
   );
