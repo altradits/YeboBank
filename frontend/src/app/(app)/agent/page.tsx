@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRoleGate } from "@/lib/useRoleGate";
 import Button from "@/components/ui/Button";
 import QRScanner from "@/components/ui/QRScanner";
 import TransactionRow from "@/components/app/TransactionRow";
@@ -8,7 +10,7 @@ import { ATMCard } from "@/components/app/ATMCard";
 import { useRate } from "@/lib/rate-context";
 import { num, fmtKESraw } from "@/lib/format";
 import {
-  getAgent, getAgentHistory,
+  getUser, getAgent, getAgentHistory,
   agentCashTransact, agentFiatSwap, agentTopUpFloat, confirmAgentTopUp,
   lookupAgentCustomer, requestAgentAccessCode, verifyAgentAccessCode, agentAssistService,
   agentGenerateInvoice, agentPayInvoice,
@@ -196,7 +198,9 @@ function VerifyStep({ member, channel, codeSent, code, error, verifying, onSendC
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function AgentPage() {
-  const rate = useRate();
+  const rate    = useRate();
+  const router  = useRouter();
+  const allowed = useRoleGate((u) => u.isAgent);
 
   const [agent,   setAgent]   = useState<Agent | null>(null);
   const [history, setHistory] = useState<LedgerEntry[]>([]);
@@ -499,6 +503,7 @@ export default function AgentPage() {
   // ─────────────────────────────────────────────────────────────────────────
   // Render
   // ─────────────────────────────────────────────────────────────────────────
+  if (!allowed) return null;
   if (!agent) return <p className="note">Loading…</p>;
 
   const criticalWorking = agent.workingFloatSats < CRITICAL_FLOAT;

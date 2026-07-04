@@ -22,6 +22,14 @@ const ACCENTS: Record<string, string> = {
 const DEFAULT_DARK = "rgba(5,12,6,.72)";
 const SECTION_IDS = ["inflation","save","mpesa","chama","agents","lightning","trust","convert","cta"];
 
+const NAV_LINKS = [
+  { href: "#inflation", label: "Why" },
+  { href: "#save",      label: "Save" },
+  { href: "#chama",     label: "Community" },
+  { href: "#lightning", label: "Send" },
+  { href: "#trust",     label: "Trust" },
+];
+
 export default function SiteNav() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
@@ -75,13 +83,9 @@ export default function SiteNav() {
           <LogoMark size={34} /> YeboBank
         </Link>
         <div className="navlinks">
-          <a href="#inflation" data-sec="inflation">Inflation</a>
-          <a href="#save" data-sec="save">Savings</a>
-          <a href="#mpesa" data-sec="mpesa">M-Pesa</a>
-          <a href="#chama" data-sec="chama">Chama</a>
-          <a href="#agents" data-sec="agents">Agents</a>
-          <a href="#lightning" data-sec="lightning">Lightning</a>
-          <a href="#convert" data-sec="convert">Convert</a>
+          {NAV_LINKS.map(({ href, label }) => (
+            <a key={href} href={href}>{label}</a>
+          ))}
         </div>
         <div className="navactions">
           <button

@@ -8,25 +8,35 @@ import LogoMark from "@/components/ui/LogoMark";
 
 const WALLET = [
   { href: "/dashboard", icon: "ti-home", label: "Dashboard" },
-  { href: "/deposit", icon: "ti-arrow-down", label: "Add money" },
-  { href: "/withdraw", icon: "ti-arrow-up", label: "Withdraw" },
-  { href: "/send", icon: "ti-send", label: "Send / Receive" },
-  { href: "/history", icon: "ti-list", label: "History" },
+  { href: "/history",   icon: "ti-list", label: "History" },
 ];
-const GROW = [
-  { href: "/savings", icon: "ti-lock", label: "Savings" },
-  { href: "/chama", icon: "ti-users", label: "Chamas" },
-  { href: "/agent", icon: "ti-cash", label: "Agent" },
-  { href: "/invest", icon: "ti-trending-up", label: "Invest" },
+const GROW_BASE = [
+  { href: "/savings", icon: "ti-lock",  label: "Savings" },
+  { href: "/chama",   icon: "ti-users", label: "Chamas" },
 ];
 const ACCOUNT = [{ href: "/settings", icon: "ti-settings", label: "Settings" }];
 
+// Role helpers — synchronous reads from mockUser; swap for a context when the
+// real auth layer lands.
+function getRoleFlags() {
+  const isMlinzi  = mockUser.role === "mlinzi";
+  const isAgent   = mockUser.isAgent;
+  // Invest portal is visible to the Mlinzi and accepted F&F investors only.
+  const canInvest = isMlinzi || mockUser.accessStatus === "accepted";
+  return { isMlinzi, isAgent, canInvest };
+}
+
 export function Sidebar() {
-  const path = usePathname();
-  const router = useRouter();
+  const path     = usePathname();
+  const router   = useRouter();
   const isActive = (h: string) => path === h || path.startsWith(h + "/");
-  // role-gated: Mlinzi Console (fund steward admin tools) is only for the mlinzi role.
-  const isMlinzi = mockUser.role === "mlinzi";
+  const { isMlinzi, isAgent, canInvest } = getRoleFlags();
+
+  const grow = [
+    ...GROW_BASE,
+    ...(isAgent   ? [{ href: "/agent",  icon: "ti-cash",        label: "Agent" }]  : []),
+    ...(canInvest ? [{ href: "/invest", icon: "ti-trending-up", label: "Invest" }] : []),
+  ];
 
   async function onLogout() {
     await logout();
@@ -43,7 +53,7 @@ export function Sidebar() {
         </Link>
       ))}
       <div className="side-sec">Grow</div>
-      {GROW.map((l) => (
+      {grow.map((l) => (
         <Link key={l.href} href={l.href} className={`side-link${isActive(l.href) ? " active" : ""}`}>
           <i className={`ti ${l.icon}`} /> {l.label}
         </Link>
@@ -68,21 +78,31 @@ export function Sidebar() {
   );
 }
 
-const BOTTOM = [
-  { href: "/dashboard", icon: "ti-home", label: "Home" },
-  { href: "/send", icon: "ti-send", label: "Send" },
-  { href: "/savings", icon: "ti-lock", label: "Savings" },
-  { href: "/chama", icon: "ti-users", label: "Chamas" },
-  { href: "/invest", icon: "ti-trending-up", label: "Invest" },
-  { href: "/settings", icon: "ti-settings", label: "Account" },
-];
-
 export function BottomNav() {
-  const path = usePathname();
+  const path     = usePathname();
   const isActive = (h: string) => path === h || path.startsWith(h + "/");
+  const { isAgent, canInvest } = getRoleFlags();
+
+  // One extra slot between Chamas and Account: Agent takes priority over Invest
+  // so agents see their dashboard, not the investor portal.
+  const extraSlot = isAgent
+    ? { href: "/agent",  icon: "ti-cash",        label: "Agent" }
+    : canInvest
+    ? { href: "/invest", icon: "ti-trending-up", label: "Invest" }
+    : null;
+
+  const bottom = [
+    { href: "/dashboard", icon: "ti-home",     label: "Home" },
+    { href: "/send",      icon: "ti-send",     label: "Send" },
+    { href: "/savings",   icon: "ti-lock",     label: "Savings" },
+    { href: "/chama",     icon: "ti-users",    label: "Chamas" },
+    ...(extraSlot ? [extraSlot] : []),
+    { href: "/settings",  icon: "ti-settings", label: "Account" },
+  ];
+
   return (
     <nav className="bottom-nav">
-      {BOTTOM.map((l) => (
+      {bottom.map((l) => (
         <Link key={l.href} href={l.href} className={`bn-link${isActive(l.href) ? " active" : ""}`}>
           <i className={`ti ${l.icon}`} />
           {l.label}

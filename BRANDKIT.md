@@ -1,6 +1,6 @@
 # YeboBank Brand Kit
 
-**Version 2.0 · The single source of truth for how YeboBank looks, moves, speaks, and behaves.**
+**Version 4.0 · The single source of truth for how YeboBank looks, moves, speaks, and behaves.**
 
 This document serves everyone who touches the brand: designers, developers, marketers, founders,
 sales teams, agents, and community contributors. If a decision about YeboBank's presentation isn't
@@ -48,14 +48,79 @@ inflation — through cash agents they already know, chamas they already run, an
 
 ## 2. Brand Name & Logo
 
+### 2.1 Name rules
+
 - **YeboBank** — one word, camel case, always. Never: Yebo Bank, yebobank (prose), YEBOBANK, Yebo-Bank.
 - In URLs and code: `yebobank` (all lowercase, no separator).
-- Logotype: display font (Syne 800), the interior **B** rendered in Gold — `Ye`**`B`**`o` — as in the app's ATM card.
-- Logomark: the `LogoMark` component (Y-bolt). Minimum size 20px; clear space = the height of the mark on all sides.
-- Tagline: **"Save in Bitcoin. Spend in shillings."** Second-line variant for agents:
-  *"Cash in and out, down the street."*
+- Tagline: **"Save in Bitcoin. Spend in shillings."** Agent variant: *"Cash in and out, down the street."*
 
-**Don'ts:** don't recolor the mark outside brand colors, stretch it, place it on lime, or add drop shadows.
+### 2.2 The mark — The Chevron
+
+The logomark is an upward-opening **chevron** (∧) in gold on a deep navy rounded square.
+Two bold strokes converge at a bright peak, expressing a single idea: *your savings rise*.
+
+The shape is a combination mark — the geometric icon pairs with the "YeboBank" wordmark in
+all nav, footer, and marketing contexts. The icon alone serves as the app icon and favicon.
+
+**Design rationale:**
+- **Upward convergence** → savings growing over time; inflation beaten
+- **Deep navy field** → institutional authority, trust, long-term thinking
+- **Gold gradient** (bright crown → brand gold → deep amber) → value, Bitcoin, premium
+- **Peak cap** (solid gold circle at apex) → the high point; a goal reached; money compounding
+- **Open base** → honest; nothing hidden; the books are open (consistent with §11 transparency voice)
+
+**Construction (40 × 40 viewBox):**
+
+| Element       | Spec                                                                              |
+|---------------|-----------------------------------------------------------------------------------|
+| Canvas        | 40 × 40 px viewBox · `rx="9"` rounded square                                     |
+| Background    | Linear gradient `#080D1E → #111828` (NW → SE, deep navy)                         |
+| Ambient glow  | Radial `#C49020` at 20% opacity, centered at apex `(20, 11)`, spread `22 × 18`   |
+| Chevron path  | `M8 31 L20 11 L32 31` · open path, no fill                                       |
+| Stroke        | `url(gold-gradient)` · `stroke-width="5.5"` · `stroke-linecap="round"` · `stroke-linejoin="round"` |
+| Gold gradient | 3-stop top→bottom: `#F0CC58` (0%) → `#C49020` (58%) → `#8A5E08` (100%)          |
+| Peak cap      | Circle at `(20, 11)` · `r="3"` · fill `#F0CC58` (brightest gold, apex marker)   |
+
+**Wordmark:** "YeboBank" in Playfair Display 700, placed to the right of the mark at `gap: 11px`.
+
+### 2.3 Logo variants
+
+| Variant                | Usage                                                    | Background        |
+|------------------------|----------------------------------------------------------|-------------------|
+| Mark + wordmark        | Nav bars, footers, marketing headers                     | Dark or light     |
+| Mark only (icon)       | App icon, favicon, browser tab, avatar, embossed items   | Navy (canonical)  |
+| Wordmark only          | Co-branded slide decks, press kit after mark appears     | Any               |
+| On light background    | Light-theme nav — navy bg sits on cream/white naturally; no change needed | Ivory / white |
+
+### 2.4 Favicon
+
+The favicon is the same 40 × 40 SVG mark. It omits the ambient glow overlay (saves bytes; irrelevant at 16 × 16) but is otherwise identical to the in-app mark:
+
+- Chevron `stroke-width="5.5"` → renders as ~2.2 px arms at 16 × 16 display size
+- Peak cap `r="3"` → renders as ~1.2 px solid dot — visible and distinctive at the apex
+- 3-stop gold gradient preserved — even at small sizes the top-to-bottom warmth reads
+- Declared `purpose: "any maskable"` in `site.webmanifest`
+- Files: `frontend/public/favicon.svg` · `frontend/public/site.webmanifest`
+
+**Favicon simplification principle (from favicon best-practice guidelines):**
+> *"Simplicity is the key to an effective favicon."* Replace intricate elements with a bold, high-contrast version. At 16 × 16 only the chevron and its gold cap need to read — and they do.
+
+### 2.5 Minimum size & clear space
+
+- Minimum mark size: **20 px** rendered height (mark-only)
+- Minimum combination: **140 px wide** (mark + wordmark)
+- Clear space: equal to the mark's rendered height on all four sides
+- Never scale below 16 px (the favicon floor)
+
+### 2.6 Do / Don't
+
+| Do                                                        | Don't                                                        |
+|-----------------------------------------------------------|--------------------------------------------------------------|
+| Use the `LogoMark` component (`ui/LogoMark.tsx`) in-app  | Redraw or rasterise the mark outside these files             |
+| Pair the navy mark with the cream/white wordmark on dark  | Place the navy mark on a navy page background                |
+| Keep both arms symmetrical — `x1=8`, `x2=32`, apex `x=20`| Alter proportions or flatten the apex angle                  |
+| Use only the four defined gold stops for any gold element | Add glow effects, drop shadows, or outline strokes externally|
+| Reserve lime for UI data indicators only                  | Reintroduce lime into the logomark                           |
 
 ---
 
@@ -65,13 +130,23 @@ inflation — through cash agents they already know, chamas they already run, an
 
 | Name         | Hex        | CSS variable     | M3 role equivalent        | Usage                                    |
 |--------------|------------|------------------|---------------------------|------------------------------------------|
-| Forest Deep  | `#030C07`  | `--ink`          | surface (dark)            | Primary dark background                   |
+| Forest Deep  | `#030C07`  | `--ink`          | surface (dark)            | Primary dark background (site)           |
 | Forest Mid   | `#11A65B`  | `--emerald-deep` | primary                   | Primary actions, success, growth          |
 | Lime         | `#96C244`  | `--lime`         | secondary                 | Live indicators, secondary highlights     |
 | Gold         | `#C49020`  | `--gold`         | tertiary                  | CTAs, premium tier, Bitcoin               |
 | Gold Soft    | `#E0A820`  | `--gold-soft`    | tertiary-container        | Hover states, lighter gold                |
 | Gold Text    | `#A87800`  | `--gold-text`    | on-tertiary-container     | Gold on light backgrounds                 |
 | Terra        | `#8C4A28`  | `--terra`        | error/warning             | Warnings, destructive, earth tones        |
+
+**Logo palette (mark-specific — separate from the site UI palette):**
+
+| Name        | Hex        | Role in mark                                           |
+|-------------|------------|--------------------------------------------------------|
+| Navy Deep   | `#080D1E`  | Background gradient start — deepest navy               |
+| Navy Mid    | `#111828`  | Background gradient end — warm dark navy               |
+| Gold Crown  | `#F0CC58`  | Chevron apex, peak cap — brightest, catches light first|
+| Gold Brand  | `#C49020`  | Chevron midpoint — the canonical brand gold            |
+| Gold Amber  | `#8A5E08`  | Chevron base — deep warm amber for gradient depth      |
 
 ### 3.2 Neutral scale
 
@@ -116,42 +191,44 @@ never by swapping to an unrelated color:
 
 ### 4.1 Font stack
 
-| Role    | Font               | Variable         | Fallback   |
-|---------|--------------------|------------------|------------|
-| Display | **Syne**           | `--font-display` | sans-serif |
-| Body    | **DM Sans**        | `--font-body`    | sans-serif |
-| Mono    | **JetBrains Mono** | `--font-mono`    | monospace  |
+| Role    | Font                    | Variable         | CSS var name      | Fallback   |
+|---------|-------------------------|------------------|-------------------|------------|
+| Display | **Playfair Display**    | `--font-display` | `--font-playfair` | serif      |
+| Body    | **Inter**               | `--font-body`    | `--font-inter`    | sans-serif |
+| Mono    | **JetBrains Mono**      | `--font-mono`    | `--font-jetbrains`| monospace  |
 
 All fonts load via `next/font/google` with `display: swap` — zero layout shift.
 
-**Why these fonts:** Syne's wide geometric letterforms give headings intentional, premium
-personality. DM Sans is an optical-size grotesque with exceptional 14–18px clarity — approachable
-but professional. JetBrains Mono renders sats, Lightning addresses, and rates with technical
-precision (and tabular digits, so balances don't jitter).
+**Why these fonts:** Playfair Display is a high-contrast editorial serif that gives headings
+authority, warmth, and a premium feel — the kind of type found in trusted financial institutions.
+Inter is a neutral humanist sans with outstanding legibility at every body size, from 11px labels
+to 18px leads. JetBrains Mono renders sats, Lightning addresses, and rates with technical
+precision (tabular digits ensure balances never jitter).
 
 ### 4.2 Type scale (M3 role naming)
 
 Mapped to Material 3's display/headline/title/body/label roles so any designer or dev familiar
 with Material can navigate instantly:
 
-| M3 role        | YeboBank token | Size                        | Font    | Weight  | Usage                          |
-|----------------|----------------|-----------------------------|---------|---------|--------------------------------|
-| Display Large  | Hero H1        | `clamp(44px, 5.6vw, 72px)`  | Syne    | 700     | Landing hero headline          |
-| Headline Large | Section H2     | `clamp(28px, 3.2vw, 40px)`  | Syne    | 600–700 | Feature section headings       |
-| Headline Small | Page title     | 22–26px                     | Syne    | 600     | App page titles                |
-| Title Medium   | Card title     | 16–17px                     | Syne    | 600     | Card headings, modal titles    |
-| Body Large     | Lead           | 18px                        | DM Sans | 400     | First paragraph of sections    |
-| Body Medium    | Body           | 15–16px                     | DM Sans | 400     | All body copy, card text       |
-| Label Large    | Button         | 15px                        | Syne    | 600     | Button labels                  |
-| Label Medium   | Kicker         | 13–14px                     | Mono    | 500     | Kickers, stat labels, nav      |
-| Label Small    | Micro          | 10–12px                     | Mono    | 400–500 | Timestamps, footnotes, readouts|
+| M3 role        | YeboBank token | Size                        | Font             | Weight  | Usage                          |
+|----------------|----------------|-----------------------------|------------------|---------|--------------------------------|
+| Display Large  | Hero H1        | `clamp(44px, 5.6vw, 72px)`  | Playfair Display | 700     | Landing hero headline          |
+| Headline Large | Section H2     | `clamp(30px, 4.4vw, 46px)`  | Playfair Display | 700     | Feature section headings       |
+| Headline Small | Page title     | 24–32px                     | Playfair Display | 700     | App page titles                |
+| Title Medium   | Card title     | 16–17px                     | Playfair Display | 600     | Card headings, modal titles    |
+| Body Large     | Lead           | 18px                        | Inter            | 400     | First paragraph of sections    |
+| Body Medium    | Body           | 15–16px                     | Inter            | 400     | All body copy, card text       |
+| Label Large    | Button         | 15px                        | Inter            | 600     | Button labels                  |
+| Label Medium   | Kicker         | 13–14px                     | Mono             | 500     | Kickers, stat labels, nav      |
+| Label Small    | Micro          | 10–12px                     | Mono             | 400–500 | Timestamps, footnotes, readouts|
 
 ### 4.3 Weight & spacing conventions
 
 - `800` hero numerals only (sat counter, inflation comparison) · `700` H1, logotype, bold stats ·
-  `600` H2, kickers, buttons, nav · `500` emphasis, card titles · `400` body.
-- Display headings `letter-spacing: -0.03em`; body default; mono data `-0.02em to 0.01em`;
-  all-caps labels `0.06em–0.1em`.
+  `600` H2, card titles, buttons · `500` emphasis, nav items · `400` body.
+- Display headings `letter-spacing: -0.015em to -0.02em` (Playfair Display is a high-contrast
+  serif — it needs less aggressive tracking than a geometric sans);
+  body text default (`0`); mono data `-0.02em to 0.01em`; all-caps labels `0.06em–0.1em`.
 - Numbers that change (balances, rates) always in mono — layout never shifts.
 
 ---
@@ -233,13 +310,15 @@ for *comprehension* — showing where things come from and go — never decorati
 
 ### 7.1 Buttons
 
-| Variant            | Recipe                                                                  |
-|--------------------|-------------------------------------------------------------------------|
-| Primary (Gold)     | `--gold` bg, pill radius, `14px 26px` padding, Syne 600 15px. Hover: scale 1.03 + glow |
-| Primary (Emerald)  | Same geometry, `--emerald-deep` bg — in-app confirmations               |
-| Ghost on dark      | Transparent + `rgba(255,255,255,.2)` border, white text. Hover: gold border |
-| Ghost on light     | `--border` border, `--text` text. Hover: emerald border                 |
-| Destructive        | `--terra` bg, white text — always paired with a confirm step            |
+| Variant            | Recipe                                                                                    |
+|--------------------|-------------------------------------------------------------------------------------------|
+| Primary (Gold)     | `--gold` solid bg, pill radius, `14px 26px` padding, Inter 600 15px. Hover: `--gold-soft` bg + `translateY(-2px)` + `var(--shadow-3)`. No glow. |
+| Primary (Emerald)  | Same geometry, `--emerald-deep` bg — in-app confirmations                                 |
+| Ghost on dark      | Transparent + `rgba(255,255,255,.35)` border, 85% white text. Hover: border to 72%, full white, subtle bg overlay |
+| Ghost on light     | `--border` border, `--text` text. Hover: emerald border                                   |
+| Destructive        | `--terra` bg, white text — always paired with a confirm step                              |
+
+**Button principle:** Buttons should not shout. One gold button per viewport for the primary CTA; all others use ghost or neutral variants. Avoid colored glows, gradients, or outsized shadows — `var(--shadow-2/3)` neutral shadows only. Hover is communicated with a subtle lift (`translateY(-2px)`) and a shade change on the background, not color explosions.
 
 **Button groups** (per [M3 button groups](https://m3.material.io/components/button-groups/overview)):
 related choices render as a connected segmented control (`.seg`) — single-select, one option
@@ -283,6 +362,10 @@ Tooltips: dark solid surface + 1px accent ring (see `.kenya-tip`), never browser
   haversine ranking. City hubs pulse.
 - **WhatsApp bar** — conversation belongs to WhatsApp (`#25D366` accent allowed here only);
   money actions stay in YeboBank.
+- **Social icons (footer)** — six platforms with animated tooltip pills: Facebook (`#1877F2`),
+  Twitter/X (`#1A8CD8`), Instagram (`#E4405F`), LinkedIn (`#0A66C2`), TikTok (`#010101`),
+  YouTube (`#FF0000`). Each platform's brand color appears only on hover — default state is
+  neutral white circle. Implemented as `.social-wrapper` in `globals.css`.
 
 ---
 
@@ -372,3 +455,13 @@ projections, not guarantees. Not a public offer. Pending CBK regulatory approval
 - Version bumps: minor for additions, major for token changes (colors, fonts, radii).
 - When in doubt: calmer, warmer, fewer elements. If a design needs a new color to work,
   the design is wrong.
+
+### Version history
+
+| Version | Change summary                                                                 |
+|---------|--------------------------------------------------------------------------------|
+| 1.0     | Initial brand system: forest-and-gold palette, Syne + DM Sans + JetBrains Mono |
+| 2.0     | Component library expansion: ATM card, agent map, chama ledger, section pairs  |
+| 3.0     | **Font refresh** — Syne → Playfair Display (editorial authority), DM Sans → Inter (neutral clarity). Letter-spacing recalibrated for serif. Button system quieted: no glows, professional lift-on-hover. Social footer (6 platforms). Developer attribution in footer. |
+| 3.1     | **Logo system** — Y-Bolt mark fully documented (construction table, variants, do/don'ts). Favicon refined: 5.2 stroke width, 3-stop gold gradient, 4-layer node with outer lime glow. Webmanifest updated to `"purpose": "any maskable"`. BRANDKIT §2 expanded to cover all logo treatments and minimum-size rules. |
+| 4.0     | **New logo & favicon** — Y-Bolt retired. Replaced with the **Chevron mark**: upward-opening gold chevron on deep navy rounded square. Combination mark (icon + Playfair Display wordmark). Navy logo palette introduced (`#080D1E / #111828` field; `#F0CC58 → #C49020 → #8A5E08` gold gradient). Peak cap circle at apex. Favicon: identical geometry, no glow overlay, reads clearly at 16 × 16. §2 fully rewritten with construction table, variant matrix, and do/don't table. §3.1 extended with logo-specific navy palette. |

@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { RateProvider } from "@/lib/rate-context";
 
-// Syne: geometric display with distinctive letterforms — premium fintech feel
-const display = Syne({
+// Playfair Display: editorial high-contrast serif — authority and elegance for headlines
+const display = Playfair_Display({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-syne",
+  variable: "--font-playfair",
   display: "swap",
 });
-// DM Sans: clean optical-size sans — excellent legibility at body sizes
-const body = DM_Sans({
+// Inter: neutral humanist sans — outstanding legibility at every body size
+const body = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-dm-sans",
+  variable: "--font-inter",
   display: "swap",
 });
 // JetBrains Mono: developer-grade monospace for sats, addresses, hashes

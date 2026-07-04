@@ -243,7 +243,7 @@ export function ATMCard({
         </div>
 
         {/* Quick actions */}
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${displayActions.length}, 1fr)`, gap: 8, marginTop: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 16 }}>
           {displayActions.map((a) => (
             <button
               key={a.label}

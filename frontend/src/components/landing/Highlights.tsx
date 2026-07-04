@@ -187,21 +187,32 @@ export function Lightning() {
           <div className="reveal d1">
             <h2 className="h2">Send money anywhere, <span className="accent">in seconds.</span></h2>
             <p className="lead">
-              Your Lightning address works like an email for money. Anyone,
-              anywhere in the world can send you sats instantly — and you
-              can send within YeboBank for zero fees.
+              Your Lightning address works like an email for money — anyone, anywhere
+              in the world can pay you instantly.
             </p>
-            <p style={{ marginTop: 12, fontSize: 13, color: "rgba(255,255,255,.4)", fontStyle: "italic" }}>
-              ↖ Move your cursor across the left panel to see the electric sparks.
-            </p>
-            <div className="split-list">
-              <SplitLi icon="ti-bolt"        title="Instant settlement"  desc="Lightning transactions confirm in under a second." />
-              <SplitLi icon="ti-world"       title="Global reach"        desc="Send to any Lightning wallet, in any country." />
-              <SplitLi icon="ti-coin-off"    title="Zero fees inside"    desc="Free transfers between YeboBank members, always." />
+            <div className="metric-trio">
+              <div className="metric">
+                <div className="m-val">&lt;&nbsp;1s</div>
+                <div className="m-key">confirmation time</div>
+              </div>
+              <div className="metric">
+                <div className="m-val">Global</div>
+                <div className="m-key">any Lightning wallet</div>
+              </div>
+              <div className="metric">
+                <div className="m-val">Zero</div>
+                <div className="m-key">fees inside YeboBank</div>
+              </div>
             </div>
-            <div style={{ marginTop: 32 }}>
+            <p style={{ marginBottom: 24, fontSize: 13, color: "rgba(255,255,255,.36)", fontStyle: "italic" }}>
+              ↖ Move your cursor over the bolt to see the electric sparks.
+            </p>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Button variant="gold" onClick={() => router.push("/register?redirect=/send")}>
                 Get your Lightning address <i className="ti ti-arrow-right" />
+              </Button>
+              <Button variant="ghost" onDark onClick={() => router.push("/dashboard")}>
+                Try send demo
               </Button>
             </div>
           </div>
@@ -282,9 +293,6 @@ export function Trust() {
       </div>
 
       <div className="wrap" style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
-        <div className="kicker reveal" style={{ justifyContent: "center" }}>
-          <i className="ti ti-shield-check" /> Trust &amp; transparency
-        </div>
         <h2 className="h2 reveal d1" style={{ margin: "14px auto 0" }}>
           Every satoshi, <span className="accent">on the record.</span>
         </h2>
