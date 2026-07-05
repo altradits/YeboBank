@@ -84,6 +84,9 @@ export function SiteFooter() {
             <div className="col">
               <h4>Get started</h4>
               <Link href="/login">Open account</Link>
+              <Link href="/login?redirect=/savings">Go to Savings</Link>
+              <Link href="/login?redirect=/chama">Go to Chama</Link>
+              <Link href="/login?redirect=/invest">Go to Invest</Link>
               <Link href="/login?redirect=/agent">Become an agent</Link>
             </div>
           </div>
