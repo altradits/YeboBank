@@ -61,7 +61,7 @@ export default function IncomePage() {
         balanceSecondary={`${sources.length} stream${sources.length !== 1 ? "s" : ""} · projected ${fmtKESraw(totalAnnualIncome, 0)}/yr`}
         stats={[
           { label: "Total deployed", value: fmtKESraw(totalPrincipal, 0), sub: "Capital at work" },
-          { label: "Annual income", value: fmtKESraw(totalAnnualIncome, 0), color: "#8ecb72", sub: "Projected" },
+          { label: "Annual income", value: fmtKESraw(totalAnnualIncome, 0), color: "var(--lime)", sub: "Projected" },
           { label: "Streams", value: `${sources.length}`, sub: "Active sources" },
         ]}
         actions={[

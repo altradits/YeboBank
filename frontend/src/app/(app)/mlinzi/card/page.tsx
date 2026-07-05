@@ -74,10 +74,10 @@ function CardFace({ card, revealNumber, revealCvv, secsLeft, onRevealNumber, onR
   return (
     <div style={{
       width: "100%", maxWidth: 380,
-      background: "linear-gradient(135deg, #0f1f0f 0%, #1a2e1a 55%, #2c1f08 100%)",
+      background: "linear-gradient(135deg, #050A06 0%, #0A2016 50%, #1C1200 100%)",
       borderRadius: 18, padding: "24px 28px", color: "white",
       position: "relative", overflow: "hidden",
-      boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
+      boxShadow: "0 12px 40px rgba(0,0,0,0.55)",
       userSelect: "none",
     }}>
       {/* Background texture rings */}
@@ -94,7 +94,7 @@ function CardFace({ card, revealNumber, revealCvv, secsLeft, onRevealNumber, onR
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
         <div>
           <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17, letterSpacing: 1 }}>
-            Ye<span style={{ color: "#C9A84C" }}>B</span>
+            YeboBank
           </span>
           <p style={{ fontSize: 9, color: "rgba(255,255,255,.45)", letterSpacing: 2, marginTop: 2 }}>VIRTUAL · GLOBAL</p>
         </div>
@@ -308,7 +308,7 @@ export default function CardPage() {
         stats={[
           { label: "Total deployed", value: c ? `${num(c.totalDeployedSats)} sats` : "—", sub: c ? `≈ KES ${num(Math.round(c.totalDeployedSats * rate.kesPerSat))}` : "Via card" },
           { label: "Limit", value: c?.limitSats ? `${num(c.limitSats)} sats` : "No limit", sub: "Per transaction" },
-          { label: "Status", value: c ? (c.status === "frozen" ? "Frozen" : "Active") : "—", color: c?.status === "frozen" ? "#7ecfff" : c ? "#8ecb72" : undefined, sub: "Card state" },
+          { label: "Status", value: c ? (c.status === "frozen" ? "Frozen" : "Active") : "—", color: c?.status === "frozen" ? "#7ecfff" : c ? "var(--lime)" : undefined, sub: "Card state" },
         ]}
         actions={[
           { icon: "ti-layout-dashboard", label: "Console",     path: "/mlinzi" },
