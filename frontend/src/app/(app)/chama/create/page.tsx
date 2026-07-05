@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
@@ -23,6 +24,11 @@ export default function CreateChamaPage() {
 
   return (
     <>
+      <div style={{ marginBottom: 6 }}>
+        <Link href="/chama" style={{ color: "var(--soft)", fontSize: 14 }}>
+          <i className="ti ti-arrow-left" /> Chamas
+        </Link>
+      </div>
       <h1 className="page-title">Create a chama</h1>
       <p className="page-sub">Start a group wallet your members can all see.</p>
 

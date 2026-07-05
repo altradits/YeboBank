@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { fmtKESraw } from "@/lib/format";
 import { getIncomeSources, upsertIncomeSource, removeIncomeSource } from "@/lib/api";
 import type { IncomeSource, IncomeSourceType } from "@/types";
 import ChamaGrowthChart from "@/components/app/ChamaGrowthChart";
+import { ATMCard } from "@/components/app/ATMCard";
 
 const TYPE_LABEL: Record<IncomeSourceType, string> = {
   real_estate: "Real estate", govt_bond: "Govt bond", tbill: "T-bill",
@@ -53,11 +53,27 @@ export default function IncomePage() {
 
   return (
     <>
-      <div className="section-head">
+      <ATMCard
+        variant="dashboard"
+        chipLabel="INCOME SOURCES"
+        balanceLabel="TOTAL PRINCIPAL DEPLOYED"
+        balancePrimary={fmtKESraw(totalPrincipal, 0)}
+        balanceSecondary={`${sources.length} stream${sources.length !== 1 ? "s" : ""} · projected ${fmtKESraw(totalAnnualIncome, 0)}/yr`}
+        stats={[
+          { label: "Total deployed", value: fmtKESraw(totalPrincipal, 0), sub: "Capital at work" },
+          { label: "Annual income", value: fmtKESraw(totalAnnualIncome, 0), color: "#8ecb72", sub: "Projected" },
+          { label: "Streams", value: `${sources.length}`, sub: "Active sources" },
+        ]}
+        actions={[
+          { icon: "ti-layout-dashboard", label: "Console",     path: "/mlinzi" },
+          { icon: "ti-users",            label: "Investors",   path: "/mlinzi/investors" },
+          { icon: "ti-user-check",       label: "Access",      path: "/mlinzi/access" },
+          { icon: "ti-receipt",          label: "Withdrawals", path: "/mlinzi/withdrawals" },
+        ]}
+      />
+
+      <div className="section-head" style={{ marginTop: 18 }}>
         <div>
-          <div style={{ marginBottom: 4 }}>
-            <Link href="/mlinzi" style={{ color: "var(--soft)", fontSize: 14 }}><i className="ti ti-layout-dashboard" /> Mlinzi Console</Link>
-          </div>
           <h1 className="page-title">Income sources</h1>
         </div>
         <button className="btn btn-primary" onClick={() => setEditing({ ...EMPTY })}>Add source</button>
