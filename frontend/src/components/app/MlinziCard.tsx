@@ -45,7 +45,7 @@ export function MlinziCard({
       label: "Fee earned (2% of profit)",
       value: fmtKESraw(totalFeeKes, 0),
       sub:   "This cycle",
-      color: "#8ecb72" as const,
+      color: "var(--lime)" as const,
     },
   ];
 
@@ -147,7 +147,7 @@ export function MlinziCard({
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,.07)"; (e.currentTarget as HTMLElement).style.transform = ""; }}
           >
             <div style={{ position: "relative" }}>
-              <i className={`ti ${icon}`} style={{ color: "#8ecb72", fontSize: 20 }} />
+              <i className={`ti ${icon}`} style={{ color: "var(--lime)", fontSize: 20 }} />
               {!!badge && (
                 <span style={{
                   position: "absolute", top: -4, right: -8,

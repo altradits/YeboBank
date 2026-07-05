@@ -22,6 +22,7 @@ export default function InvestPage() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawStatus, setWithdrawStatus] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   function load() {
     getUser().then(setUser);
@@ -139,70 +140,99 @@ export default function InvestPage() {
         sats={investSats}
         stats={[
           { label: "Principal", value: `${num(position?.principalSats ?? 0)} sats`, sub: `≈ ${fmtKESraw(position?.principalKesAtEntry ?? 0, 0)} at entry` },
-          { label: "This month", value: fmtKESraw(thisMonthReturn, 0), color: thisMonthReturn >= 0 ? "#8ecb72" : undefined, sub: "Return" },
+          { label: "This month", value: fmtKESraw(thisMonthReturn, 0), color: thisMonthReturn >= 0 ? "var(--lime)" : undefined, sub: "Return" },
           { label: "Return rate", value: apyStr, sub: position?.compounding ? "Compounded" : "Simple" },
         ]}
         actions={[
-          { icon: "ti-download",       label: "Withdraw request", onClick: () => document.getElementById("withdraw-section")?.scrollIntoView({ behavior: "smooth" }) },
-          { icon: "ti-chart-bar",      label: "Statements",       onClick: () => document.getElementById("statements-section")?.scrollIntoView({ behavior: "smooth" }) },
-          { icon: "ti-calculator",     label: "FI calc",          onClick: () => document.getElementById("fi-section")?.scrollIntoView({ behavior: "smooth" }) },
+          { icon: "ti-download",   label: "Withdraw request", onClick: () => document.getElementById("withdraw-section")?.scrollIntoView({ behavior: "smooth" }) },
+          { icon: "ti-chart-bar",  label: "Statements",       onClick: () => { setShowDetails(true); setTimeout(() => document.getElementById("details-section")?.scrollIntoView({ behavior: "smooth" }), 50); } },
+          { icon: "ti-calculator", label: "FI calc",          onClick: () => { setShowDetails(true); setTimeout(() => document.getElementById("details-section")?.scrollIntoView({ behavior: "smooth" }), 50); } },
         ]}
       />
       <div className="notif-banner" style={{ marginTop: 14 }}><i className="ti ti-shield-lock" /><span>{PILOT_BANNER}</span></div>
-      <p className="page-sub" style={{ marginTop: 10 }}>{user.relationship && user.relationship !== "none" ? `${user.relationship} of Mlinzi` : ""}</p>
-
-      {/* My position */}
-      <div className="card">
-        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 14 }}>My position</h2>
-        <div className="grid-2">
-          <div className="stat"><span className="l">Principal</span><span className="v">{num(position?.principalSats ?? 0)} sats</span><span className="note">≈ {fmtKESraw(position?.principalKesAtEntry ?? 0, 0)} at entry</span></div>
-          <div className="stat"><span className="l">Current value</span><span className="v" style={{ color: "var(--emerald-deep)" }}>{fmtKESraw(currentValueKes, 0)}</span></div>
-          <div className="stat"><span className="l">This month&apos;s return</span><span className="v">{fmtKESraw(thisMonthReturn, 0)}</span><span className="note">on opening {fmtKESraw(opening, 0)}</span></div>
-          <div className="stat"><span className="l">Realized return</span><span className="v">{position?.realizedReturnPctAnnual ?? 0}%/yr</span><span className="note">{position?.compounding ? "compounded monthly" : "simple"} — projection, not guarantee</span></div>
-        </div>
-      </div>
-
-      {/* What your capital is exposed to */}
-      {income.length > 0 && (
-        <div className="card" style={{ marginTop: 16 }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>What Mlinzi has invested in</h2>
-          {income.map((s) => (
-            <div key={s.id} style={{ padding: "8px 0", borderBottom: "1px solid var(--border-soft)" }}>
-              <strong>{s.name}</strong> <span className="note">— {s.realizedReturnPctAnnual}%/yr, {s.liquidity}</span>
-            </div>
-          ))}
-        </div>
+      {user.relationship && user.relationship !== "none" && (
+        <p className="page-sub" style={{ marginTop: 6 }}>{user.relationship} of Mlinzi</p>
       )}
 
-      {/* Monthly statements */}
-      <div id="statements-section" className="card" style={{ marginTop: 16 }}>
-        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>Monthly statements</h2>
-        {(!position || position.monthlyStatements.length === 0) && <p className="note">No statements posted yet.</p>}
-        {position?.monthlyStatements.slice().reverse().map((m) => (
-          <div key={m.month} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-soft)", fontSize: 13 }}>
-            <span>{m.month}</span>
-            <span className="note">Open {fmtKESraw(m.openingKes, 0)}</span>
-            <span style={{ color: m.returnKes >= 0 ? "var(--emerald-deep)" : "var(--red)" }}>{m.returnKes >= 0 ? "+" : ""}{fmtKESraw(m.returnKes, 0)}</span>
-            <span className="note">Fee {fmtKESraw(m.feeKes, 0)}</span>
-            <strong>{fmtKESraw(m.closingKes, 0)}</strong>
-          </div>
-        ))}
-      </div>
-
-      {/* FI calculator */}
-      <div id="fi-section">{fi && <FICalculator fi={fi} currentValueKes={currentValueKes} onSave={onSaveFI} />}</div>
-
-      {/* Request withdrawal */}
-      <div id="withdraw-section" className="card" style={{ marginTop: 16 }}>
-        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>Request withdrawal</h2>
-        <p className="note" style={{ marginBottom: 10 }}>No self-service payout — Mlinzi approves and sets an expected delivery date.</p>
+      {/* Primary action: request withdrawal */}
+      <div id="withdraw-section" className="card" style={{ marginTop: 14 }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 6 }}>Request withdrawal</h2>
+        <p className="note" style={{ marginBottom: 12 }}>No self-service payout — Mlinzi approves and sets an expected delivery date.</p>
         <div style={{ display: "flex", gap: 10 }}>
-          <input className="input" type="number" placeholder="Amount (sats)" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
+          <input className="input" type="text" inputMode="numeric" placeholder="Amount (sats)" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
           <button className="btn btn-primary" onClick={onSubmitWithdraw}>Request</button>
         </div>
         {withdrawAmount && <p className="note" style={{ marginTop: 6 }}>≈ {fmtKES(Number(withdrawAmount) || 0, rate, 0)}</p>}
         {withdrawStatus && <p className="note" style={{ marginTop: 10, color: "var(--emerald-deep)" }}>{withdrawStatus}</p>}
       </div>
+
+      {/* Details toggle */}
+      <button
+        onClick={() => setShowDetails((v) => !v)}
+        style={{
+          marginTop: 14, width: "100%", background: "none",
+          border: "1px solid var(--border-soft)", borderRadius: "var(--r-sm)",
+          padding: "10px 16px", cursor: "pointer", display: "flex",
+          alignItems: "center", justifyContent: "space-between",
+          color: "var(--soft)", fontSize: 13,
+        }}
+      >
+        <span><i className="ti ti-chart-bar" style={{ marginRight: 8 }} />Performance, statements &amp; FI planner</span>
+        <i className={`ti ti-chevron-${showDetails ? "up" : "down"}`} />
+      </button>
+
+      {showDetails && (
+        <div id="details-section" style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Performance detail */}
+          <div className="card">
+            <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 14 }}>Performance detail</h2>
+            <div className="grid-2">
+              <div className="stat">
+                <span className="l">Current value</span>
+                <span className="v" style={{ color: "var(--emerald-deep)" }}>{fmtKESraw(currentValueKes, 0)}</span>
+                <span className="note">on opening {fmtKESraw(opening, 0)}</span>
+              </div>
+              <div className="stat">
+                <span className="l">Realized return</span>
+                <span className="v">{position?.realizedReturnPctAnnual ?? 0}%/yr</span>
+                <span className="note">{position?.compounding ? "compounded monthly" : "simple"} — projection, not guarantee</span>
+              </div>
+            </div>
+          </div>
+
+          {/* What your capital is exposed to */}
+          {income.length > 0 && (
+            <div className="card">
+              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>What Mlinzi has invested in</h2>
+              {income.map((s) => (
+                <div key={s.id} style={{ padding: "8px 0", borderBottom: "1px solid var(--border-soft)" }}>
+                  <strong>{s.name}</strong> <span className="note">— {s.realizedReturnPctAnnual}%/yr, {s.liquidity}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Monthly statements */}
+          <div className="card">
+            <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, marginBottom: 10 }}>Monthly statements</h2>
+            {(!position || position.monthlyStatements.length === 0) && <p className="note">No statements posted yet.</p>}
+            <div style={{ overflowX: "auto" }}>
+              {position?.monthlyStatements.slice().reverse().map((m) => (
+                <div key={m.month} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "8px 0", borderBottom: "1px solid var(--border-soft)", fontSize: 13, minWidth: 480 }}>
+                  <span style={{ flex: "0 0 72px" }}>{m.month}</span>
+                  <span className="note">Open {fmtKESraw(m.openingKes, 0)}</span>
+                  <span style={{ color: m.returnKes >= 0 ? "var(--emerald-deep)" : "var(--red)" }}>{m.returnKes >= 0 ? "+" : ""}{fmtKESraw(m.returnKes, 0)}</span>
+                  <span className="note">Fee {fmtKESraw(m.feeKes, 0)}</span>
+                  <strong>{fmtKESraw(m.closingKes, 0)}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* FI calculator */}
+          {fi && <FICalculator fi={fi} currentValueKes={currentValueKes} onSave={onSaveFI} />}
+        </div>
+      )}
     </>
   );
 }

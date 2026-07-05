@@ -133,7 +133,7 @@ export default function DeployCapitalPage() {
         stats={[
           { label: "Pool received", value: `${num(poolSats)} sats`, sub: `≈ ${fmtKES(poolSats, rate, 0)}` },
           { label: "Already deployed", value: fmtKESraw(deployedKes, 0), sub: `${deployments.length} deployment${deployments.length !== 1 ? "s" : ""}` },
-          { label: "Available", value: fmtKESraw(availableKes, 0), color: availableSats > 0 ? "#8ecb72" : undefined, sub: availableSats <= 0 ? "Fully deployed" : "Ready to deploy" },
+          { label: "Available", value: fmtKESraw(availableKes, 0), color: availableSats > 0 ? "var(--lime)" : undefined, sub: availableSats <= 0 ? "Fully deployed" : "Ready to deploy" },
         ]}
         actions={[
           { icon: "ti-layout-dashboard", label: "Console", path: "/mlinzi" },

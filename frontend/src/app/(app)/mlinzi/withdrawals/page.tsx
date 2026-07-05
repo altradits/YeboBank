@@ -43,7 +43,7 @@ export default function WithdrawalsPage() {
         balanceSecondary={`${pending.length} awaiting approval · capital may be illiquid`}
         stats={[
           { label: "Pending", value: `${pending.length}`, color: pending.length > 0 ? "#C9A84C" : undefined, sub: "Need approval" },
-          { label: "Approved", value: `${approved.length}`, color: "#8ecb72", sub: "Awaiting delivery" },
+          { label: "Approved", value: `${approved.length}`, color: "var(--lime)", sub: "Awaiting delivery" },
           { label: "Delivered", value: `${delivered.length}`, sub: "Paid out" },
         ]}
         actions={[
