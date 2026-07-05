@@ -10,6 +10,7 @@ let _actx: AudioContext | null = null;
 
 function getACtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return null;
   try {
     if (!_actx || _actx.state === "closed") _actx = new AudioContext();
     return _actx;
@@ -118,6 +119,12 @@ export default function Hero() {
 
   /* ── Phase progression + loop ── */
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setPhase(4);
+      setLockConfirmed(true);
+      setShowCursor(false);
+      return;
+    }
     const t = [
       setTimeout(() => setPhase(1), 2400),
       setTimeout(() => setPhase(2), 4400),

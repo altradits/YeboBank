@@ -174,7 +174,7 @@ export function Lightning() {
                 <defs>
                   <linearGradient id="bolt-grad" x1="60" y1="8" x2="60" y2="192" gradientUnits="userSpaceOnUse">
                     <stop stopColor="#E0C040" />
-                    <stop offset="0.5" stopColor="#C49020" />
+                    <stop offset="0.5" style={{ stopColor: "var(--gold)" }} />
                     <stop offset="1" stopColor="#7A5800" />
                   </linearGradient>
                 </defs>
@@ -204,7 +204,7 @@ export function Lightning() {
                 <div className="m-key">fees inside YeboBank</div>
               </div>
             </div>
-            <p style={{ marginBottom: 24, fontSize: 13, color: "rgba(255,255,255,.36)", fontStyle: "italic" }}>
+            <p style={{ marginBottom: 24, fontSize: 13, color: "rgba(255,255,255,.55)", fontStyle: "italic" }}>
               ↖ Move your cursor over the bolt to see the electric sparks.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
