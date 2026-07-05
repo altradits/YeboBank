@@ -242,8 +242,12 @@ export function ATMCard({
           ))}
         </div>
 
-        {/* Quick actions */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 16 }}>
+        {/* Quick actions — columns adapt to item count so the grid never has orphan cells */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${displayActions.length <= 4 ? displayActions.length : displayActions.length <= 6 ? Math.ceil(displayActions.length / 2) : 4}, 1fr)`,
+          gap: 8, marginTop: 16,
+        }}>
           {displayActions.map((a) => (
             <button
               key={a.label}
