@@ -192,6 +192,8 @@ function Inflation() {
               key={y}
               className={`io-yr-tab${year === y ? " active" : ""}`}
               onClick={() => runFrom(y)}
+              aria-pressed={year === y}
+              aria-label={`Show year ${y}`}
             >
               {y}
             </button>
@@ -203,7 +205,7 @@ function Inflation() {
             <div className="io-viewport">
               <div className="io-system">
                 <div className="io-center">
-                  <div className="io-center-body">
+                  <div className="io-center-body" aria-live="polite" aria-atomic="true">
                     <div className="io-c-year">{year}</div>
                     <div className="io-c-hr" />
                     <div className="io-c-row io-c-kes">
@@ -582,6 +584,11 @@ function CommunityPair() {
               <path key={c.name} d={c.d}
                 className={`kenya-county${selected === c.name ? " on" : ""}`}
                 onClick={() => setSelected(selected === c.name ? null : c.name)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(selected === c.name ? null : c.name); } }}
+                role="button"
+                tabIndex={0}
+                aria-pressed={selected === c.name}
+                aria-label={`${c.name} — ${c.agents} agents`}
               >
                 <title>{`${c.name} — ${c.agents} agents`}</title>
               </path>

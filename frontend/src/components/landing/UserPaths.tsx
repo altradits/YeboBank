@@ -13,6 +13,7 @@ interface PathCard {
   features: string[];
   primaryLabel?: string;
   primaryPath?: string;
+  primaryVariant?: "gold" | "ghost";
 }
 
 const PATHS: PathCard[] = [
@@ -47,6 +48,7 @@ const PATHS: PathCard[] = [
     ],
     primaryLabel: "Apply",
     primaryPath: "/login?redirect=/agent",
+    primaryVariant: "ghost",
   },
   {
     id: "investor",
@@ -63,6 +65,7 @@ const PATHS: PathCard[] = [
     ],
     primaryLabel: "Request access",
     primaryPath: "/login?redirect=/invest",
+    primaryVariant: "ghost",
   },
   {
     id: "mlinzi",
@@ -119,7 +122,7 @@ export default function UserPaths() {
 
               {p.primaryLabel && (
                 <div className="path-actions">
-                  <Button variant="gold" onClick={() => router.push(p.primaryPath!)} block>
+                  <Button variant={p.primaryVariant ?? "gold"} onClick={() => router.push(p.primaryPath!)} block>
                     {p.primaryLabel}
                   </Button>
                 </div>

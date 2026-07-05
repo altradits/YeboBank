@@ -23,8 +23,8 @@ export default function LogoMark({ size = 34, className }: Props) {
       <defs>
         {/* Deep navy background — NW dark → SE slightly lighter */}
         <linearGradient id={`${uid}bg`} x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#080D1E"/>
-          <stop offset="1" stopColor="#111828"/>
+          <stop style={{ stopColor: "var(--ink, #080D1E)" }}/>
+          <stop offset="1" style={{ stopColor: "var(--ink, #111828)", stopOpacity: 0.85 }}/>
         </linearGradient>
         {/* Gold: bright crown at peak → brand gold → deep amber at base */}
         <linearGradient id={`${uid}g`} x1="20" y1="11" x2="20" y2="31" gradientUnits="userSpaceOnUse">

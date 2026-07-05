@@ -11,10 +11,10 @@ import LogoMark from "@/components/ui/LogoMark";
 
 /* ── Counter stats (defined outside to avoid stale closure in useEffect) ── */
 const STATS = [
-  { val: 12400, suf: "+",  label: "Kenyans already saving",          dec: 0 },
-  { val: 2.1,   suf: "B",  label: "Sats locked and growing",         dec: 1 },
+  { val: 12400, suf: "+",  label: "Members (target)",                 dec: 0 },
+  { val: 2.1,   suf: "B",  label: "Sats target — locking soon",      dec: 1 },
   { val: 5.2,   suf: "%",  label: "Target APY from treasury yield",  dec: 1 },
-  { val: 340,   suf: "+",  label: "Agent locations across Kenya",     dec: 0 },
+  { val: 340,   suf: "+",  label: "Agent locations (target)",         dec: 0 },
 ];
 
 export default function MarketingPage() {
@@ -63,7 +63,7 @@ function NavBar() {
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <Link
             href="/login"
-            style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, color: "rgba(255,255,255,.76)" }}
+            style={{ fontWeight: 600, fontSize: 14, color: "rgba(255,255,255,.76)" }}
           >
             Log in
           </Link>
@@ -102,6 +102,9 @@ function HeroSection() {
           <button className="mkt-hero-cta" onClick={() => router.push("/login")}>
             Open your account free
           </button>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,.32)", margin: "8px 0 0", fontStyle: "italic" }}>
+            *5.2% APY is a target projection, not a guarantee.
+          </p>
           <div className="mkt-hero-rate">
             <span className="pulse" />
             1 BTC = KES {num(rate.btcKes)} · {rate.satsPerKes.toFixed(1)} sats per shilling
@@ -266,6 +269,7 @@ function ServicesSection() {
             <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
               Start saving today
             </Button>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,.38)", marginTop: 8, fontStyle: "italic" }}>*projection, not a guarantee</p>
           </div>
           <div style={{ position: "relative", zIndex: 1 }}>
             <div className="balance flat" style={{ border: "1px solid rgba(255,255,255,.16)" }}>
@@ -522,7 +526,7 @@ function SiteFooter() {
             </div>
             <div className="col">
               <h4>Company</h4>
-              <a href="/">About</a>
+              <a href="https://github.com/altradits/YeboBank" target="_blank" rel="noopener noreferrer">About</a>
               <a
                 href="https://github.com/altradits/YeboBank"
                 target="_blank"
@@ -530,7 +534,7 @@ function SiteFooter() {
               >
                 Open source
               </a>
-              <a href="/login">Contact</a>
+              <a href="https://github.com/altradits/YeboBank/issues" target="_blank" rel="noopener noreferrer">Contact</a>
             </div>
             <div className="col">
               <h4>Get started</h4>
