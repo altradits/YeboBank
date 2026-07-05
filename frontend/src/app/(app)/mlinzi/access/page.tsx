@@ -44,7 +44,7 @@ export default function AccessRequestsPage() {
         balanceSecondary={`${requests.length} total · ${decided.length} decided`}
         stats={[
           { label: "Pending", value: `${pending.length}`, color: pending.length > 0 ? "#C9A84C" : undefined, sub: "Awaiting review" },
-          { label: "Accepted", value: `${accepted}`, color: "#8ecb72", sub: "Active investors" },
+          { label: "Accepted", value: `${accepted}`, color: "var(--lime)", sub: "Active investors" },
           { label: "Declined", value: `${declined}`, sub: "Not invited" },
         ]}
         actions={[

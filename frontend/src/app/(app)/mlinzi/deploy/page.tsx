@@ -276,7 +276,7 @@ export default function DeployCapitalPage() {
                   <>
                     {/* Card chip preview */}
                     <div style={{
-                      background: "linear-gradient(135deg, #0f1f0f 0%, #1a2e1a 55%, #2c1f08 100%)",
+                      background: "linear-gradient(135deg, #050A06 0%, #0A2016 50%, #1C1200 100%)",
                       borderRadius: 14, padding: "16px 20px", color: "white",
                       display: "flex", justifyContent: "space-between", alignItems: "center",
                       position: "relative", overflow: "hidden",

@@ -347,7 +347,7 @@ export function ATMCard({
             YeboBank
           </span>
           <span style={{ fontSize: 10, color: "rgba(255,255,255,.35)", letterSpacing: 2, border: "1px solid rgba(255,255,255,.12)", borderRadius: 4, padding: "2px 7px" }}>
-            SAVINGS ACCOUNT
+            {(chipLabel ?? "SAVINGS ACCOUNT").toUpperCase()}
           </span>
         </div>
         <Chip />

@@ -41,7 +41,7 @@ export default function InvestorsPage() {
         balancePrimary={fmtKESraw(totalAum, 0)}
         balanceSecondary={`${positions.length} position${positions.length !== 1 ? "s" : ""} · friends & family pilot`}
         stats={[
-          { label: "Fee earned", value: fmtKESraw(totalFee, 0), color: "#8ecb72", sub: "2% of profit" },
+          { label: "Fee earned", value: fmtKESraw(totalFee, 0), color: "var(--lime)", sub: "2% of profit" },
           { label: "Statements", value: `${totalStatements}`, sub: "Posted monthly" },
           { label: "Avg position", value: positions.length > 0 ? fmtKESraw(totalAum / positions.length, 0) : "—", sub: "Per investor" },
         ]}

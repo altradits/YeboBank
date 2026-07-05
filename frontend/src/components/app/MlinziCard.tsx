@@ -73,7 +73,7 @@ export function MlinziCard({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 20, letterSpacing: 1 }}>
-            Ye<span style={{ color: "#C9A84C" }}>B</span>o
+            YeboBank
           </span>
           <span style={{ fontSize: 9, color: "rgba(255,255,255,.35)", letterSpacing: 2.5, border: "1px solid rgba(255,255,255,.12)", borderRadius: 4, padding: "2px 7px" }}>
             MLINZI CONSOLE
