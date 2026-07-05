@@ -220,7 +220,7 @@ export default function LockDetailPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
             <Link href="/savings" style={{ color: "var(--soft)", fontSize: 14 }}>
-              <i className="ti ti-arrow-left" /> Savings
+              <i className="ti ti-layout-list" /> Savings
             </Link>
           </div>
           <h1 className="page-title">{lock.title ?? "Savings lock"}</h1>

@@ -42,7 +42,7 @@ export default function DiscoverPage() {
           <p className="page-sub">Browse all YeboBank groups and request to join.</p>
         </div>
         <Link href="/chama">
-          <Button variant="ghost"><i className="ti ti-arrow-left" /> My chamas</Button>
+          <Button variant="ghost"><i className="ti ti-layout-list" /> My chamas</Button>
         </Link>
       </div>
 
