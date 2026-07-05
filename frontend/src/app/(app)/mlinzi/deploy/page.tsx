@@ -303,7 +303,7 @@ export default function DeployCapitalPage() {
                       <Link href="/mlinzi/card"
                         style={{ color: "rgba(255,255,255,.55)", fontSize: 12, textDecoration: "none",
                           display: "flex", alignItems: "center", gap: 5, position: "relative" }}>
-                        Full details <i className="ti ti-arrow-right" style={{ fontSize: 13 }} />
+                        Full details
                       </Link>
                     </div>
 
