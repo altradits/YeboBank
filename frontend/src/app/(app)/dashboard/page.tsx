@@ -129,11 +129,11 @@ export default function DashboardPage() {
       {/* ── Savings drawer ──────────────────────────────────────────────── */}
       {savingsOpen && (
         <div className="modal-overlay" onClick={() => setSavingsOpen(false)}>
-          <div className="modal" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSavingsOpen(false)}>
+          <div className="modal" style={{ maxWidth: 460 }} role="dialog" aria-modal="true" aria-labelledby="savings-modal-title" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setSavingsOpen(false)} aria-label="Close savings">
               <i className="ti ti-x" />
             </button>
-            <h2>Savings</h2>
+            <h2 id="savings-modal-title">Savings</h2>
             <p className="modal-sub">Your Bitcoin savings locks.</p>
 
             {locks === null ? (
@@ -189,11 +189,11 @@ export default function DashboardPage() {
       {/* ── Chama drawer ────────────────────────────────────────────────── */}
       {chamaOpen && (
         <div className="modal-overlay" onClick={closeChamaDrawer}>
-          <div className="modal" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeChamaDrawer}>
+          <div className="modal" style={{ maxWidth: 460 }} role="dialog" aria-modal="true" aria-labelledby="chama-modal-title" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeChamaDrawer} aria-label="Close chamas">
               <i className="ti ti-x" />
             </button>
-            <h2>Chamas</h2>
+            <h2 id="chama-modal-title">Chamas</h2>
             <p className="modal-sub">Your savings circles.</p>
 
             {chamas === null ? (

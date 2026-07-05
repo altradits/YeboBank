@@ -89,7 +89,7 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
       setPhase("result");
       onDone?.();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      setError(e instanceof Error ? e.message : "Couldn't complete that — check your connection and try again.");
     } finally {
       setLoading(false);
     }

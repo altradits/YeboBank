@@ -558,13 +558,13 @@ export default function AgentPage() {
             label: "Reserve",
             value: `${num(agent.reserveSats)} sats`,
             sub: reservePending ? `Unlocks in ${fmtCountdown(reserveSecsLeft!)}` : "Locked",
-            color: "#8ecb72",
+            color: "var(--lime)",
           },
           {
             label: "Total earned",
             value: `+${num(agent.totalEarnedSats)} sats`,
             sub: `${(agent.commissionRate * 100).toFixed(1)}% rate · Till ${agent.mpesaTillNumber}`,
-            color: "#8ecb72",
+            color: "var(--lime)",
           },
         ]}
         actions={[

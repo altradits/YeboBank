@@ -25,6 +25,7 @@ export default function SavingsPage() {
   const [preset, setPreset] = useState<Preset>("Monthly");
   const [contributingLock, setContributingLock] = useState<SavingsLock | null>(null);
   const [contributing, setContributing] = useState(false);
+  const [showChart, setShowChart] = useState(false);
 
   useEffect(() => {
     getLocks().then(setLocks);
@@ -71,7 +72,7 @@ export default function SavingsPage() {
         sats={totalPrincipal + totalAccrued || undefined}
         stats={[
           { label: "Total locked", value: `${num(totalPrincipal)} sats`, sub: `≈ KES ${num(Math.round(totalPrincipal * rate.kesPerSat))}` },
-          { label: "Interest accrued", value: `+${num(totalAccrued)} sats`, color: "#8ecb72", sub: "Paid monthly" },
+          { label: "Interest accrued", value: `+${num(totalAccrued)} sats`, color: "var(--lime)", sub: "Paid monthly" },
           { label: "Target APY", value: "~5.2%", sub: "From real yield" },
         ]}
         actions={[
@@ -82,43 +83,59 @@ export default function SavingsPage() {
         ]}
       />
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-          <div>
-            <span className="chip-group-label">Recent</span>
-            <div className="seg" role="group" aria-label="Recent timeframes">
-              {(["Daily", "Weekly", "Monthly"] as const).map((p) => (
-                <button key={p} aria-pressed={preset === p} className={preset === p ? "on" : ""}
-                  onClick={() => setPreset(p)}>{p}</button>
-              ))}
+      <button
+        onClick={() => setShowChart((v) => !v)}
+        style={{
+          marginTop: 14, width: "100%", background: "none",
+          border: "1px solid var(--border-soft)", borderRadius: "var(--r-sm)",
+          padding: "10px 16px", cursor: "pointer", display: "flex",
+          alignItems: "center", justifyContent: "space-between",
+          color: "var(--soft)", fontSize: 13,
+        }}
+      >
+        <span><i className="ti ti-chart-line" style={{ marginRight: 8 }} />Deposit growth history</span>
+        <i className={`ti ti-chevron-${showChart ? "up" : "down"}`} />
+      </button>
+
+      {showChart && (
+        <div className="card" style={{ marginTop: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+            <div>
+              <span className="chip-group-label">Recent</span>
+              <div className="seg" role="group" aria-label="Recent timeframes">
+                {(["Daily", "Weekly", "Monthly"] as const).map((p) => (
+                  <button key={p} aria-pressed={preset === p} className={preset === p ? "on" : ""}
+                    onClick={() => setPreset(p)}>{p}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <span className="chip-group-label">Quarters</span>
+              <div className="seg" role="group" aria-label="Calendar quarters">
+                {(["Q1", "Q2", "Q3"] as const).map((p) => (
+                  <button key={p} aria-pressed={preset === p} className={preset === p ? "on" : ""}
+                    onClick={() => setPreset(p)}>{p}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <span className="chip-group-label">Years</span>
+              <div className="seg" role="group" aria-label="Year ranges">
+                {(["1Y", "2Y", "3Y", "4Y", "5Y", "6Y", "7Y", "8Y", "9Y", "10Y"] as const).map((p) => (
+                  <button key={p} aria-pressed={preset === p} className={preset === p ? "on" : ""}
+                    onClick={() => setPreset(p)}>{p}</button>
+                ))}
+              </div>
             </div>
           </div>
-          <div>
-            <span className="chip-group-label">Quarters</span>
-            <div className="seg" role="group" aria-label="Calendar quarters">
-              {(["Q1", "Q2", "Q3"] as const).map((p) => (
-                <button key={p} aria-pressed={preset === p} className={preset === p ? "on" : ""}
-                  onClick={() => setPreset(p)}>{p}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <span className="chip-group-label">Years</span>
-            <div className="seg" role="group" aria-label="Year ranges">
-              {(["1Y", "2Y", "3Y", "4Y", "5Y", "6Y", "7Y", "8Y", "9Y", "10Y"] as const).map((p) => (
-                <button key={p} aria-pressed={preset === p} className={preset === p ? "on" : ""}
-                  onClick={() => setPreset(p)}>{p}</button>
-              ))}
-            </div>
-          </div>
+          <ChamaGrowthChart
+            title="Deposits over time"
+            showRange={false}
+            currencyMode="KES"
+            series={[{ key: "deposits", label: "Deposits", color: "var(--gold)", points }]}
+          />
         </div>
-        <ChamaGrowthChart
-          title="Deposits over time"
-          showRange={false}
-          currencyMode="KES"
-          series={[{ key: "deposits", label: "Deposits", color: "var(--gold)", points }]}
-        />
-      </div>
+      )}
 
       {locks.length > 0 && (
         <div style={{ marginTop: 24 }}>

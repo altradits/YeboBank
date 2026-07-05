@@ -28,7 +28,7 @@ export default function HistoryPage() {
         chipLabel="HISTORY"
         balanceLabel="CURRENT BALANCE"
         stats={[
-          { label: "Money in", value: `${num(totalIn)} sats`, color: "#8ecb72", sub: `≈ KES ${num(Math.round(totalIn * rate.kesPerSat))}` },
+          { label: "Money in", value: `${num(totalIn)} sats`, color: "var(--lime)", sub: `≈ KES ${num(Math.round(totalIn * rate.kesPerSat))}` },
           { label: "Money out", value: `${num(totalOut)} sats`, sub: `≈ KES ${num(Math.round(totalOut * rate.kesPerSat))}` },
           { label: "Transactions", value: `${history.length}`, sub: `${history.filter(t => t.direction === "credit").length} in · ${history.filter(t => t.direction === "debit").length} out` },
         ]}

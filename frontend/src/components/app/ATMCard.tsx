@@ -170,7 +170,7 @@ export function ATMCard({
   if (variant === "dashboard") {
     const defaultStats: StatItem[] = [
       { label: "Locked in savings", value: `${num(lockedSats)} sats`, sub: `≈ KES ${num(lockedSats * rate.kesPerSat)}` },
-      { label: "Interest earned (12 mo)", value: `+${num(earnedSats)} sats`, sub: "Paid monthly", color: "#8ecb72" },
+      { label: "Interest earned (12 mo)", value: `+${num(earnedSats)} sats`, sub: "Paid monthly", color: "var(--lime)" },
       { label: "Target APY", value: "~5.2%", sub: "From real yield" },
     ];
     const defaultActions: ActionItem[] = [
@@ -193,9 +193,9 @@ export function ATMCard({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 20, letterSpacing: 1 }}>
-              Ye<span style={{ color: "#C9A84C" }}>B</span>o
+              YeboBank
             </span>
-            <span style={{ fontSize: 9, color: "rgba(255,255,255,.35)", letterSpacing: 2.5, border: "1px solid rgba(255,255,255,.12)", borderRadius: 4, padding: "2px 7px" }}>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,.35)", letterSpacing: 2, border: "1px solid rgba(255,255,255,.12)", borderRadius: 4, padding: "2px 7px" }}>
               {(chipLabel ?? "SAVINGS ACCOUNT").toUpperCase()}
             </span>
           </div>
@@ -235,7 +235,7 @@ export function ATMCard({
               padding: "0 16px",
               borderRight: i < arr.length - 1 ? "1px solid rgba(255,255,255,.08)" : "none",
             }}>
-              <p style={{ fontSize: 9, color: "rgba(255,255,255,.38)", letterSpacing: 1.5, marginBottom: 5 }}>{s.label.toUpperCase()}</p>
+              <p style={{ fontSize: 10, color: "rgba(255,255,255,.38)", letterSpacing: 1.5, marginBottom: 5 }}>{s.label.toUpperCase()}</p>
               <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 13, color: s.color ?? "white" }}>{s.value}</p>
               <p style={{ fontSize: 10, color: "rgba(255,255,255,.35)", marginTop: 3 }}>{s.sub}</p>
             </div>
@@ -267,7 +267,7 @@ export function ATMCard({
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,.07)"; (e.currentTarget as HTMLElement).style.transform = ""; }}
             >
               <div style={{ position: "relative" }}>
-                <i className={`ti ${a.icon}`} style={{ color: "#8ecb72", fontSize: 20 }} />
+                <i className={`ti ${a.icon}`} style={{ color: "var(--lime)", fontSize: 20 }} />
                 {!!a.badge && (
                   <span style={{
                     position: "absolute", top: -4, right: -8,
@@ -303,7 +303,7 @@ export function ATMCard({
         {/* Logo + chip */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
           <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 18, letterSpacing: 1 }}>
-            Ye<span style={{ color: "#C9A84C" }}>B</span>o
+            YeboBank
           </span>
           <Chip small />
         </div>
@@ -312,7 +312,7 @@ export function ATMCard({
 
         {/* Balance */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 9, color: "rgba(255,255,255,.38)", letterSpacing: 2, marginBottom: 3 }}>{balanceLabel}</p>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,.38)", letterSpacing: 1.5, marginBottom: 3 }}>{balanceLabel}</p>
           <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "clamp(14px, 3vw, 18px)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {balPrimary}
           </p>
@@ -323,7 +323,7 @@ export function ATMCard({
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
           <BalanceToggle view={view} onChange={setView} />
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "rgba(255,255,255,.45)", letterSpacing: 1 }}>•••• {LAST4}</p>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "rgba(255,255,255,.45)", letterSpacing: 1 }}>•••• {LAST4}</p>
             <Arcs sizes={[5, 8, 11]} />
           </div>
         </div>
@@ -344,9 +344,9 @@ export function ATMCard({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 22, letterSpacing: 1 }}>
-            Ye<span style={{ color: "#C9A84C" }}>B</span>o
+            YeboBank
           </span>
-          <span style={{ fontSize: 9, color: "rgba(255,255,255,.35)", letterSpacing: 2.5, border: "1px solid rgba(255,255,255,.12)", borderRadius: 4, padding: "2px 7px" }}>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,.35)", letterSpacing: 2, border: "1px solid rgba(255,255,255,.12)", borderRadius: 4, padding: "2px 7px" }}>
             SAVINGS ACCOUNT
           </span>
         </div>
@@ -376,7 +376,7 @@ export function ATMCard({
           </p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <p style={{ fontSize: 8, color: "rgba(255,255,255,.35)", letterSpacing: 2, marginBottom: 3 }}>VALID THRU</p>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,.35)", letterSpacing: 1.5, marginBottom: 3 }}>VALID THRU</p>
           <p style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "rgba(255,255,255,.75)", marginBottom: 6 }}>{EXPIRY}</p>
           <Arcs />
         </div>
