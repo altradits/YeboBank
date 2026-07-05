@@ -136,10 +136,10 @@ export default function DeployCapitalPage() {
           { label: "Available", value: fmtKESraw(availableKes, 0), color: availableSats > 0 ? "#8ecb72" : undefined, sub: availableSats <= 0 ? "Fully deployed" : "Ready to deploy" },
         ]}
         actions={[
-          { icon: "ti-arrow-left", label: "Console", path: "/mlinzi" },
+          { icon: "ti-layout-dashboard", label: "Console", path: "/mlinzi" },
           { icon: "ti-users", label: "Investors", path: "/mlinzi/investors" },
           { icon: "ti-user-check", label: "Access", path: "/mlinzi/access" },
-          { icon: "ti-arrow-bar-down", label: "Withdrawals", path: "/mlinzi/withdrawals" },
+          { icon: "ti-receipt", label: "Withdrawals", path: "/mlinzi/withdrawals" },
         ]}
       />
 
@@ -215,7 +215,7 @@ export default function DeployCapitalPage() {
                     value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </label>
                 <button className="btn btn-primary" disabled={!canSubmit || submitting} onClick={onDeploy}>
-                  {submitting ? "Sending…" : <><i className="ti ti-arrow-bar-up" /> Deploy via M-Pesa</>}
+                  {submitting ? "Sending…" : <><i className="ti ti-send" /> Deploy via M-Pesa</>}
                 </button>
               </div>
             )}
@@ -361,7 +361,7 @@ export default function DeployCapitalPage() {
                   background: "var(--surface-raised)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <i className={`ti ${METHOD_ICON[d.method] ?? "ti-arrow-bar-up"}`}
+                  <i className={`ti ${METHOD_ICON[d.method] ?? "ti-send"}`}
                     style={{ fontSize: 16, color: "var(--gold)" }} />
                 </div>
                 <div>

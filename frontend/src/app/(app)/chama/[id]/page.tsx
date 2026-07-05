@@ -852,7 +852,7 @@ export default function ChamaDashboard() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
             <Link href="/chama" style={{ color: "var(--soft)", fontSize: 14 }}>
-              <i className="ti ti-arrow-left" /> Chamas
+              <i className="ti ti-layout-list" /> Chamas
             </Link>
           </div>
           <h1 className="page-title">{chama.name}</h1>

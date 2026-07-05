@@ -6,10 +6,10 @@ import { num, fmtKES, fmtKESraw } from "@/lib/format";
 import { FICalculator } from "@/components/app/FICalculator";
 import {
   getUser, requestAccess, getMyPosition, getFIProfile, setFIProfile,
-  requestWithdrawal, getIncomeSources, CBK_DECLINE_MESSAGE,
+  requestWithdrawal, getIncomeSources, getMyNotifications, markRead, CBK_DECLINE_MESSAGE,
 } from "@/lib/api";
 import { ATMCard } from "@/components/app/ATMCard";
-import type { User, InvestorPosition, FIProfile, IncomeSource } from "@/types";
+import type { User, InvestorPosition, FIProfile, IncomeSource, AppNotification } from "@/types";
 
 const PILOT_BANNER = "Friends & family pilot — figures are projections, not guarantees. Not a public offer.";
 
@@ -19,6 +19,7 @@ export default function InvestPage() {
   const [position, setPosition] = useState<InvestorPosition | null>(null);
   const [income, setIncome] = useState<IncomeSource[]>([]);
   const [fi, setFi] = useState<FIProfile | null>(null);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawStatus, setWithdrawStatus] = useState<string | null>(null);
 
@@ -32,8 +33,14 @@ export default function InvestPage() {
       getMyPosition().then(setPosition);
       getIncomeSources().then(setIncome);
       getFIProfile().then(setFi);
+      getMyNotifications().then((ns) => setNotifications(ns.filter((n) => !n.read)));
     }
   }, [user?.accessStatus]);
+
+  async function dismissNotification(id: string) {
+    await markRead(id);
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }
 
   async function onRequest() {
     await requestAccess();
@@ -105,6 +112,26 @@ export default function InvestPage() {
 
   return (
     <>
+      {notifications.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          {notifications.map((n) => (
+            <div key={n.id} className="notif-banner" style={{
+              marginBottom: 8, cursor: "default",
+              background: n.kind === "statement" ? "rgba(47,224,186,.08)" : undefined,
+            }}>
+              <i className={`ti ${n.kind === "statement" ? "ti-chart-bar" : n.kind === "access_accepted" ? "ti-circle-check" : "ti-bell"}`} />
+              <span style={{ flex: 1 }}>{n.body}</span>
+              <button
+                onClick={() => dismissNotification(n.id)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--soft)", padding: "0 4px" }}
+                aria-label="Dismiss"
+              >
+                <i className="ti ti-x" style={{ fontSize: 13 }} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
       <ATMCard
         variant="dashboard"
         chipLabel="INVESTOR"

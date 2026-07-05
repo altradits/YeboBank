@@ -74,7 +74,7 @@ export default function PortfolioPage() {
           <div>
             <div style={{ marginBottom: 4 }}>
               <Link href="/chama" style={{ color: "var(--soft)", fontSize: 14 }}>
-                <i className="ti ti-arrow-left" /> Chamas
+                <i className="ti ti-layout-list" /> Chamas
               </Link>
             </div>
             <h1 className="page-title">My portfolio</h1>
@@ -98,7 +98,7 @@ export default function PortfolioPage() {
         <div>
           <div style={{ marginBottom: 4 }}>
             <Link href="/chama" style={{ color: "var(--soft)", fontSize: 14 }}>
-              <i className="ti ti-arrow-left" /> Chamas
+              <i className="ti ti-layout-list" /> Chamas
             </Link>
           </div>
           <h1 className="page-title">My portfolio</h1>
