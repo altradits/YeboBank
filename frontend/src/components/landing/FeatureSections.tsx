@@ -281,36 +281,59 @@ function SavingsMpesaPair() {
   const mpesaRef = useRef<HTMLDivElement>(null);
   const [activePanel, setActivePanel] = useState<"save" | "mpesa">("save");
 
-  /* Shift phone emphasis when a panel crosses the viewport centre */
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((en) => {
-          if (en.isIntersecting)
-            setActivePanel((en.target as HTMLElement).dataset.panel as "save" | "mpesa");
-        });
-      },
-      { rootMargin: "-50% 0px -50% 0px", threshold: 0 },
-    );
-    if (saveRef.current)  io.observe(saveRef.current);
-    if (mpesaRef.current) io.observe(mpesaRef.current);
-    return () => io.disconnect();
-  }, []);
-
-  /* JS-driven sticky: CSS sticky stops at the midpoint when element height = container height / 2 */
+  /* JS sticky + scroll-driven phone interpolation */
   useEffect(() => {
     const shell = shellRef.current;
     const vis   = visRef.current;
     if (!shell || !vis) return;
-    const update = () => {
-      if (window.matchMedia("(max-width:1024px)").matches) { vis.style.transform = ""; return; }
-      const { top, height } = shell.getBoundingClientRect();
-      const tx = Math.max(0, Math.min(-top, height - vis.offsetHeight));
-      vis.style.transform = tx > 0 ? `translateY(${tx}px)` : "";
+
+    const mpCard  = vis.querySelector<HTMLElement>(".mp-card");
+    const mpOk    = vis.querySelector<HTMLElement>(".mp-ok");
+    const phone3d = vis.querySelector<HTMLElement>(".mpesa-phone-3d");
+    let lastPanel: "save" | "mpesa" = "save";
+    let rafId: number | null = null;
+    const lp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+    const apply = () => {
+      rafId = null;
+      // JS sticky
+      if (!window.matchMedia("(max-width:1024px)").matches) {
+        const { top, height } = shell.getBoundingClientRect();
+        const tx = Math.max(0, Math.min(-top, height - vis.offsetHeight));
+        vis.style.transform = tx > 0 ? `translateY(${tx}px)` : "";
+      } else {
+        vis.style.transform = "";
+      }
+      // Scroll progress 0 = save centred, 1 = mpesa centred
+      const save  = saveRef.current;
+      const mpesa = mpesaRef.current;
+      if (!save || !mpesa) return;
+      const vh2         = window.innerHeight / 2;
+      const sRect       = save.getBoundingClientRect();
+      const mRect       = mpesa.getBoundingClientRect();
+      const saveCenter  = sRect.top + sRect.height  / 2;
+      const mpesaCenter = mRect.top + mRect.height / 2;
+      const range = mpesaCenter - saveCenter;
+      const prog  = range > 0 ? Math.max(0, Math.min(1, (vh2 - saveCenter) / range)) : 0;
+      // Direct opacity interpolation
+      if (mpCard) mpCard.style.opacity = (0.32 + 0.68 * prog).toFixed(3);
+      if (mpOk)   mpOk.style.opacity   = (1    - 0.68 * prog).toFixed(3);
+      // Glow filter interpolation — save:teal(47,224,186) → mpesa:green(112,255,69)
+      if (phone3d) {
+        const ri = (a: number, b: number) => Math.round(lp(a, b, prog));
+        const g1 = `drop-shadow(0 0 ${ri(60,48)}px rgba(${ri(47,112)},${ri(224,255)},${ri(186,69)},${lp(.50,.30,prog).toFixed(3)}))`;
+        const g2 = `drop-shadow(0 0 ${ri(120,100)}px rgba(${ri(47,112)},${ri(224,255)},${ri(186,69)},${lp(.20,.12,prog).toFixed(3)}))`;
+        phone3d.style.filter = `${g1} ${g2}`;
+      }
+      // Keep data-active for the selected-county colour rules
+      const next: "save" | "mpesa" = prog >= 0.5 ? "mpesa" : "save";
+      if (next !== lastPanel) { lastPanel = next; setActivePanel(next); }
     };
-    window.addEventListener("scroll", update, { passive: true });
-    update();
-    return () => window.removeEventListener("scroll", update);
+
+    const onScroll = () => { if (rafId === null) rafId = requestAnimationFrame(apply); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    apply();
+    return () => { window.removeEventListener("scroll", onScroll); if (rafId !== null) cancelAnimationFrame(rafId); };
   }, []);
 
   /* 3D tilt */
@@ -454,6 +477,7 @@ function CommunityPair() {
   const router    = useRouter();
   const shellRef  = useRef<HTMLDivElement>(null);
   const visRef    = useRef<HTMLDivElement>(null);
+  const pairRef   = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [nearest, setNearest] = useState<{ label: string; n: number; km: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -462,37 +486,67 @@ function CommunityPair() {
   const chamaRef  = useRef<HTMLDivElement>(null);
   const agentsRef = useRef<HTMLDivElement>(null);
 
-  /* Switch map palette when a panel crosses the viewport centre */
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((en) => {
-          if (en.isIntersecting) {
-            setActivePanel((en.target as HTMLElement).dataset.panel as "chama" | "agents");
-          }
-        });
-      },
-      { rootMargin: "-50% 0px -50% 0px", threshold: 0 },
-    );
-    if (chamaRef.current) io.observe(chamaRef.current);
-    if (agentsRef.current) io.observe(agentsRef.current);
-    return () => io.disconnect();
-  }, []);
-
-  /* JS-driven sticky: CSS sticky stops at the midpoint when element height = container height / 2 */
+  /* JS sticky + scroll-driven map colour interpolation */
   useEffect(() => {
     const shell = shellRef.current;
     const vis   = visRef.current;
     if (!shell || !vis) return;
-    const update = () => {
-      if (window.matchMedia("(max-width:1024px)").matches) { vis.style.transform = ""; return; }
-      const { top, height } = shell.getBoundingClientRect();
-      const tx = Math.max(0, Math.min(-top, height - vis.offsetHeight));
-      vis.style.transform = tx > 0 ? `translateY(${tx}px)` : "";
+
+    const kenyaSvg = vis.querySelector<HTMLElement>(".kenya-svg");
+    let lastPanel: "chama" | "agents" = "chama";
+    let rafId: number | null = null;
+
+    const lp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+    const apply = () => {
+      rafId = null;
+      // JS sticky
+      if (!window.matchMedia("(max-width:1024px)").matches) {
+        const { top, height } = shell.getBoundingClientRect();
+        const tx = Math.max(0, Math.min(-top, height - vis.offsetHeight));
+        vis.style.transform = tx > 0 ? `translateY(${tx}px)` : "";
+      } else {
+        vis.style.transform = "";
+      }
+      // Scroll progress 0 = chama centred, 1 = agents centred
+      const chama  = chamaRef.current;
+      const agents = agentsRef.current;
+      const pair   = pairRef.current;
+      if (!chama || !agents || !pair) return;
+      const vh2          = window.innerHeight / 2;
+      const cRect        = chama.getBoundingClientRect();
+      const aRect        = agents.getBoundingClientRect();
+      const chamaCenter  = cRect.top + cRect.height / 2;
+      const agentsCenter = aRect.top + aRect.height / 2;
+      const range = agentsCenter - chamaCenter;
+      const p     = range > 0 ? Math.max(0, Math.min(1, (vh2 - chamaCenter) / range)) : 0;
+      // Theme-aware colour interpolation — dark: gold→teal, light: amber→forest
+      const light = document.documentElement.dataset.theme === "light";
+      const [cFR,cFG,cFB,cFA] = light ? [168,116,0,0.07]  : [224,168,0,0.10]; // chama fill
+      const [aFR,aFG,aFB,aFA] = light ? [10,152,80,0.05]  : [47,224,186,0.07]; // agents fill
+      const [cSR,cSG,cSB,cSA] = light ? [168,116,0,0.38]  : [224,168,0,0.40]; // chama stroke
+      const [aSR,aSG,aSB,aSA] = light ? [10,152,80,0.42]  : [112,255,69,0.48]; // agents stroke
+      const [cHR,cHG,cHB,cHA] = light ? [168,116,0,0.20]  : [224,168,0,0.26]; // chama hover
+      const [aHR,aHG,aHB,aHA] = light ? [10,152,80,0.18]  : [150,194,68,0.22]; // agents hover
+      const [cRR,cRG,cRB,cRA] = light ? [168,116,0,0.52]  : [224,168,0,0.55]; // chama ring
+      const [aRR,aRG,aRB,aRA] = light ? [10,152,80,0.60]  : [47,224,186,0.72]; // agents ring
+      const [cCR,cCG,cCB,cCA] = light ? [168,116,0,0.72]  : [224,168,0,0.75]; // chama cap ring
+      const [aCR,aCG,aCB,aCA] = light ? [168,116,0,0.65]  : [196,144,32,0.65]; // agents cap ring
+      const rc = (a: number, b: number) => Math.round(lp(a, b, p));
+      pair.style.setProperty("--county-fill",  `rgba(${rc(cFR,aFR)},${rc(cFG,aFG)},${rc(cFB,aFB)},${lp(cFA,aFA,p).toFixed(3)})`);
+      pair.style.setProperty("--county-stroke", `rgba(${rc(cSR,aSR)},${rc(cSG,aSG)},${rc(cSB,aSB)},${lp(cSA,aSA,p).toFixed(3)})`);
+      pair.style.setProperty("--county-hover",  `rgba(${rc(cHR,aHR)},${rc(cHG,aHG)},${rc(cHB,aHB)},${lp(cHA,aHA,p).toFixed(3)})`);
+      pair.style.setProperty("--ring-bg",       `rgba(${rc(cRR,aRR)},${rc(cRG,aRG)},${rc(cRB,aRB)},${lp(cRA,aRA,p).toFixed(3)})`);
+      pair.style.setProperty("--cap-ring-bg",   `rgba(${rc(cCR,aCR)},${rc(cCG,aCG)},${rc(cCB,aCB)},${lp(cCA,aCA,p).toFixed(3)})`);
+      // Only flip React state at midpoint (controls SVG glow filter)
+      const next: "chama" | "agents" = p >= 0.5 ? "agents" : "chama";
+      if (next !== lastPanel) { lastPanel = next; setActivePanel(next); }
     };
-    window.addEventListener("scroll", update, { passive: true });
-    update();
-    return () => window.removeEventListener("scroll", update);
+
+    const onScroll = () => { if (rafId === null) rafId = requestAnimationFrame(apply); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    apply();
+    return () => { window.removeEventListener("scroll", onScroll); if (rafId !== null) cancelAnimationFrame(rafId); };
   }, []);
 
   const selectedCounty = KENYA_COUNTIES.find((c) => c.name === selected) ?? null;
@@ -523,7 +577,7 @@ function CommunityPair() {
 
   return (
     <div className="section-pair-shell section-pair-shell--community" ref={shellRef}>
-    <div className="section-pair" data-active={activePanel}>
+    <div className="section-pair" data-active={activePanel} ref={pairRef}>
 
       {/* LEFT — Kenya map pinned via JS scroll handler */}
       <div className="section-pair-visual" ref={visRef}>

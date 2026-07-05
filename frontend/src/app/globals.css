@@ -1459,38 +1459,23 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 .section-pair-panel+.section-pair-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(255,255,255,.07)}
 @media(max-width:1024px){.section-pair{display:block}.section-pair-visual{position:relative;height:auto;padding:56px 24px 24px;min-height:340px}.section-pair-panel{min-height:auto;padding:48px 24px}}
 
-/* Map palette shifts with active panel — M3 smooth transition */
-.section-pair .kenya-county{transition:fill .65s cubic-bezier(.2,0,0,1),stroke .65s cubic-bezier(.2,0,0,1)}
-.section-pair .kenya-ring{transition:background .65s cubic-bezier(.2,0,0,1),animation-duration .65s}
-.section-pair .kenya-dot--capital .kenya-ring{transition:background .65s cubic-bezier(.2,0,0,1)}
-
-/* Chama state — gold palette, community warmth */
-.section-pair[data-active="chama"] .kenya-county{fill:rgba(224,168,0,.10);stroke:rgba(224,168,0,.40)}
-.section-pair[data-active="chama"] .kenya-county:hover{fill:rgba(224,168,0,.26)}
+/* Map palette — JS computes interpolated colours per scroll frame, sets plain CSS vars */
+/* transition:none prevents the base .kenya-county{transition:fill .2s} from fighting rAF updates */
+.section-pair .kenya-county{fill:var(--county-fill,rgba(224,168,0,.10));stroke:var(--county-stroke,rgba(224,168,0,.40));transition:none}
+.section-pair .kenya-county:hover{fill:var(--county-hover,rgba(224,168,0,.26))}
+.section-pair .kenya-ring{background:var(--ring-bg,rgba(224,168,0,.55))}
+.section-pair .kenya-dot--capital .kenya-ring{background:var(--cap-ring-bg,rgba(224,168,0,.75))}
+/* Selected county and ring glow (discrete, data-active) */
 .section-pair[data-active="chama"] .kenya-county.on{fill:rgba(224,168,0,.32);stroke:rgba(224,168,0,.85)}
-.section-pair[data-active="chama"] .kenya-ring{background:rgba(224,168,0,.55)}
-.section-pair[data-active="chama"] .kenya-dot--capital .kenya-ring{background:rgba(224,168,0,.75)}
-.section-pair[data-active="chama"] .kenya-svg{filter:drop-shadow(0 0 60px rgba(224,168,0,.28)) drop-shadow(0 0 120px rgba(224,168,0,.12))}
-
-/* Agents state — green palette, network presence */
-.section-pair[data-active="agents"] .kenya-county{fill:rgba(47,224,186,.07);stroke:rgba(112,255,69,.48)}
-.section-pair[data-active="agents"] .kenya-county:hover{fill:rgba(150,194,68,.22)}
 .section-pair[data-active="agents"] .kenya-county.on{fill:rgba(196,144,32,.32);stroke:rgba(196,144,32,.8)}
-.section-pair[data-active="agents"] .kenya-ring{background:rgba(47,224,186,.72);box-shadow:0 0 10px rgba(47,224,186,.8)}
-.section-pair[data-active="agents"] .kenya-dot--capital .kenya-ring{background:rgba(196,144,32,.65)}
-.section-pair[data-active="agents"] .kenya-svg{filter:drop-shadow(0 0 60px rgba(47,224,186,.28)) drop-shadow(0 0 100px rgba(112,255,69,.12));transition:filter .65s cubic-bezier(.2,0,0,1)}
+.section-pair[data-active="agents"] .kenya-ring{box-shadow:0 0 10px rgba(47,224,186,.8)}
+/* SVG glow filter — JS sets inline filter each rAF frame for smooth interpolation */
+.section-pair .kenya-svg{filter:drop-shadow(0 0 60px rgba(224,168,0,.28)) drop-shadow(0 0 120px rgba(224,168,0,.12))}
 
-/* Phone palette — deposit pair (SavingsMpesaPair) */
-.section-pair .mpesa-phone-3d{transition:filter .65s cubic-bezier(.2,0,0,1)}
-.section-pair .mp-card,.section-pair .mp-ok{transition:opacity .65s cubic-bezier(.2,0,0,1)}
-/* Save state — deposit confirmed, sats earning */
-.section-pair[data-active="save"] .mpesa-phone-3d{filter:drop-shadow(0 0 60px rgba(47,224,186,.50)) drop-shadow(0 0 120px rgba(47,224,186,.20))}
-.section-pair[data-active="save"] .mp-card{opacity:.32}
-.section-pair[data-active="save"] .mp-ok{opacity:1}
-/* Mpesa state — STK push, entering PIN */
-.section-pair[data-active="mpesa"] .mpesa-phone-3d{filter:drop-shadow(0 0 48px rgba(112,255,69,.30)) drop-shadow(0 0 100px rgba(112,255,69,.12))}
-.section-pair[data-active="mpesa"] .mp-card{opacity:1}
-.section-pair[data-active="mpesa"] .mp-ok{opacity:.32}
+/* Phone palette — JS sets inline opacity and filter each rAF frame */
+.section-pair .mpesa-phone-3d{filter:drop-shadow(0 0 60px rgba(47,224,186,.50)) drop-shadow(0 0 120px rgba(47,224,186,.20))}
+.section-pair .mp-card{opacity:.32}
+.section-pair .mp-ok{opacity:1}
 
 /* =========================================================================
    LIGHTNING SECTION — "The Spark"
@@ -1662,14 +1647,7 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 [data-theme="light"] .section-pair-shell--deposit::before{background:radial-gradient(circle,rgba(10,152,80,.1),transparent 64%)}
 [data-theme="light"] .section-pair-shell--deposit::after{background:radial-gradient(circle,rgba(28,100,180,.07),transparent 66%)}
 [data-theme="light"] .section-pair-panel+.section-pair-panel::before{background:rgba(0,0,0,.06)}
-[data-theme="light"] .section-pair[data-active="chama"] .kenya-county{fill:rgba(168,116,0,.07);stroke:rgba(168,116,0,.38)}
-[data-theme="light"] .section-pair[data-active="chama"] .kenya-county:hover{fill:rgba(168,116,0,.2)}
-[data-theme="light"] .section-pair[data-active="chama"] .kenya-ring{background:rgba(168,116,0,.52)}
-[data-theme="light"] .section-pair[data-active="chama"] .kenya-dot--capital .kenya-ring{background:rgba(168,116,0,.72)}
-[data-theme="light"] .section-pair[data-active="agents"] .kenya-county{fill:rgba(10,152,80,.05);stroke:rgba(10,152,80,.42)}
-[data-theme="light"] .section-pair[data-active="agents"] .kenya-county:hover{fill:rgba(10,152,80,.18)}
-[data-theme="light"] .section-pair[data-active="agents"] .kenya-ring{background:rgba(10,152,80,.6)}
-[data-theme="light"] .section-pair[data-active="agents"] .kenya-dot--capital .kenya-ring{background:rgba(168,116,0,.65)}
+[data-theme="light"] .section-pair{--county-fill:rgba(168,116,0,.07);--county-stroke:rgba(168,116,0,.38);--county-hover:rgba(168,116,0,.2);--ring-bg:rgba(168,116,0,.52);--cap-ring-bg:rgba(168,116,0,.72)}
 
 [data-theme="light"] #lightning  { background: linear-gradient(150deg,#EEEEF8 0%,#E8E8F4 50%,#ECEBF6 100%) }
 [data-theme="light"] #lightning::before { background: radial-gradient(circle,rgba(168,116,0,.12),transparent 64%) }
@@ -1833,6 +1811,9 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 [data-theme="light"] .kenya-county { fill: rgba(10,152,80,.05); stroke: rgba(10,152,80,.42) }
 [data-theme="light"] .kenya-county:hover { fill: rgba(10,152,80,.18) }
 [data-theme="light"] .kenya-county.on { fill: rgba(196,144,32,.28); stroke: rgba(160,110,20,.7) }
+/* Higher specificity (0,3,0) so JS CSS vars win over the rule above inside .section-pair */
+[data-theme="light"] .section-pair .kenya-county{fill:var(--county-fill,rgba(10,152,80,.05));stroke:var(--county-stroke,rgba(10,152,80,.42));transition:none}
+[data-theme="light"] .section-pair .kenya-county:hover{fill:var(--county-hover,rgba(10,152,80,.18))}
 [data-theme="light"] .kenya-readout { background: rgba(255,255,255,.97); color: #1c2b22; box-shadow: 0 0 0 1px rgba(10,152,80,.3), 0 4px 16px rgba(0,0,0,.12) }
 [data-theme="light"] .kenya-readout b { color: var(--emerald-deep) }
 [data-theme="light"] .kenya-svg ellipse { fill: rgba(28,90,200,.07); stroke: rgba(28,90,200,.15) }
@@ -2067,15 +2048,16 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 @media(max-width:1060px){.paths-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:580px){.paths-grid{grid-template-columns:1fr}}
 
-.path-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-xl);padding:24px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;transition:border-color .2s,transform .25s}
-.path-card:hover{border-color:rgba(255,255,255,.2);transform:translateY(-4px)}
+.path-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-xl);padding:24px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;transition:border-color .2s,transform .25s,opacity .7s cubic-bezier(.2,.7,.2,1)}
+.path-card:hover{border-color:rgba(255,255,255,.18);transform:translateY(-4px)}
 .path-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
 .path-card--member::before  {background:linear-gradient(90deg,var(--emerald),var(--lime))}
 .path-card--agent::before   {background:linear-gradient(90deg,var(--gold),var(--gold-soft))}
 .path-card--investor::before{background:linear-gradient(90deg,var(--gold-soft),var(--lime))}
 .path-card--steward::before {background:linear-gradient(90deg,var(--forest-mid),var(--emerald))}
 
-.path-icon-ring{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:21px;flex-shrink:0}
+.path-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.path-icon-ring{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex-shrink:0}
 .path-icon-ring--member  {background:rgba(10,152,80,.18);color:var(--lime)}
 .path-icon-ring--agent   {background:rgba(168,116,0,.22);color:var(--gold-soft)}
 .path-icon-ring--investor{background:rgba(150,194,68,.15);color:var(--lime)}
@@ -2096,7 +2078,13 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 
 .path-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px}
 
-/* Light mode overrides for paths section — keep dark regardless */
+/* paths-sec stays intentionally dark in both themes */
 [data-theme="light"] .paths-sec{background:linear-gradient(180deg,#0a1e10 0%,#061410 100%)}
 [data-theme="light"] .path-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
 [data-theme="light"] .path-card:hover{border-color:rgba(255,255,255,.22)}
+
+/* Fix: generic light-mode overrides make .kicker/.h2/.lead dark (invisible on dark bg) */
+[data-theme="light"] .paths-intro .kicker{color:var(--lime)}
+[data-theme="light"] .paths-intro .h2{color:#fff}
+[data-theme="light"] .paths-intro .h2 .accent{color:var(--gold-soft);background:linear-gradient(125deg,var(--gold-soft) 0%,#FFD060 48%,var(--lime) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+[data-theme="light"] .paths-intro .lead{color:rgba(255,255,255,.65)}
