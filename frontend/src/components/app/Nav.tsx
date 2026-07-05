@@ -6,22 +6,11 @@ import { logout } from "@/lib/api";
 import { mockUser } from "@/lib/mock";
 import LogoMark from "@/components/ui/LogoMark";
 
-const WALLET = [
-  { href: "/dashboard", icon: "ti-home", label: "Dashboard" },
-  { href: "/history",   icon: "ti-list", label: "History" },
-];
-const GROW_BASE = [
-  { href: "/savings", icon: "ti-lock",  label: "Savings" },
-  { href: "/chama",   icon: "ti-users", label: "Chamas" },
-];
 const ACCOUNT = [{ href: "/settings", icon: "ti-settings", label: "Settings" }];
 
-// Role helpers — synchronous reads from mockUser; swap for a context when the
-// real auth layer lands.
 function getRoleFlags() {
   const isMlinzi  = mockUser.role === "mlinzi";
   const isAgent   = mockUser.isAgent;
-  // Invest portal is visible to the Mlinzi and accepted F&F investors only.
   const canInvest = isMlinzi || mockUser.accessStatus === "accepted";
   return { isMlinzi, isAgent, canInvest };
 }
@@ -32,12 +21,6 @@ export function Sidebar() {
   const isActive = (h: string) => path === h || path.startsWith(h + "/");
   const { isMlinzi, isAgent, canInvest } = getRoleFlags();
 
-  const grow = [
-    ...GROW_BASE,
-    ...(isAgent   ? [{ href: "/agent",  icon: "ti-cash",        label: "Agent" }]  : []),
-    ...(canInvest ? [{ href: "/invest", icon: "ti-trending-up", label: "Invest" }] : []),
-  ];
-
   async function onLogout() {
     await logout();
     router.push("/login");
@@ -46,23 +29,42 @@ export function Sidebar() {
   return (
     <aside className="sidebar">
       <Link href="/dashboard" className="brand"><LogoMark size={34} /> YeboBank</Link>
+
       <div className="side-sec">Wallet</div>
-      {WALLET.map((l) => (
-        <Link key={l.href} href={l.href} className={`side-link${isActive(l.href) ? " active" : ""}`}>
-          <i className={`ti ${l.icon}`} /> {l.label}
-        </Link>
-      ))}
-      <div className="side-sec">Grow</div>
-      {grow.map((l) => (
-        <Link key={l.href} href={l.href} className={`side-link${isActive(l.href) ? " active" : ""}`}>
-          <i className={`ti ${l.icon}`} /> {l.label}
-        </Link>
-      ))}
-      {isMlinzi && (
-        <Link href="/steward" className={`side-link${isActive("/steward") ? " active" : ""}`}>
-          <i className="ti ti-shield-lock" /> Mlinzi Console
-        </Link>
+      <Link href="/dashboard" className={`side-link${isActive("/dashboard") ? " active" : ""}`}>
+        <i className="ti ti-home" /> Dashboard
+      </Link>
+
+      {isAgent && (
+        <>
+          <div className="side-sec">Agent</div>
+          <Link href="/agent" className={`side-link${isActive("/agent") ? " active" : ""}`}>
+            <i className="ti ti-cash" /> Agent console
+          </Link>
+        </>
       )}
+
+      {canInvest && !isMlinzi && (
+        <>
+          <div className="side-sec">Investments</div>
+          <Link href="/invest" className={`side-link${isActive("/invest") ? " active" : ""}`}>
+            <i className="ti ti-trending-up" /> Invest portal
+          </Link>
+        </>
+      )}
+
+      {isMlinzi && (
+        <>
+          <div className="side-sec">Mlinzi</div>
+          <Link href="/mlinzi" className={`side-link${isActive("/mlinzi") ? " active" : ""}`}>
+            <i className="ti ti-shield-lock" /> Mlinzi console
+          </Link>
+          <Link href="/invest" className={`side-link${isActive("/invest") ? " active" : ""}`}>
+            <i className="ti ti-trending-up" /> Invest portal
+          </Link>
+        </>
+      )}
+
       <div className="side-sec">Account</div>
       {ACCOUNT.map((l) => (
         <Link key={l.href} href={l.href} className={`side-link${isActive(l.href) ? " active" : ""}`}>
@@ -81,11 +83,11 @@ export function Sidebar() {
 export function BottomNav() {
   const path     = usePathname();
   const isActive = (h: string) => path === h || path.startsWith(h + "/");
-  const { isAgent, canInvest } = getRoleFlags();
+  const { isMlinzi, isAgent, canInvest } = getRoleFlags();
 
-  // One extra slot between Chamas and Account: Agent takes priority over Invest
-  // so agents see their dashboard, not the investor portal.
-  const extraSlot = isAgent
+  const roleSlot = isMlinzi
+    ? { href: "/mlinzi", icon: "ti-shield-lock", label: "Console" }
+    : isAgent
     ? { href: "/agent",  icon: "ti-cash",        label: "Agent" }
     : canInvest
     ? { href: "/invest", icon: "ti-trending-up", label: "Invest" }
@@ -93,10 +95,7 @@ export function BottomNav() {
 
   const bottom = [
     { href: "/dashboard", icon: "ti-home",     label: "Home" },
-    { href: "/send",      icon: "ti-send",     label: "Send" },
-    { href: "/savings",   icon: "ti-lock",     label: "Savings" },
-    { href: "/chama",     icon: "ti-users",    label: "Chamas" },
-    ...(extraSlot ? [extraSlot] : []),
+    ...(roleSlot ? [roleSlot] : []),
     { href: "/settings",  icon: "ti-settings", label: "Account" },
   ];
 

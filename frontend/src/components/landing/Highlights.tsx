@@ -208,11 +208,8 @@ export function Lightning() {
               ↖ Move your cursor over the bolt to see the electric sparks.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="gold" onClick={() => router.push("/register?redirect=/send")}>
-                Get your Lightning address <i className="ti ti-arrow-right" />
-              </Button>
-              <Button variant="ghost" onDark onClick={() => router.push("/dashboard")}>
-                Try send demo
+              <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
+                Get your Lightning address
               </Button>
             </div>
           </div>
@@ -328,8 +325,8 @@ export function Trust() {
         </div>
 
         <div className="reveal d3" style={{ display: "flex", justifyContent: "center", marginTop: 48 }}>
-          <Button variant="gold" onClick={() => router.push("/register")}>
-            Open a trusted account <i className="ti ti-arrow-right" />
+          <Button variant="gold" onClick={() => router.push("/login")}>
+            Open a trusted account
           </Button>
         </div>
       </div>

@@ -56,7 +56,7 @@ export default function IncomePage() {
       <div className="section-head">
         <div>
           <div style={{ marginBottom: 4 }}>
-            <Link href="/steward" style={{ color: "var(--soft)", fontSize: 14 }}><i className="ti ti-arrow-left" /> Mlinzi Console</Link>
+            <Link href="/mlinzi" style={{ color: "var(--soft)", fontSize: 14 }}><i className="ti ti-arrow-left" /> Mlinzi Console</Link>
           </div>
           <h1 className="page-title">Income sources</h1>
         </div>

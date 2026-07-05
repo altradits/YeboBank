@@ -8,18 +8,6 @@ import LogoMark from "@/components/ui/LogoMark";
 import { login, getUser } from "@/lib/api";
 import { homePath } from "@/lib/useRoleGate";
 
-function SkipLink({ redirect }: { redirect: string }) {
-  const router = useRouter();
-  async function skip() {
-    const u = await getUser();
-    router.push(redirect || homePath(u));
-  }
-  return (
-    <button onClick={skip} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--soft)", fontSize: 13 }}>
-      Skip — enter demo directly →
-    </button>
-  );
-}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -64,9 +52,6 @@ export default function LoginPage() {
         </form>
         <p className="foot-link">
           New to YeboBank? <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : "/register"}>Open an account</Link>
-        </p>
-        <p className="foot-link" style={{ marginTop: 8 }}>
-          <SkipLink redirect={redirect} />
         </p>
       </div>
     </main>

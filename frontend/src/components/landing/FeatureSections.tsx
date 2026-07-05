@@ -254,7 +254,7 @@ function Inflation() {
             </div>
 
             <div className="infl-cta">
-              <button className="hero-btn" onClick={() => router.push("/register")}>
+              <button className="hero-btn" onClick={() => router.push("/login")}>
                 Protect my savings with sats
               </button>
             </div>
@@ -402,11 +402,8 @@ function SavingsMpesaPair() {
               </div>
               <p className="stat-pull">If the pool earns nothing, we earn nothing.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Button variant="gold" onClick={() => router.push("/register?redirect=/savings")}>
-                  Start saving today <i className="ti ti-arrow-right" />
-                </Button>
-                <Button variant="ghost" onDark onClick={() => router.push("/savings")}>
-                  Try savings demo
+                <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
+                  Start saving today
                 </Button>
               </div>
             </div>
@@ -440,11 +437,8 @@ function SavingsMpesaPair() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Button variant="gold" onClick={() => router.push("/register?redirect=/deposit")}>
-                  Deposit via M-Pesa <i className="ti ti-arrow-right" />
-                </Button>
-                <Button variant="ghost" onDark onClick={() => router.push("/dashboard")}>
-                  Try deposit demo
+                <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
+                  Deposit via M-Pesa
                 </Button>
               </div>
             </div>
@@ -658,11 +652,8 @@ function CommunityPair() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="gold" onClick={() => router.push("/register?redirect=/chama")}>
-                Start or join a chama <i className="ti ti-arrow-right" />
-              </Button>
-              <Button variant="ghost" onDark onClick={() => router.push("/chama")}>
-                Explore chamas demo
+              <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
+                Start or join a chama
               </Button>
             </div>
           </div>
@@ -688,9 +679,6 @@ function CommunityPair() {
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Button variant="gold" onClick={findNearMe} disabled={locating}>
                 <i className="ti ti-current-location" /> {locating ? "Locating…" : "Find agents near me"}
-              </Button>
-              <Button variant="ghost" onDark onClick={() => router.push("/agent")}>
-                Open agent dashboard <i className="ti ti-arrow-right" />
               </Button>
             </div>
           </div>

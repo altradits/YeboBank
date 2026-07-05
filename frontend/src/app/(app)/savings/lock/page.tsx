@@ -162,7 +162,7 @@ export default function LockPage() {
                       <div className="note" style={{ marginTop: 2 }}>{c.memberCount} members</div>
                     </div>
                     <span style={{ color: "var(--emerald-deep)", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13 }}>
-                      Lock here →
+                      Lock here
                     </span>
                   </button>
                 ))}
@@ -178,7 +178,7 @@ export default function LockPage() {
                       <div className="note" style={{ marginTop: 2 }}>Pending invite</div>
                     </div>
                     <span style={{ color: "var(--gold-text)", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13 }}>
-                      Accept & lock →
+                      Accept &amp; lock
                     </span>
                   </button>
                 ))}

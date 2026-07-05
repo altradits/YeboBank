@@ -47,10 +47,10 @@ export default function WithdrawalsPage() {
           { label: "Delivered", value: `${delivered.length}`, sub: "Paid out" },
         ]}
         actions={[
-          { icon: "ti-arrow-left", label: "Console", path: "/steward" },
-          { icon: "ti-users", label: "Investors", path: "/steward/investors" },
-          { icon: "ti-user-check", label: "Access", path: "/steward/access" },
-          { icon: "ti-arrow-bar-up", label: "Deploy", path: "/steward/deploy" },
+          { icon: "ti-arrow-left", label: "Console", path: "/mlinzi" },
+          { icon: "ti-users", label: "Investors", path: "/mlinzi/investors" },
+          { icon: "ti-user-check", label: "Access", path: "/mlinzi/access" },
+          { icon: "ti-arrow-bar-up", label: "Deploy", path: "/mlinzi/deploy" },
         ]}
       />
 

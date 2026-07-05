@@ -811,7 +811,7 @@ export async function getInvestorPositionForHandle(handle: string): Promise<Inve
     const pos = mockInvestorPositions.find((p) => p.investorHandle === handle);
     return delay(pos ? { ...pos } : null);
   }
-  return req<InvestorPosition | null>(`/steward/investors/${encodeURIComponent(handle)}`);
+  return req<InvestorPosition | null>(`/mlinzi/investors/${encodeURIComponent(handle)}`);
 }
 
 export async function getMlinziFIProfile(): Promise<FIProfile> {
@@ -822,7 +822,7 @@ export async function getMlinziFIProfile(): Promise<FIProfile> {
     mockFIProfiles[MLINZI_HANDLE] = fresh;
     return delay({ ...fresh });
   }
-  return req<FIProfile>("/steward/fi");
+  return req<FIProfile>("/mlinzi/fi");
 }
 
 export async function setMlinziFIProfile(profile: FIProfile): Promise<FIProfile> {
@@ -830,7 +830,7 @@ export async function setMlinziFIProfile(profile: FIProfile): Promise<FIProfile>
     mockFIProfiles[profile.handle] = profile;
     return delay({ ...profile });
   }
-  return req<FIProfile>("/steward/fi", { method: "POST", body: JSON.stringify(profile) });
+  return req<FIProfile>("/mlinzi/fi", { method: "POST", body: JSON.stringify(profile) });
 }
 
 function pushNotification(toHandle: string, kind: AppNotification["kind"], body: string): AppNotification {
@@ -840,13 +840,13 @@ function pushNotification(toHandle: string, kind: AppNotification["kind"], body:
 }
 
 // ---- income sources (Mlinzi) --------------------------------------------------
-// TODO(backend): GET /steward/income
+// TODO(backend): GET /mlinzi/income
 export async function getIncomeSources(): Promise<IncomeSource[]> {
   if (USE_MOCKS) return delay([...mockIncomeSources]);
-  return req<IncomeSource[]>("/steward/income");
+  return req<IncomeSource[]>("/mlinzi/income");
 }
 
-// TODO(backend): POST /steward/income (create or update)
+// TODO(backend): POST /mlinzi/income (create or update)
 export async function upsertIncomeSource(source: IncomeSource): Promise<IncomeSource> {
   if (USE_MOCKS) {
     const idx = mockIncomeSources.findIndex((s) => s.id === source.id);
@@ -854,38 +854,38 @@ export async function upsertIncomeSource(source: IncomeSource): Promise<IncomeSo
     else mockIncomeSources.push({ ...source, id: source.id || `is_${Date.now()}` });
     return delay(source);
   }
-  return req<IncomeSource>("/steward/income", { method: "POST", body: JSON.stringify(source) });
+  return req<IncomeSource>("/mlinzi/income", { method: "POST", body: JSON.stringify(source) });
 }
 
-// TODO(backend): DELETE /steward/income/{id}
+// TODO(backend): DELETE /mlinzi/income/{id}
 export async function removeIncomeSource(id: string): Promise<{ ok: boolean }> {
   if (USE_MOCKS) {
     const idx = mockIncomeSources.findIndex((s) => s.id === id);
     if (idx >= 0) mockIncomeSources.splice(idx, 1);
     return delay({ ok: true });
   }
-  return req<{ ok: boolean }>(`/steward/income/${id}`, { method: "DELETE" });
+  return req<{ ok: boolean }>(`/mlinzi/income/${id}`, { method: "DELETE" });
 }
 
 // ---- investor positions (Mlinzi) -----------------------------------------------
-// TODO(backend): GET /steward/investors
+// TODO(backend): GET /mlinzi/investors
 export async function getInvestorPositions(): Promise<InvestorPosition[]> {
   if (USE_MOCKS) return delay([...mockInvestorPositions]);
-  return req<InvestorPosition[]>("/steward/investors");
+  return req<InvestorPosition[]>("/mlinzi/investors");
 }
 
-// TODO(backend): POST /steward/investors
+// TODO(backend): POST /mlinzi/investors
 export async function addInvestorPosition(pos: Omit<InvestorPosition, "id" | "monthlyStatements">): Promise<InvestorPosition> {
   if (USE_MOCKS) {
     const created: InvestorPosition = { ...pos, id: `ip_${Date.now()}`, monthlyStatements: [] };
     mockInvestorPositions.push(created);
     return delay(created);
   }
-  return req<InvestorPosition>("/steward/investors", { method: "POST", body: JSON.stringify(pos) });
+  return req<InvestorPosition>("/mlinzi/investors", { method: "POST", body: JSON.stringify(pos) });
 }
 
 // Posts an append-only monthly statement. Fee = 2% of return, only if return > 0.
-// TODO(backend): POST /steward/investors/{positionId}/statements  records must be append-only
+// TODO(backend): POST /mlinzi/investors/{positionId}/statements  records must be append-only
 export async function postMonthlyStatement(positionId: string, returnKes: number): Promise<InvestorPosition> {
   if (USE_MOCKS) {
     const pos = mockInvestorPositions.find((p) => p.id === positionId);
@@ -900,17 +900,17 @@ export async function postMonthlyStatement(positionId: string, returnKes: number
     pushNotification(pos.investorHandle, "statement", `Your ${month} statement is ready: ${returnKes >= 0 ? "+" : ""}KES ${returnKes.toLocaleString()} return.`);
     return delay({ ...pos });
   }
-  return req<InvestorPosition>(`/steward/investors/${positionId}/statements`, { method: "POST", body: JSON.stringify({ returnKes }) });
+  return req<InvestorPosition>(`/mlinzi/investors/${positionId}/statements`, { method: "POST", body: JSON.stringify({ returnKes }) });
 }
 
 // ---- access requests (Mlinzi review) -------------------------------------------
-// TODO(backend): GET /steward/access
+// TODO(backend): GET /mlinzi/access
 export async function getAccessRequests(): Promise<AccessRequest[]> {
   if (USE_MOCKS) return delay([...mockAccessRequests]);
-  return req<AccessRequest[]>("/steward/access");
+  return req<AccessRequest[]>("/mlinzi/access");
 }
 
-// TODO(backend): POST /steward/access/{handle}/accept
+// TODO(backend): POST /mlinzi/access/{handle}/accept
 export async function acceptAccess(handle: string, relationship: "family" | "friend" | "investor"): Promise<AccessRequest> {
   if (USE_MOCKS) {
     const r = mockAccessRequests.find((a) => a.handle === handle);
@@ -932,10 +932,10 @@ export async function acceptAccess(handle: string, relationship: "family" | "fri
     pushNotification(handle, "access_accepted", "Karibu — your investor access is approved");
     return delay({ ...r });
   }
-  return req<AccessRequest>(`/steward/access/${encodeURIComponent(handle)}/accept`, { method: "POST", body: JSON.stringify({ relationship }) });
+  return req<AccessRequest>(`/mlinzi/access/${encodeURIComponent(handle)}/accept`, { method: "POST", body: JSON.stringify({ relationship }) });
 }
 
-// TODO(backend): POST /steward/access/{handle}/decline
+// TODO(backend): POST /mlinzi/access/{handle}/decline
 export async function declineAccess(handle: string): Promise<AccessRequest> {
   if (USE_MOCKS) {
     const r = mockAccessRequests.find((a) => a.handle === handle);
@@ -945,17 +945,17 @@ export async function declineAccess(handle: string): Promise<AccessRequest> {
     pushNotification(handle, "access_declined", CBK_DECLINE_MESSAGE);
     return delay({ ...r });
   }
-  return req<AccessRequest>(`/steward/access/${encodeURIComponent(handle)}/decline`, { method: "POST" });
+  return req<AccessRequest>(`/mlinzi/access/${encodeURIComponent(handle)}/decline`, { method: "POST" });
 }
 
 // ---- withdrawals (Mlinzi review) -----------------------------------------------
-// TODO(backend): GET /steward/withdrawals
+// TODO(backend): GET /mlinzi/withdrawals
 export async function getWithdrawalRequests(): Promise<WithdrawalRequest[]> {
   if (USE_MOCKS) return delay([...mockWithdrawalRequests]);
-  return req<WithdrawalRequest[]>("/steward/withdrawals");
+  return req<WithdrawalRequest[]>("/mlinzi/withdrawals");
 }
 
-// TODO(backend): POST /steward/withdrawals/{id}/approve
+// TODO(backend): POST /mlinzi/withdrawals/{id}/approve
 export async function approveWithdrawal(id: string, expectedDeliveryDate: string, note?: string): Promise<WithdrawalRequest> {
   if (USE_MOCKS) {
     const wr = mockWithdrawalRequests.find((w) => w.id === id);
@@ -966,10 +966,10 @@ export async function approveWithdrawal(id: string, expectedDeliveryDate: string
     pushNotification(wr.investorHandle, "withdrawal_update", `Your withdrawal request was approved. Expected delivery: ${new Date(expectedDeliveryDate).toLocaleDateString()}.`);
     return delay({ ...wr });
   }
-  return req<WithdrawalRequest>(`/steward/withdrawals/${id}/approve`, { method: "POST", body: JSON.stringify({ expectedDeliveryDate, note }) });
+  return req<WithdrawalRequest>(`/mlinzi/withdrawals/${id}/approve`, { method: "POST", body: JSON.stringify({ expectedDeliveryDate, note }) });
 }
 
-// TODO(backend): POST /steward/withdrawals/{id}/decline
+// TODO(backend): POST /mlinzi/withdrawals/{id}/decline
 export async function declineWithdrawal(id: string, note?: string): Promise<WithdrawalRequest> {
   if (USE_MOCKS) {
     const wr = mockWithdrawalRequests.find((w) => w.id === id);
@@ -979,7 +979,7 @@ export async function declineWithdrawal(id: string, note?: string): Promise<With
     pushNotification(wr.investorHandle, "withdrawal_update", `Your withdrawal request was declined.${note ? ` Note: ${note}` : ""}`);
     return delay({ ...wr });
   }
-  return req<WithdrawalRequest>(`/steward/withdrawals/${id}/decline`, { method: "POST", body: JSON.stringify({ note }) });
+  return req<WithdrawalRequest>(`/mlinzi/withdrawals/${id}/decline`, { method: "POST", body: JSON.stringify({ note }) });
 }
 
 // ---- member/investor side ------------------------------------------------------
@@ -1054,15 +1054,15 @@ export async function markRead(id: string): Promise<{ ok: boolean }> {
 
 // ── Pool capital deployment (Mlinzi) ─────────────────────────────────────────
 
-// TODO(backend): GET /steward/pool/deployments
+// TODO(backend): GET /mlinzi/pool/deployments
 export async function getPoolDeployments(): Promise<PoolDeployment[]> {
   if (USE_MOCKS) return delay([...mockPoolDeployments].reverse());
-  return req<PoolDeployment[]>("/steward/pool/deployments");
+  return req<PoolDeployment[]>("/mlinzi/pool/deployments");
 }
 
 // Moves pool capital to an external destination so the Mlinzi can invest it.
 // M-Pesa: sends to the given phone; Lightning: pays the invoice or address.
-// TODO(backend): POST /steward/pool/deploy — debit pool_wallet ledger, record deployment,
+// TODO(backend): POST /mlinzi/pool/deploy — debit pool_wallet ledger, record deployment,
 //   then fan-out the appropriate rails (M-Pesa B2C or Lightning payment).
 export async function deployPoolCapital(
   method: "mpesa" | "lightning" | "card",
@@ -1079,7 +1079,7 @@ export async function deployPoolCapital(
     mockPoolDeployments.push(dep);
     return delay(dep);
   }
-  return req<PoolDeployment>("/steward/pool/deploy", {
+  return req<PoolDeployment>("/mlinzi/pool/deploy", {
     method: "POST",
     body: JSON.stringify({ method, amountSats, amountKes, destination, notes }),
   });
@@ -1089,17 +1089,17 @@ export async function deployPoolCapital(
 // One-time-CVV card for deploying capital to platforms that only accept cards.
 // CVV rotates on a timer — prevents subscriptions and auto-renewals.
 
-// TODO(backend): GET /steward/card
+// TODO(backend): GET /mlinzi/card
 export async function getVirtualCard(): Promise<VirtualCard | null> {
   if (USE_MOCKS) {
     if (!mockVirtualCard) return delay(null);
     rotateMockCvvIfExpired();
     return delay({ ...mockVirtualCard });
   }
-  return req<VirtualCard | null>("/steward/card");
+  return req<VirtualCard | null>("/mlinzi/card");
 }
 
-// TODO(backend): POST /steward/card — creates or replaces the card
+// TODO(backend): POST /mlinzi/card — creates or replaces the card
 export async function generateVirtualCard(
   rotationPeriodSecs = 900,
   limitSats: number | null = null,
@@ -1109,13 +1109,13 @@ export async function generateVirtualCard(
     card.limitSats = limitSats;
     return delay({ ...card });
   }
-  return req<VirtualCard>("/steward/card", {
+  return req<VirtualCard>("/mlinzi/card", {
     method: "POST",
     body: JSON.stringify({ rotationPeriodSecs, limitSats }),
   });
 }
 
-// TODO(backend): POST /steward/card/cvv — rotate CVV immediately on demand
+// TODO(backend): POST /mlinzi/card/cvv — rotate CVV immediately on demand
 export async function rotateCvvNow(): Promise<VirtualCard> {
   if (USE_MOCKS) {
     if (!mockVirtualCard) throw new Error("No card");
@@ -1125,10 +1125,10 @@ export async function rotateCvvNow(): Promise<VirtualCard> {
     ).toISOString();
     return delay({ ...mockVirtualCard });
   }
-  return req<VirtualCard>("/steward/card/cvv", { method: "POST" });
+  return req<VirtualCard>("/mlinzi/card/cvv", { method: "POST" });
 }
 
-// TODO(backend): PATCH /steward/card
+// TODO(backend): PATCH /mlinzi/card
 export async function updateVirtualCard(
   patch: Partial<Pick<VirtualCard, "status" | "limitSats" | "cvvRotationPeriodSecs">>,
 ): Promise<VirtualCard> {
@@ -1137,16 +1137,16 @@ export async function updateVirtualCard(
     Object.assign(mockVirtualCard, patch);
     return delay({ ...mockVirtualCard });
   }
-  return req<VirtualCard>("/steward/card", { method: "PATCH", body: JSON.stringify(patch) });
+  return req<VirtualCard>("/mlinzi/card", { method: "PATCH", body: JSON.stringify(patch) });
 }
 
-// TODO(backend): DELETE /steward/card
+// TODO(backend): DELETE /mlinzi/card
 export async function deleteVirtualCard(): Promise<{ deleted: boolean }> {
   if (USE_MOCKS) {
     clearMockVirtualCard();
     return delay({ deleted: true });
   }
-  return req<{ deleted: boolean }>("/steward/card", { method: "DELETE" });
+  return req<{ deleted: boolean }>("/mlinzi/card", { method: "DELETE" });
 }
 
 // ── Lock messages (activity / chat) ──────────────────────────────────────────

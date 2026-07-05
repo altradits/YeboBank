@@ -67,7 +67,7 @@ function NavBar() {
           >
             Log in
           </Link>
-          <button className="mkt-nav-cta" onClick={() => router.push("/register")}>
+          <button className="mkt-nav-cta" onClick={() => router.push("/login")}>
             Open account
           </button>
         </div>
@@ -99,8 +99,8 @@ function HeroSection() {
             up and cash out with M-Pesa — the open-source bank built for the
             hard-working many.
           </p>
-          <button className="mkt-hero-cta" onClick={() => router.push("/register")}>
-            Open your account free <i className="ti ti-arrow-right" />
+          <button className="mkt-hero-cta" onClick={() => router.push("/login")}>
+            Open your account free
           </button>
           <div className="mkt-hero-rate">
             <span className="pulse" />
@@ -174,8 +174,8 @@ function PainSection() {
           in Bitcoin — designed to hold value across decades, not melt away.
         </p>
         <div className="reveal d3" style={{ marginTop: 28 }}>
-          <Button variant="gold" onClick={() => router.push("/register")}>
-            Protect my savings <i className="ti ti-arrow-right" />
+          <Button variant="gold" onClick={() => router.push("/login")}>
+            Protect my savings
           </Button>
         </div>
         <div className="bars reveal d4">
@@ -263,8 +263,8 @@ function ServicesSection() {
               <li><i className="ti ti-scale" /> Honest by design: principal never touched for fees</li>
               <li><i className="ti ti-sparkles" /> Target ~5.2% APY from real treasury yield</li>
             </ul>
-            <Button variant="gold" onClick={() => router.push("/register?redirect=/savings/lock")}>
-              Start saving today <i className="ti ti-arrow-right" />
+            <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
+              Start saving today
             </Button>
           </div>
           <div style={{ position: "relative", zIndex: 1 }}>
@@ -298,7 +298,7 @@ function ServicesSection() {
                 ))}
               </ul>
               <button className="svc-link" onClick={() => router.push(c.href)}>
-                {c.cta} <i className="ti ti-arrow-right" />
+                {c.cta}
               </button>
             </div>
           ))}
@@ -360,8 +360,8 @@ function HowItWorksSection() {
           ))}
         </div>
         <div style={{ marginTop: 52, display: "flex", justifyContent: "center" }}>
-          <Button variant="gold" onClick={() => router.push("/register")}>
-            Get started — it&apos;s free <i className="ti ti-arrow-right" />
+          <Button variant="gold" onClick={() => router.push("/login")}>
+            Get started — it&apos;s free
           </Button>
         </div>
       </div>
@@ -455,8 +455,8 @@ function LightningSection() {
           </div>
         </div>
         <div className="reveal d4" style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
-          <Button variant="gold" onClick={() => router.push("/register?redirect=/send")}>
-            Get your Lightning address <i className="ti ti-arrow-right" />
+          <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
+            Get your Lightning address
           </Button>
         </div>
       </div>
@@ -486,8 +486,8 @@ function FinalCTA() {
           Open a free account with just a phone number. No paperwork,
           no waiting — your money starts working immediately.
         </p>
-        <button className="mkt-hero-cta" onClick={() => router.push("/register")}>
-          Open your account free <i className="ti ti-arrow-right" />
+        <button className="mkt-hero-cta" onClick={() => router.push("/login")}>
+          Open your account free
         </button>
       </div>
     </section>
@@ -530,13 +530,13 @@ function SiteFooter() {
               >
                 Open source
               </a>
-              <a href="/register">Contact</a>
+              <a href="/login">Contact</a>
             </div>
             <div className="col">
               <h4>Get started</h4>
-              <a href="/register">Open account</a>
+              <a href="/login">Open account</a>
               <a href="/login">Log in</a>
-              <a href="/register">Become an agent</a>
+              <a href="/login">Become an agent</a>
             </div>
           </div>
         </div>

@@ -710,9 +710,9 @@ export default function AgentPage() {
             <Tile icon="ti-currency-bitcoin" color="#F7931A" label="Lightning → M-Pesa" sub="Pay invoice, receive M-Pesa" onClick={() => openTx({ t: "g_ln_mpesa" })} />
           </div>
           <div style={{ borderTop: "1px solid var(--border-soft)", paddingTop: 14 }}>
-            <a href="/register" style={{ color: "var(--gold)", fontSize: 13, fontWeight: 600 }}>
-              <i className="ti ti-arrow-right" /> Help them open a YeboBank account →
-            </a>
+            <p style={{ color: "var(--soft)", fontSize: 13 }}>
+              No account? Ask them to register at a YeboBank branch or via the app.
+            </p>
           </div>
         </div>
       )}
@@ -790,7 +790,7 @@ export default function AgentPage() {
           <div style={{ borderTop: "1px solid var(--border-soft)", paddingTop: 12 }}>
             <button onClick={() => { resetMember(); setMode("guest"); }}
               style={{ background: "none", border: "none", cursor: "pointer", color: "var(--gold)", fontSize: 13, fontWeight: 600 }}>
-              <i className="ti ti-arrow-right" /> Serve as guest instead
+              Serve as guest instead
             </button>
           </div>
         </div>

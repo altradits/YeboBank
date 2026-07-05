@@ -52,10 +52,10 @@ export function MlinziCard({
   const pendingTotal = pendingAccess + pendingWithdrawals;
 
   const actions: { icon: string; label: string; path: string; badge?: number }[] = [
-    { icon: "ti-arrow-bar-up",  label: "Deploy",      path: "/steward/deploy" },
-    { icon: "ti-users",         label: "Investors",   path: "/steward/investors" },
-    { icon: "ti-user-check",    label: "Access",      path: "/steward/access",      badge: pendingAccess },
-    { icon: "ti-arrow-bar-down",label: "Withdrawals", path: "/steward/withdrawals", badge: pendingWithdrawals },
+    { icon: "ti-send",           label: "Deploy",      path: "/mlinzi/deploy" },
+    { icon: "ti-users",         label: "Investors",   path: "/mlinzi/investors" },
+    { icon: "ti-user-check",    label: "Access",      path: "/mlinzi/access",      badge: pendingAccess },
+    { icon: "ti-receipt",       label: "Withdrawals", path: "/mlinzi/withdrawals", badge: pendingWithdrawals },
   ];
 
   return (

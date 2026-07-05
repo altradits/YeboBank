@@ -76,7 +76,7 @@ export default function LockCard({ lock, rate, onContribute }: Props) {
           </Button>
         )}
         <Link href={`/savings/${lock.id}`}>
-          <Button variant="ghost" style={{ fontSize: 13, padding: "7px 16px" }}>Details →</Button>
+          <Button variant="ghost" style={{ fontSize: 13, padding: "7px 16px" }}>Details</Button>
         </Link>
       </div>
     </div>

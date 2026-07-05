@@ -40,11 +40,8 @@ export function ClosingCTA() {
         </p>
 
         <div className="cta-actions reveal d2">
-          <Button variant="gold" onClick={() => router.push("/register")}>
-            Open account <i className="ti ti-arrow-right" />
-          </Button>
-          <Button variant="ghost" onDark onClick={() => router.push("/login")}>
-            Log in
+          <Button variant="gold" onClick={() => router.push("/login")}>
+            Open account
           </Button>
         </div>
 
@@ -82,13 +79,12 @@ export function SiteFooter() {
               <Link href="/">About</Link>
               <a href="https://github.com/altradits/YeboBank" target="_blank" rel="noopener noreferrer">Open source</a>
               <a href="#trust">Security</a>
-              <Link href="/register">Contact us</Link>
+              <Link href="/login">Contact us</Link>
             </div>
             <div className="col">
               <h4>Get started</h4>
-              <Link href="/register">Open account</Link>
-              <Link href="/login">Log in</Link>
-              <Link href="/register">Become an agent</Link>
+              <Link href="/login">Open account</Link>
+              <Link href="/login?redirect=/agent">Become an agent</Link>
             </div>
           </div>
         </div>

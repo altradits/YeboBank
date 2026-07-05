@@ -59,8 +59,8 @@ export default function Converter() {
             <span className="pulse" /> 1 BTC = ${num(rate.btcUsd)} · KES {num(rate.btcKes)} ({rate.source})
           </div>
           <div style={{ marginTop: 24, display: "flex", justifyContent: "center" }}>
-            <Button variant="gold" onClick={() => router.push("/register?redirect=/savings")}>
-              Start saving in sats <i className="ti ti-arrow-right" />
+            <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
+              Start saving in sats
             </Button>
           </div>
         </div>

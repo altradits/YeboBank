@@ -216,7 +216,7 @@ export default function Hero() {
             Earn interest in sats. Top up and cash out through M-Pesa.
           </p>
           <div className="hero-cta reveal d2">
-            <button className="hero-btn" onClick={() => router.push("/register")}>
+            <button className="hero-btn" onClick={() => router.push("/login")}>
               Open a free account
             </button>
           </div>
