@@ -22,12 +22,13 @@ const ACCENTS: Record<string, string> = {
 const DEFAULT_DARK = "rgba(5,12,6,.72)";
 const SECTION_IDS = ["inflation","save","mpesa","chama","agents","lightning","trust","convert","cta"];
 
-const NAV_LINKS = [
-  { href: "#inflation", label: "Why" },
-  { href: "#save",      label: "Save" },
-  { href: "#chama",     label: "Community" },
-  { href: "#lightning", label: "Send" },
-  { href: "#trust",     label: "Trust" },
+const NAV_LINKS: { href: string; label: string }[] = [
+  { href: "#inflation",               label: "Why" },
+  { href: "/login?redirect=/savings", label: "Save" },
+  { href: "/login?redirect=/chama",   label: "Chama" },
+  { href: "/login?redirect=/invest",  label: "Invest" },
+  { href: "/login?redirect=/agent",   label: "Agents" },
+  { href: "#lightning",               label: "Send" },
 ];
 
 export default function SiteNav() {
@@ -83,9 +84,11 @@ export default function SiteNav() {
           <LogoMark size={34} /> YeboBank
         </Link>
         <div className="navlinks">
-          {NAV_LINKS.map(({ href, label }) => (
-            <a key={href} href={href}>{label}</a>
-          ))}
+          {NAV_LINKS.map(({ href, label }) =>
+            href.startsWith("/")
+              ? <Link key={href} href={href} className="navlink-dash">{label}</Link>
+              : <a key={href} href={href}>{label}</a>
+          )}
         </div>
         <div className="navactions">
           <button
@@ -95,6 +98,7 @@ export default function SiteNav() {
           >
             <i className={`ti ${dark ? "ti-sun" : "ti-moon"}`} />
           </button>
+          <Link href="/login" className="login">Log in</Link>
           <Button onClick={() => router.push("/login")}>Open account</Button>
         </div>
       </div>
