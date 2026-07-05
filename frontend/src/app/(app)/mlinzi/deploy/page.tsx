@@ -136,10 +136,10 @@ export default function DeployCapitalPage() {
           { label: "Available", value: fmtKESraw(availableKes, 0), color: availableSats > 0 ? "#8ecb72" : undefined, sub: availableSats <= 0 ? "Fully deployed" : "Ready to deploy" },
         ]}
         actions={[
-          { icon: "ti-arrow-left", label: "Console", path: "/steward" },
-          { icon: "ti-users", label: "Investors", path: "/steward/investors" },
-          { icon: "ti-user-check", label: "Access", path: "/steward/access" },
-          { icon: "ti-arrow-bar-down", label: "Withdrawals", path: "/steward/withdrawals" },
+          { icon: "ti-arrow-left", label: "Console", path: "/mlinzi" },
+          { icon: "ti-users", label: "Investors", path: "/mlinzi/investors" },
+          { icon: "ti-user-check", label: "Access", path: "/mlinzi/access" },
+          { icon: "ti-arrow-bar-down", label: "Withdrawals", path: "/mlinzi/withdrawals" },
         ]}
       />
 
@@ -162,7 +162,7 @@ export default function DeployCapitalPage() {
             </p>
             <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
               <Link
-                href={`/steward/income?prefilledKes=${deployed.amountKes}`}
+                href={`/mlinzi/income?prefilledKes=${deployed.amountKes}`}
                 className="btn btn-primary"
                 style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
               >
@@ -267,7 +267,7 @@ export default function DeployCapitalPage() {
                     <p className="note" style={{ marginBottom: 16, maxWidth: 320, marginInline: "auto" }}>
                       Generate a virtual card with a rotating CVV to deploy capital to platforms that require card details.
                     </p>
-                    <Link href="/steward/card" className="btn btn-primary"
+                    <Link href="/mlinzi/card" className="btn btn-primary"
                       style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                       <i className="ti ti-plus" /> Generate payment card
                     </Link>
@@ -300,7 +300,7 @@ export default function DeployCapitalPage() {
                           {virtualCard.cardholder}
                         </p>
                       </div>
-                      <Link href="/steward/card"
+                      <Link href="/mlinzi/card"
                         style={{ color: "rgba(255,255,255,.55)", fontSize: 12, textDecoration: "none",
                           display: "flex", alignItems: "center", gap: 5, position: "relative" }}>
                         Full details <i className="ti ti-arrow-right" style={{ fontSize: 13 }} />

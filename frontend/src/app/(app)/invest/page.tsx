@@ -116,7 +116,7 @@ export default function InvestPage() {
           { label: "Return rate", value: apyStr, sub: position?.compounding ? "Compounded" : "Simple" },
         ]}
         actions={[
-          { icon: "ti-arrow-bar-down", label: "Withdraw request", onClick: () => document.getElementById("withdraw-section")?.scrollIntoView({ behavior: "smooth" }) },
+          { icon: "ti-download",       label: "Withdraw request", onClick: () => document.getElementById("withdraw-section")?.scrollIntoView({ behavior: "smooth" }) },
           { icon: "ti-chart-bar",      label: "Statements",       onClick: () => document.getElementById("statements-section")?.scrollIntoView({ behavior: "smooth" }) },
           { icon: "ti-calculator",     label: "FI calc",          onClick: () => document.getElementById("fi-section")?.scrollIntoView({ behavior: "smooth" }) },
         ]}

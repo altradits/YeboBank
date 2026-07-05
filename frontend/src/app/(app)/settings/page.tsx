@@ -28,9 +28,7 @@ export default function SettingsPage() {
   const ROLE_LABEL: Record<string, string> = {
     customer: "Savings Member",
     agent:    "Agent",
-    trader:   "Trader",
-    admin:    "Administrator",
-    mlinzi:   "Fund Steward",
+    mlinzi:   "Mlinzi",
   };
 
   return (
@@ -46,7 +44,7 @@ export default function SettingsPage() {
         <SettingRow label="Lightning address" value={user.lightningAddress} />
         <SettingRow label="Language"         value={user.language === "sw" ? "Kiswahili" : "English"} />
         <SettingRow label="Account role"     value={ROLE_LABEL[user.role] ?? user.role}
-          highlight={isMlinzi ? "steward" : isFF ? "investor" : isAgent ? "agent" : undefined} />
+          highlight={isMlinzi ? "mlinzi" : isFF ? "investor" : isAgent ? "agent" : undefined} />
       </div>
 
       {/* ── Agent-specific tools ── */}
@@ -84,15 +82,15 @@ export default function SettingsPage() {
       {/* ── Mlinzi tools ── */}
       {isMlinzi && (
         <div className="card" style={{ marginTop: 16 }}>
-          <div className="section-head"><h2>Fund Steward</h2></div>
+          <div className="section-head"><h2>Mlinzi</h2></div>
           <p className="note" style={{ marginBottom: 14 }}>
-            You are the Fund Steward. You manage the investment pool, investor access, and capital deployment.
+            You are Mlinzi. You manage the investment pool, investor access, and capital deployment.
           </p>
           <SettingLink
             icon="ti-shield-lock"
-            label="Steward console"
+            label="Mlinzi console"
             sub="Investors, income sources, pool deployments, virtual card"
-            href="/steward"
+            href="/mlinzi"
           />
           <SettingLink
             icon="ti-trending-up"
@@ -134,9 +132,9 @@ function SettingRow({
 }: {
   label: string;
   value: string;
-  highlight?: "agent" | "investor" | "steward";
+  highlight?: "agent" | "investor" | "mlinzi";
 }) {
-  const colorMap = { agent: "var(--gold)", investor: "var(--lime)", steward: "var(--emerald-deep)" };
+  const colorMap = { agent: "var(--gold)", investor: "var(--lime)", mlinzi: "var(--emerald-deep)" };
   return (
     <div className="tx-row" style={{ justifyContent: "space-between", padding: "10px 0" }}>
       <span className="note">{label}</span>

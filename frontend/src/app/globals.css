@@ -92,8 +92,8 @@ a{color:inherit;text-decoration:none}
 .navactions .login:hover{color:#fff;border-color:rgba(255,255,255,.62);background:rgba(255,255,255,.07)}
 .demo-btn{font-family:var(--font-display);font-weight:600;font-size:13px;background:rgba(168,116,0,.14);color:var(--gold-soft);border:1.5px solid rgba(168,116,0,.35);padding:7px 15px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;transition:.2s}
 .demo-btn:hover{background:rgba(168,116,0,.24);color:var(--gold-soft)}
-.nav-theme-toggle{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);color:rgba(255,255,255,.72);display:grid;place-items:center;cursor:pointer;font-size:16px;transition:.2s;flex-shrink:0}
-.nav-theme-toggle:hover{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.25)}
+.nav-theme-toggle{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);color:rgba(255,255,255,.88);display:grid;place-items:center;cursor:pointer;font-size:16px;transition:.2s;flex-shrink:0}
+.nav-theme-toggle:hover{background:rgba(255,255,255,.28);color:#fff;border-color:rgba(255,255,255,.45)}
 @media(max-width:880px){.navlinks{display:none}}
 
 /* ===== landing above-fold slot ===== */
@@ -206,7 +206,7 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 .hero-btn:hover{background:rgba(47,224,186,.10);box-shadow:inset 0 0 0 1px rgba(47,224,186,.52),0 0 28px rgba(47,224,186,.17);color:#fff}
 
 /* ===== Statement bridge — full-width animated text, no image ===== */
-.statement-sec{min-height:54dvh;display:flex;align-items:center;padding:70px 0;background:linear-gradient(135deg,#040806 0%,#081c12 50%,#130e00 100%);color:#fff;position:relative;overflow:hidden}
+.statement-sec{min-height:100dvh;display:flex;align-items:center;padding:80px 0;background:linear-gradient(135deg,#040806 0%,#081c12 50%,#130e00 100%);color:#fff;position:relative;overflow:hidden}
 .statement-sec::before{content:"";position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(47,224,186,.12),transparent 64%);top:-130px;right:-80px;z-index:0;pointer-events:none;animation:orb-drift 22s ease-in-out infinite}
 .statement-sec::after{content:"";position:absolute;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(112,255,69,.09),transparent 66%);bottom:-140px;left:-60px;z-index:0;pointer-events:none;animation:orb-drift-r 28s ease-in-out infinite}
 .sw-stack{display:flex;flex-direction:column;gap:.06em}
@@ -1480,7 +1480,7 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 /* =========================================================================
    LIGHTNING SECTION — "The Spark"
    ========================================================================= */
-#lightning{background:linear-gradient(150deg,#020208 0%,#08081e 50%,#060418 100%);min-height:auto;padding:110px 0}
+#lightning{background:linear-gradient(150deg,#020208 0%,#08081e 50%,#060418 100%);min-height:100dvh;padding:80px 0}
 #lightning::before{background:radial-gradient(circle,rgba(224,168,0,.18),transparent 64%);top:-100px;right:calc(50% - 280px)}
 #lightning::after{background:radial-gradient(circle,rgba(90,60,200,.15),transparent 66%);bottom:-160px;left:-60px}
 
@@ -1527,10 +1527,10 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 /* =========================================================================
    TRUST SECTION — "The Ledger"
    ========================================================================= */
-#trust{background:linear-gradient(150deg,#030c07 0%,#071a0e 50%,#040c07 100%);min-height:auto;padding:100px 0}
+#trust{background:linear-gradient(150deg,#030c07 0%,#071a0e 50%,#040c07 100%);min-height:100dvh;padding:80px 0}
 #trust::before{background:radial-gradient(circle,rgba(17,166,91,.18),transparent 64%)}
 #trust::after{background:radial-gradient(circle,rgba(224,168,0,.12),transparent 66%)}
-#convert{min-height:auto;padding:80px 0 110px}
+#convert{min-height:100dvh;padding:80px 0}
 
 .trust-chain{display:flex;flex-direction:column;gap:0;margin-top:56px;max-width:860px;margin-left:auto;margin-right:auto}
 .ledger-block{background:rgba(255,255,255,.03);border:1px solid rgba(17,166,91,.15);border-radius:0;padding:24px 28px;display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:20px;transition:background .25s,border-color .25s,transform .25s;position:relative;overflow:hidden;cursor:default}
@@ -2042,7 +2042,7 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 [data-theme="dark"] .settings-danger-sub{color:rgba(255,255,255,.3)}
 
 /* ── UserPaths landing section ───────────────────────────────────────────── */
-.paths-sec{background:linear-gradient(180deg,#050c07 0%,#040b06 100%);padding:100px 0}
+.paths-sec{background:linear-gradient(180deg,#050c07 0%,#040b06 100%);min-height:100dvh;padding:80px 0}
 .paths-intro{text-align:center;max-width:620px;margin:0 auto}
 .paths-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:52px}
 @media(max-width:1060px){.paths-grid{grid-template-columns:repeat(2,1fr)}}
@@ -2054,14 +2054,14 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 .path-card--member::before  {background:linear-gradient(90deg,var(--emerald),var(--lime))}
 .path-card--agent::before   {background:linear-gradient(90deg,var(--gold),var(--gold-soft))}
 .path-card--investor::before{background:linear-gradient(90deg,var(--gold-soft),var(--lime))}
-.path-card--steward::before {background:linear-gradient(90deg,var(--forest-mid),var(--emerald))}
+.path-card--mlinzi::before {background:linear-gradient(90deg,var(--forest-mid),var(--emerald))}
 
 .path-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .path-icon-ring{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex-shrink:0}
 .path-icon-ring--member  {background:rgba(10,152,80,.18);color:var(--lime)}
 .path-icon-ring--agent   {background:rgba(168,116,0,.22);color:var(--gold-soft)}
 .path-icon-ring--investor{background:rgba(150,194,68,.15);color:var(--lime)}
-.path-icon-ring--steward {background:rgba(10,48,32,.5);color:var(--emerald)}
+.path-icon-ring--mlinzi {background:rgba(10,48,32,.5);color:var(--emerald)}
 
 .path-pill{display:inline-flex;align-items:center;font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;border-radius:999px;padding:3px 10px;border:1px solid;align-self:flex-start}
 .path-pill--open    {color:var(--lime);border-color:rgba(150,194,68,.35);background:rgba(150,194,68,.08)}

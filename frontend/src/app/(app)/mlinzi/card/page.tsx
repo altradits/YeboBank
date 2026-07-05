@@ -302,7 +302,7 @@ export default function CardPage() {
         <div>
           <h1 className="page-title">Global Payment Card</h1>
           <p className="page-sub">
-            <Link href="/steward" style={{ color: "var(--soft)", textDecoration: "none" }}>Mlinzi Console</Link>
+            <Link href="/mlinzi" style={{ color: "var(--soft)", textDecoration: "none" }}>Mlinzi Console</Link>
             {" / "}Virtual deployment card
           </p>
         </div>

@@ -54,7 +54,7 @@ export default function DashboardPage() {
     { icon: "ti-users",       label: "Chamas",   onClick: openChama },
     ...(isAgent   ? [{ icon: "ti-cash",        label: "Agent",   path: "/agent" }]   : []),
     ...(canInvest ? [{ icon: "ti-trending-up", label: "Invest",  path: "/invest" }]  : []),
-    ...(isMlinzi  ? [{ icon: "ti-shield-lock", label: "Console", path: "/steward" }] : []),
+    ...(isMlinzi  ? [{ icon: "ti-shield-lock", label: "Console", path: "/mlinzi" }] : []),
   ];
 
   const shown = showAll ? history : history.slice(0, 5);

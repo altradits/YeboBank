@@ -15,7 +15,7 @@ export const mockUser: User = {
   role: "mlinzi",
   lightningAddress: "wanjiku@yebobank.com",
   language: "en",
-  isAgent: true,
+  isAgent: false,
   relationship: "self",
   ffVerified: true,
   accessStatus: "accepted",
@@ -355,7 +355,7 @@ export const mockGrowthData: Record<string, ChamaGrowthPoint[]> = {
   ],
 };
 
-// ── Mlinzi (Fund Steward) mock data ──────────────────────────────────────────
+// ── Mlinzi mock data ──────────────────────────────────────────────────────────
 // Stanley Thuita invests his own and verified family/friend capital. Member
 // principal is custodied 1:1 in sats; planning/returns are tracked in KES.
 

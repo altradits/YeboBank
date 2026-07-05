@@ -73,7 +73,7 @@ export default function ContributeModal({ lock, onConfirm, onCancel, loading }: 
             )}
 
             <div className="modal-actions">
-              <Button onClick={handleNext} disabled={sats <= 0}>Next →</Button>
+              <Button onClick={handleNext} disabled={sats <= 0}>Next</Button>
               <Button variant="ghost" onClick={onCancel}>Cancel</Button>
             </div>
           </>

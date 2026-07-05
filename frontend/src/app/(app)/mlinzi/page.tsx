@@ -10,7 +10,7 @@ import type { IncomeSource, InvestorPosition, AccessRequest, WithdrawalRequest, 
 import { FICalculator } from "@/components/app/FICalculator";
 import { MlinziCard } from "@/components/app/MlinziCard";
 
-export default function StewardPage() {
+export default function MlinziPage() {
   const [user,        setUser]        = useState<User | null>(null);
   const [income,      setIncome]      = useState<IncomeSource[]>([]);
   const [investors,   setInvestors]   = useState<InvestorPosition[]>([]);
@@ -47,7 +47,7 @@ export default function StewardPage() {
       <div className="section-head">
         <div>
           <h1 className="page-title">Mlinzi Console</h1>
-          <p className="page-sub">{user?.fullName ?? "—"} · Fund Steward</p>
+          <p className="page-sub">{user?.fullName ?? "—"} · Mlinzi</p>
         </div>
       </div>
 

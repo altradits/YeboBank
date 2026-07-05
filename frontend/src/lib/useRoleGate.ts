@@ -34,7 +34,7 @@ export function useRoleGate(
 
 /** Derive the canonical home dashboard path for a given user. */
 export function homePath(u: User): string {
-  if (u.role === "mlinzi")       return "/steward";
+  if (u.role === "mlinzi")       return "/mlinzi";
   if (u.isAgent)                 return "/agent";
   if (u.accessStatus === "accepted") return "/invest";
   return "/dashboard";

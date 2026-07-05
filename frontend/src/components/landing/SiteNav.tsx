@@ -95,9 +95,7 @@ export default function SiteNav() {
           >
             <i className={`ti ${dark ? "ti-sun" : "ti-moon"}`} />
           </button>
-          <Link className="login" href="/login">Log in</Link>
-          <Link className="demo-btn" href="/dashboard">Try demo <i className="ti ti-arrow-right" /></Link>
-          <Button onClick={() => router.push("/register")}>Open account</Button>
+          <Button onClick={() => router.push("/login")}>Open account</Button>
         </div>
       </div>
     </nav>

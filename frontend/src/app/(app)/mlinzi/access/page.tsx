@@ -48,10 +48,10 @@ export default function AccessRequestsPage() {
           { label: "Declined", value: `${declined}`, sub: "Not invited" },
         ]}
         actions={[
-          { icon: "ti-arrow-left", label: "Console", path: "/steward" },
-          { icon: "ti-users", label: "Investors", path: "/steward/investors" },
-          { icon: "ti-arrow-bar-up", label: "Deploy", path: "/steward/deploy" },
-          { icon: "ti-arrow-bar-down", label: "Withdrawals", path: "/steward/withdrawals" },
+          { icon: "ti-arrow-left", label: "Console", path: "/mlinzi" },
+          { icon: "ti-users", label: "Investors", path: "/mlinzi/investors" },
+          { icon: "ti-arrow-bar-up", label: "Deploy", path: "/mlinzi/deploy" },
+          { icon: "ti-arrow-bar-down", label: "Withdrawals", path: "/mlinzi/withdrawals" },
         ]}
       />
 

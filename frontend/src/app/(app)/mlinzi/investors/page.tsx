@@ -46,10 +46,10 @@ export default function InvestorsPage() {
           { label: "Avg position", value: positions.length > 0 ? fmtKESraw(totalAum / positions.length, 0) : "—", sub: "Per investor" },
         ]}
         actions={[
-          { icon: "ti-arrow-left", label: "Console", path: "/steward" },
-          { icon: "ti-arrow-bar-up", label: "Deploy", path: "/steward/deploy" },
-          { icon: "ti-user-check", label: "Access", path: "/steward/access" },
-          { icon: "ti-arrow-bar-down", label: "Withdrawals", path: "/steward/withdrawals" },
+          { icon: "ti-arrow-left", label: "Console", path: "/mlinzi" },
+          { icon: "ti-arrow-bar-up", label: "Deploy", path: "/mlinzi/deploy" },
+          { icon: "ti-user-check", label: "Access", path: "/mlinzi/access" },
+          { icon: "ti-arrow-bar-down", label: "Withdrawals", path: "/mlinzi/withdrawals" },
         ]}
       />
 

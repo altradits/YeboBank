@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 
 interface PathCard {
-  id: "member" | "agent" | "investor" | "steward";
+  id: "member" | "agent" | "investor" | "mlinzi";
   icon: string;
   pill: string;
   pillVariant: "open" | "apply" | "invite" | "appointed";
@@ -13,8 +13,6 @@ interface PathCard {
   features: string[];
   primaryLabel?: string;
   primaryPath?: string;
-  demoLabel: string;
-  demoPath: string;
 }
 
 const PATHS: PathCard[] = [
@@ -32,9 +30,7 @@ const PATHS: PathCard[] = [
       "Send global",
     ],
     primaryLabel: "Open account",
-    primaryPath: "/register",
-    demoLabel: "Try demo",
-    demoPath: "/dashboard",
+    primaryPath: "/login?redirect=/dashboard",
   },
   {
     id: "agent",
@@ -50,9 +46,7 @@ const PATHS: PathCard[] = [
       "Panic switch",
     ],
     primaryLabel: "Apply",
-    primaryPath: "/register?type=agent",
-    demoLabel: "Try demo",
-    demoPath: "/agent",
+    primaryPath: "/login?redirect=/agent",
   },
   {
     id: "investor",
@@ -67,17 +61,15 @@ const PATHS: PathCard[] = [
       "FI planner",
       "Clean exit",
     ],
-    primaryLabel: "Request",
-    primaryPath: "/invest",
-    demoLabel: "Try demo",
-    demoPath: "/invest",
+    primaryLabel: "Request access",
+    primaryPath: "/login?redirect=/invest",
   },
   {
-    id: "steward",
+    id: "mlinzi",
     icon: "ti-shield-lock",
     pill: "Appointed",
     pillVariant: "appointed",
-    name: "Steward",
+    name: "Mlinzi",
     desc: "Manage pool.",
     features: [
       "Approve access",
@@ -85,8 +77,6 @@ const PATHS: PathCard[] = [
       "Deploy capital",
       "Rotate card",
     ],
-    demoLabel: "Open console",
-    demoPath: "/steward",
   },
 ];
 
@@ -127,16 +117,13 @@ export default function UserPaths() {
                 {p.features.map((f) => <li key={f}>{f}</li>)}
               </ul>
 
-              <div className="path-actions">
-                {p.primaryLabel && (
+              {p.primaryLabel && (
+                <div className="path-actions">
                   <Button variant="gold" onClick={() => router.push(p.primaryPath!)} block>
                     {p.primaryLabel}
                   </Button>
-                )}
-                <Button variant="ghost" onDark onClick={() => router.push(p.demoPath)} block>
-                  {p.demoLabel}
-                </Button>
-              </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

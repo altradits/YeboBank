@@ -1,7 +1,7 @@
 // Domain types. These mirror the YeboBank database schema (see docs/DATABASE.md)
 // closely enough that the backend can return them directly.
 
-export type Role = "customer" | "agent" | "trader" | "admin" | "mlinzi";
+export type Role = "customer" | "agent" | "mlinzi";
 
 export interface User {
   id: string;
@@ -11,7 +11,7 @@ export interface User {
   lightningAddress: string; // user@yebobank.com
   language: "en" | "sw";
   isAgent: boolean;
-  // Additive — Mlinzi (Fund Steward) friends & family investor program.
+  // Additive — Mlinzi friends & family investor program.
   relationship?: "self" | "family" | "friend" | "investor" | "none";
   ffVerified?: boolean;
   accessStatus?: "none" | "requested" | "accepted" | "declined";
