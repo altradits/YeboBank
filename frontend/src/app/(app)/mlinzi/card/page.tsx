@@ -8,6 +8,7 @@ import {
   getVirtualCard, generateVirtualCard, rotateCvvNow, updateVirtualCard, deleteVirtualCard,
 } from "@/lib/api";
 import type { VirtualCard } from "@/types";
+import { ATMCard } from "@/components/app/ATMCard";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -298,13 +299,29 @@ export default function CardPage() {
 
   return (
     <>
-      <div className="section-head">
+      <ATMCard
+        variant="dashboard"
+        chipLabel="VIRTUAL CARD"
+        balanceLabel="DEPLOYMENT CARD"
+        balancePrimary={c ? `•••• •••• •••• ${c.number.slice(-4)}` : "No card"}
+        balanceSecondary={c ? `${c.status === "frozen" ? "Frozen" : "Active"} · CVV rotates every ${ROTATION_OPTIONS.find(o => o.secs === c.cvvRotationPeriodSecs)?.label ?? "…"}` : "Generate a card to deploy capital via platforms"}
+        stats={[
+          { label: "Total deployed", value: c ? `${num(c.totalDeployedSats)} sats` : "—", sub: c ? `≈ KES ${num(Math.round(c.totalDeployedSats * rate.kesPerSat))}` : "Via card" },
+          { label: "Limit", value: c?.limitSats ? `${num(c.limitSats)} sats` : "No limit", sub: "Per transaction" },
+          { label: "Status", value: c ? (c.status === "frozen" ? "Frozen" : "Active") : "—", color: c?.status === "frozen" ? "#7ecfff" : c ? "#8ecb72" : undefined, sub: "Card state" },
+        ]}
+        actions={[
+          { icon: "ti-layout-dashboard", label: "Console",     path: "/mlinzi" },
+          { icon: "ti-users",            label: "Investors",   path: "/mlinzi/investors" },
+          { icon: "ti-user-check",       label: "Access",      path: "/mlinzi/access" },
+          { icon: "ti-send",             label: "Deploy",      path: "/mlinzi/deploy" },
+        ]}
+      />
+
+      <div className="section-head" style={{ marginTop: 18 }}>
         <div>
           <h1 className="page-title">Global Payment Card</h1>
-          <p className="page-sub">
-            <Link href="/mlinzi" style={{ color: "var(--soft)", textDecoration: "none" }}>Mlinzi Console</Link>
-            {" / "}Virtual deployment card
-          </p>
+          <p className="page-sub">Virtual deployment card</p>
         </div>
       </div>
 

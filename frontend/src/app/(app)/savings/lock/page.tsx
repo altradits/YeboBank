@@ -76,6 +76,11 @@ export default function LockPage() {
 
   return (
     <>
+      <div style={{ marginBottom: 6 }}>
+        <Link href="/savings" style={{ color: "var(--soft)", fontSize: 14 }}>
+          <i className="ti ti-arrow-left" /> Savings
+        </Link>
+      </div>
       <h1 className="page-title">New savings lock</h1>
       <p className="page-sub">Lock sats away and earn a share of treasury yield.</p>
 
