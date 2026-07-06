@@ -256,9 +256,9 @@ function Inflation() {
             </div>
 
             <div className="infl-cta">
-              <button className="hero-btn" onClick={() => router.push("/login?redirect=/savings")}>
+              <Button variant="primary" onClick={() => router.push("/login?redirect=/savings")}>
                 Protect my savings with sats
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -404,7 +404,7 @@ function SavingsMpesaPair() {
               </div>
               <p className="stat-pull">If the pool earns nothing, we earn nothing.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Button variant="gold" onClick={() => router.push("/login?redirect=/savings")}>
+                <Button variant="primary" onClick={() => router.push("/login?redirect=/savings")}>
                   Start saving today
                 </Button>
               </div>
@@ -439,7 +439,7 @@ function SavingsMpesaPair() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Button variant="gold" onClick={() => router.push("/login?redirect=/deposit")}>
+                <Button variant="lime" onClick={() => router.push("/login?redirect=/deposit")}>
                   Deposit via M-Pesa
                 </Button>
               </div>
@@ -659,7 +659,7 @@ function CommunityPair() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="gold" onClick={() => router.push("/login?redirect=/chama")}>
+              <Button variant="primary" onClick={() => router.push("/login?redirect=/chama")}>
                 Start or join a chama
               </Button>
             </div>
@@ -684,7 +684,7 @@ function CommunityPair() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="gold" onClick={findNearMe} disabled={locating}>
+              <Button variant="lime" onClick={findNearMe} disabled={locating}>
                 <i className="ti ti-current-location" /> {locating ? "Locating…" : "Find agents near me"}
               </Button>
             </div>
