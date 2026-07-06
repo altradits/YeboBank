@@ -128,15 +128,19 @@ The favicon is the same 40 × 40 SVG mark. It omits the ambient glow overlay (sa
 
 ### 3.1 Brand palette
 
-| Name         | Hex        | CSS variable     | M3 role equivalent        | Usage                                    |
-|--------------|------------|------------------|---------------------------|------------------------------------------|
-| Forest Deep  | `#030C07`  | `--ink`          | surface (dark)            | Primary dark background (site)           |
-| Forest Mid   | `#11A65B`  | `--emerald-deep` | primary                   | Primary actions, success, growth          |
-| Lime         | `#96C244`  | `--lime`         | secondary                 | Live indicators, secondary highlights     |
-| Gold         | `#C49020`  | `--gold`         | tertiary                  | CTAs, premium tier, Bitcoin               |
-| Gold Soft    | `#E0A820`  | `--gold-soft`    | tertiary-container        | Hover states, lighter gold                |
-| Gold Text    | `#A87800`  | `--gold-text`    | on-tertiary-container     | Gold on light backgrounds                 |
-| Terra        | `#8C4A28`  | `--terra`        | error/warning             | Warnings, destructive, earth tones        |
+Light mode values shown; dark mode overrides in parentheses where they differ.
+
+| Name         | Light hex  | Dark hex   | CSS variable     | M3 role equivalent        | Usage                                    |
+|--------------|------------|------------|------------------|---------------------------|------------------------------------------|
+| Ink          | `#040C07`  | `#040C07`  | `--ink`          | surface (dark)            | Primary dark page background             |
+| Forest Deep  | `#0A3020`  | `#0A3020`  | `--forest`       | surface-variant           | Button bg on light sections, authority   |
+| Forest Mid   | `#1A5C3C`  | `#1A5C3C`  | `--forest-mid`   | primary-container         | App btn-primary base (dark mode boosts to emerald-deep) |
+| Emerald      | `#077A3C`  | `#1CB460`  | `--emerald-deep` | primary                   | Success, savings growth, section CTAs (dark) |
+| Lime         | `#96C244`  | `#96C244`  | `--lime`         | secondary                 | Live indicators, M-Pesa/Agents CTAs, section accents |
+| Gold         | `#A87400`  | `#A87400`  | `--gold`         | tertiary                  | Premium CTAs (Lightning, ClosingCTA), Bitcoin |
+| Gold Soft    | `#C49020`  | `#BCA030`  | `--gold-soft`    | tertiary-container        | Gold on dark sections, hover states       |
+| Gold Text    | `#785400`  | `#BEA040`  | `--gold-text`    | on-tertiary-container     | Gold on light backgrounds, accent text   |
+| Terra        | `#BC5016`  | `#BC5016`  | `--terra`        | error/warning             | Warnings, destructive actions             |
 
 **Logo palette (mark-specific — separate from the site UI palette):**
 
@@ -310,15 +314,30 @@ for *comprehension* — showing where things come from and go — never decorati
 
 ### 7.1 Buttons
 
-| Variant            | Recipe                                                                                    |
-|--------------------|-------------------------------------------------------------------------------------------|
-| Primary (Gold)     | `--gold` solid bg, pill radius, `14px 26px` padding, Inter 600 15px. Hover: `--gold-soft` bg + `translateY(-2px)` + `var(--shadow-3)`. No glow. |
-| Primary (Emerald)  | Same geometry, `--emerald-deep` bg — in-app confirmations                                 |
-| Ghost on dark      | Transparent + `rgba(255,255,255,.35)` border, 85% white text. Hover: border to 72%, full white, subtle bg overlay |
-| Ghost on light     | `--border` border, `--text` text. Hover: emerald border                                   |
-| Destructive        | `--terra` bg, white text — always paired with a confirm step                              |
+| Variant       | Class         | Dark-section bg              | Light-section bg | Text      | Usage                                     |
+|---------------|---------------|------------------------------|------------------|-----------|-------------------------------------------|
+| Primary       | `.btn-primary`| `#1CB460` (bright emerald)   | `#0A3020` (forest)| `#fff`   | Save, Chama, Trust CTAs; in-app confirms  |
+| Gold          | `.btn-gold`   | `#C49020` (gold-soft)        | `#A87400` (gold) | `#1A0E00` | Lightning, ClosingCTA; one per viewport   |
+| Lime          | `.btn-lime`   | `#96C244`                    | `#6A9C28`        | `#fff`    | M-Pesa, Agents CTAs; live/active actions  |
+| Ghost on dark | `.btn-ghost.on-dark` | transparent + `rgba(255,255,255,.35)` border | — | 85% white | Secondary landing actions |
+| Ghost         | `.btn-ghost`  | transparent + var(--border)  | same             | var(--text)| App secondary actions                    |
+| Destructive   | `.btn-ghost` + terra styling | — | — | terra | Always confirm-gated |
+| Hero          | `.hero-btn`   | Frosted glass `rgba(255,255,255,.06)` | `#0A3020` solid (in `#inflation`) | var | Hero + Inflation CTA |
 
-**Button principle:** Buttons should not shout. One gold button per viewport for the primary CTA; all others use ghost or neutral variants. Avoid colored glows, gradients, or outsized shadows — `var(--shadow-2/3)` neutral shadows only. Hover is communicated with a subtle lift (`translateY(-2px)`) and a shade change on the background, not color explosions.
+**Button principle:** No glow, no gradient on button surfaces, no outsized shadows. One gold button per scroll viewport for the primary CTA; emerald for savings/growth flows; lime for mobile/location/active flows. Hover = subtle lift `translateY(-2px)` + one shade brighter, nothing more.
+
+**Landing section CTA map (page order):**
+| Section    | Variant   | Label                      |
+|------------|-----------|----------------------------|
+| Hero       | hero-btn  | Open a free account        |
+| Inflation  | hero-btn  | Protect my savings with sats |
+| Save       | primary   | Start saving today         |
+| M-Pesa     | lime      | Deposit via M-Pesa         |
+| Chama      | primary   | Start or join a chama      |
+| Agents     | lime      | Find agents near me        |
+| Lightning  | gold      | Get your Lightning address  |
+| Trust      | primary   | Open a trusted account     |
+| ClosingCTA | gold      | Open account               |
 
 **Button groups** (per [M3 button groups](https://m3.material.io/components/button-groups/overview)):
 related choices render as a connected segmented control (`.seg`) — single-select, one option
@@ -344,7 +363,18 @@ ghost cancel left (`.modal-actions` is row-reversed).
 
 ### 7.5 Navigation
 
-Sidebar (desktop) groups: Wallet / Grow / Account, with role-gated Mlinzi Console. Bottom nav
+**Landing nav (6 items, all anchor links):**
+
+| Label   | Target      | Hover underline | Section theme        |
+|---------|-------------|-----------------|----------------------|
+| Why     | `#inflation`| Gold-soft       | Inflation protection |
+| Save    | `#save`     | Blue-purple     | Savings vault        |
+| Chama   | `#chama`    | Gold-soft       | Community pool       |
+| Agents  | `#agents`   | Lime            | Cash access          |
+| Send    | `#lightning`| Gold-soft       | Lightning speed      |
+| Trust   | `#trust`    | Lime            | Verified ledger      |
+
+**App nav:** Sidebar (desktop) groups: Wallet / Grow / Account, with role-gated Mlinzi Console. Bottom nav
 (≤900px): max 6 items, icons + 9px labels. Everyday money actions (deposit/withdraw/send/lock)
 are **inline quick actions, not routes** — no button on a dashboard leads outside that dashboard.
 
@@ -465,3 +495,4 @@ projections, not guarantees. Not a public offer. Pending CBK regulatory approval
 | 3.0     | **Font refresh** — Syne → Playfair Display (editorial authority), DM Sans → Inter (neutral clarity). Letter-spacing recalibrated for serif. Button system quieted: no glows, professional lift-on-hover. Social footer (6 platforms). Developer attribution in footer. |
 | 3.1     | **Logo system** — Y-Bolt mark fully documented (construction table, variants, do/don'ts). Favicon refined: 5.2 stroke width, 3-stop gold gradient, 4-layer node with outer lime glow. Webmanifest updated to `"purpose": "any maskable"`. BRANDKIT §2 expanded to cover all logo treatments and minimum-size rules. |
 | 4.0     | **New logo & favicon** — Y-Bolt retired. Replaced with the **Chevron mark**: upward-opening gold chevron on deep navy rounded square. Combination mark (icon + Playfair Display wordmark). Navy logo palette introduced (`#080D1E / #111828` field; `#F0CC58 → #C49020 → #8A5E08` gold gradient). Peak cap circle at apex. Favicon: identical geometry, no glow overlay, reads clearly at 16 × 16. §2 fully rewritten with construction table, variant matrix, and do/don't table. §3.1 extended with logo-specific navy palette. |
+| 5.0     | **Button palette system** — Landing section CTAs now use section-matched variants: emerald-primary (Save, Chama, Trust), lime (M-Pesa, Agents), gold (Lightning, ClosingCTA). Section-specific CSS overrides ensure high contrast on both dark and light section backgrounds. `#inflation .hero-btn` gets solid forest-green treatment in light mode. **Nav update** — UserPaths section removed; Trust section added as 6th nav item (`#trust`, lime underline). §3.1 palette table corrected with actual CSS hex values and dark-mode overrides. §7.1 expanded with full landing CTA map. §7.5 expanded with landing nav table. |
