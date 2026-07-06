@@ -656,6 +656,7 @@ export default function ChamaDashboard() {
   // Contribute modal
   const [contributeModal, setContributeModal] = useState(false);
   const [contributing, setContributing] = useState(false);
+  const [showMoreActions, setShowMoreActions] = useState(false);
 
   // Chat fullscreen
   const [chatExpanded, setChatExpanded] = useState(false);
@@ -874,22 +875,35 @@ export default function ChamaDashboard() {
         <Button variant="primary" onClick={() => setContributeModal(true)}>
           <i className="ti ti-arrow-down" /> Contribute
         </Button>
-        <Button variant="ghost" onClick={() => setWithdrawModal(true)} disabled={!stake || stake.myValueSats <= 0}>
-          <i className="ti ti-arrow-up" /> Withdraw
-        </Button>
-        <Button variant="ghost" onClick={() => setTransferModal(true)} disabled={members.length <= 1}>
-          <i className="ti ti-send" /> Send
-        </Button>
-        <Button variant="ghost" onClick={handleCopyInvite}>
-          <i className="ti ti-share" /> Invite/Share
-        </Button>
-        <Button variant="gold" onClick={() => setVoteModal(true)}>
-          <i className="ti ti-check-box" /> New vote
-        </Button>
-        <Button variant="ghost" onClick={() => downloadStatement(chama, messages)}>
-          <i className="ti ti-file-download" /> Statement
-        </Button>
+        <button
+          className="btn btn-ghost"
+          onClick={() => setShowMoreActions((v) => !v)}
+          style={{ padding: "10px 14px" }}
+          aria-expanded={showMoreActions}
+        >
+          <i className={`ti ti-chevron-${showMoreActions ? "up" : "down"}`} />
+          {showMoreActions ? " Less" : " More"}
+        </button>
       </div>
+      {showMoreActions && (
+        <div className="chama-actions" style={{ marginTop: -8 }}>
+          <Button variant="ghost" onClick={() => setWithdrawModal(true)} disabled={!stake || stake.myValueSats <= 0}>
+            <i className="ti ti-arrow-up" /> Withdraw
+          </Button>
+          <Button variant="ghost" onClick={() => setTransferModal(true)} disabled={members.length <= 1}>
+            <i className="ti ti-send" /> Send
+          </Button>
+          <Button variant="ghost" onClick={handleCopyInvite}>
+            <i className="ti ti-share" /> Invite/Share
+          </Button>
+          <Button variant="gold" onClick={() => setVoteModal(true)}>
+            <i className="ti ti-check-box" /> New vote
+          </Button>
+          <Button variant="ghost" onClick={() => downloadStatement(chama, messages)}>
+            <i className="ti ti-file-download" /> Statement
+          </Button>
+        </div>
+      )}
 
       {withdrawSuccess && (
         <div className="notif-banner" style={{ background: "rgba(17,166,91,.12)", borderColor: "rgba(17,166,91,.3)" }}>

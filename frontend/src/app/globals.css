@@ -207,8 +207,8 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 
 /* ── Hero / section CTA button — restrained ghost, no shouting color ── */
 .hero-cta{margin-top:32px}
-.hero-btn{display:inline-flex;align-items:center;gap:9px;padding:12px 20px;border-radius:999px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);color:rgba(255,255,255,.88);font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:-.01em;cursor:pointer;border:none;transition:background .22s,box-shadow .22s,color .22s}
-.hero-btn:hover{background:rgba(47,224,186,.10);box-shadow:inset 0 0 0 1px rgba(47,224,186,.52),0 0 28px rgba(47,224,186,.17);color:#fff}
+.hero-btn{display:inline-flex;align-items:center;gap:9px;padding:12px 22px;border-radius:999px;background:rgba(255,255,255,.09);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.26);color:rgba(255,255,255,.92);font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:-.01em;cursor:pointer;border:none;transition:background .22s,box-shadow .22s,color .22s,transform .2s}
+.hero-btn:hover{background:rgba(28,180,96,.12);box-shadow:inset 0 0 0 1.5px rgba(28,180,96,.58),0 0 32px rgba(28,180,96,.18);color:#fff;transform:translateY(-1px)}
 .hero-btn:focus-visible{outline:2px solid rgba(47,224,186,.8);outline-offset:3px}
 
 /* ===== Statement bridge — full-width animated text, no image ===== */
@@ -1226,6 +1226,45 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
   background: var(--emerald-deep);
 }
 
+/* ── Landing section buttons — high contrast on dark/light gradient backgrounds ──
+   .sec covers every landing section (.sec class). Dark mode needs bright emerald;
+   light mode needs the deep forest green (base --forest already works, no override needed).
+   Gold needs a lighter shade on dark sections; lime needs a deeper shade on light sections. */
+.sec .btn-primary {
+  background: #0E7A42;
+  color: #fff;
+}
+.sec .btn-primary:hover {
+  background: #0F9050;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-3);
+}
+[data-theme="dark"] .sec .btn-primary {
+  background: #1CB460;
+}
+[data-theme="dark"] .sec .btn-primary:hover {
+  background: #22CC6E;
+}
+[data-theme="dark"] .sec .btn-gold {
+  background: #C49020;
+  color: #1A0E00;
+}
+[data-theme="dark"] .sec .btn-gold:hover {
+  background: #D4A432;
+  color: #1A0E00;
+}
+[data-theme="light"] .sec .btn-lime {
+  background: #6A9C28;
+  color: #fff;
+}
+[data-theme="light"] .sec .btn-lime:hover {
+  background: #7DB032;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-3);
+}
+
+
 /* ── App topbar — slight elevation above page bg ── */
 [data-theme="dark"] .topbar {
   background: var(--surface);
@@ -1591,6 +1630,7 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 .navlinks a[data-sec="chama"]:hover::after,.navlinks a[data-sec="chama"].active-link::after{background:var(--gold-soft);transform:scaleX(1)}
 .navlinks a[data-sec="agents"]:hover::after,.navlinks a[data-sec="agents"].active-link::after{background:var(--lime);transform:scaleX(1)}
 .navlinks a[data-sec="lightning"]:hover::after,.navlinks a[data-sec="lightning"].active-link::after{background:var(--gold-soft);transform:scaleX(1)}
+.navlinks a[data-sec="trust"]:hover::after,.navlinks a[data-sec="trust"].active-link::after{background:var(--lime);transform:scaleX(1)}
 .navlinks a[data-sec="convert"]:hover::after,.navlinks a[data-sec="convert"].active-link::after{background:var(--lime);transform:scaleX(1)}
 
 /* M-Pesa 3D phone tilt via CSS custom properties set by JS */
@@ -1664,18 +1704,6 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#2fe0ba 0%,#7
 
 [data-theme="light"] #trust     { background: linear-gradient(150deg,#EDF5F1 0%,#E4EFE9 50%,#EAF4EE 100%) }
 [data-theme="light"] #convert   { background: linear-gradient(150deg,#F1F6F3 0%,#E8EFE9 50%,#EDF4EF 100%) }
-
-/* ── Hero / section CTA button (light mode) ──────────────────────────── */
-[data-theme="light"] .hero-btn {
-  background: rgba(26,36,25,.05);
-  box-shadow: inset 0 0 0 1px rgba(26,36,25,.16);
-  color: var(--text);
-}
-[data-theme="light"] .hero-btn:hover {
-  background: rgba(26,36,25,.08);
-  box-shadow: inset 0 0 0 1px rgba(17,166,91,.38);
-  color: var(--text);
-}
 
 /* ── Statement bridge — light mode ───────────────────────────────────── */
 [data-theme="light"] .statement-sec {

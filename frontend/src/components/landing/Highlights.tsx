@@ -204,7 +204,7 @@ export function Lightning() {
                 <div className="m-key">fees inside YeboBank</div>
               </div>
             </div>
-            <p style={{ marginBottom: 24, fontSize: 13, color: "rgba(255,255,255,.55)", fontStyle: "italic" }}>
+            <p style={{ marginBottom: 24, fontSize: 13, color: "var(--muted)", fontStyle: "italic" }}>
               ↖ Move your cursor over the bolt to see the electric sparks.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -325,7 +325,7 @@ export function Trust() {
         </div>
 
         <div className="reveal d3" style={{ display: "flex", justifyContent: "center", marginTop: 48 }}>
-          <Button variant="gold" onClick={() => router.push("/login")}>
+          <Button variant="primary" onClick={() => router.push("/login")}>
             Open a trusted account
           </Button>
         </div>
