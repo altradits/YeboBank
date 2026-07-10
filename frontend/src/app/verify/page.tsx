@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import LogoMark from "@/components/ui/LogoMark";
 import { verifyOtp } from "@/lib/api";
+import { homePath } from "@/lib/useRoleGate";
 
 export default function VerifyPage() {
   const router = useRouter();
@@ -31,8 +32,8 @@ export default function VerifyPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await verifyOtp(digits.join("")); // mock — always succeeds
-      router.push(redirect || "/dashboard");
+      const u = await verifyOtp(digits.join("")); // mock — always succeeds
+      router.push(redirect || homePath(u));
     } finally {
       setLoading(false);
     }

@@ -40,8 +40,8 @@ export function ClosingCTA() {
         </p>
 
         <div className="cta-actions reveal d2">
-          <Button variant="gold" onClick={() => router.push("/login")}>
-            Open account
+          <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
+            Open your Member dashboard
           </Button>
         </div>
 
@@ -65,29 +65,34 @@ export function SiteFooter() {
             </p>
           </div>
           <div className="cols">
+            {/* Every explore link anchors a section; every section serves ONE dashboard */}
             <div className="col">
-              <h4>Product</h4>
+              <h4>Explore</h4>
+              <a href="#inflation">Why Bitcoin</a>
               <a href="#save">Savings</a>
-              <a href="#mpesa">M-Pesa deposit</a>
+              <a href="#mpesa">M-Pesa</a>
               <a href="#chama">Chamas</a>
               <a href="#agents">Agents</a>
-              <a href="#lightning">Lightning</a>
-              <a href="#convert">Converter</a>
+              <a href="#lightning">Send</a>
+              <a href="#invest">Invest</a>
+              <a href="#trust">Trust</a>
+              <a href="#convert">Rates</a>
+            </div>
+            {/* Each footer link opens one specific dashboard — no choices inside */}
+            <div className="col">
+              <h4>Dashboards</h4>
+              <Link href="/login?redirect=/dashboard">Member dashboard</Link>
+              <Link href="/login?redirect=/agent">Agent console</Link>
+              <Link href="/login?redirect=/invest">Investor dashboard</Link>
+              <Link href="/login?redirect=/mlinzi">Mlinzi console</Link>
             </div>
             <div className="col">
-              <h4>Company</h4>
-              <Link href="/">About</Link>
+              <h4>Member tools</h4>
+              <Link href="/login?redirect=/savings">Savings locks</Link>
+              <Link href="/login?redirect=/deposit">Deposit via M-Pesa</Link>
+              <Link href="/login?redirect=/chama">My chamas</Link>
+              <Link href="/login?redirect=/send">Send sats</Link>
               <a href="https://github.com/altradits/YeboBank" target="_blank" rel="noopener noreferrer">Open source</a>
-              <a href="#trust">Security</a>
-              <Link href="/login">Contact us</Link>
-            </div>
-            <div className="col">
-              <h4>Get started</h4>
-              <Link href="/login">Open account</Link>
-              <Link href="/login?redirect=/savings">Go to Savings</Link>
-              <Link href="/login?redirect=/chama">Go to Chama</Link>
-              <Link href="/login?redirect=/invest">Go to Invest</Link>
-              <Link href="/login?redirect=/agent">Become an agent</Link>
             </div>
           </div>
         </div>
