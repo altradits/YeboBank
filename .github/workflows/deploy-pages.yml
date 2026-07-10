@@ -1,5 +1,7 @@
-# Builds the Next.js frontend as a static export and deploys it to GitHub Pages
-# at https://altradits.github.io/YeboBank
+# Builds the Next.js frontend as a static export and publishes it to the
+# gh-pages branch, which GitHub Pages serves at
+# https://altradits.github.io/YeboBank
+# (first push to gh-pages enables Pages automatically — no settings change needed)
 #
 # NOTE: the claude/* branch trigger is temporary so the revamp deploys before it
 # merges — drop it (keep only main) once the branch lands.
@@ -13,16 +15,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,19 +39,8 @@ jobs:
         working-directory: frontend
         env:
           GITHUB_PAGES: "true"
-      - uses: actions/configure-pages@v5
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: frontend/out
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: frontend/out
