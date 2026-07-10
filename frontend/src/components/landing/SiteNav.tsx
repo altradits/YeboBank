@@ -6,29 +6,34 @@ import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import LogoMark from "@/components/ui/LogoMark";
 
-// Subtle warm/cool tints per section — all share the same dark gradient,
+// Navy tints per section — all share the same midnight-navy gradient,
 // so the frosted glass picks up whichever tint is active underneath.
 const ACCENTS: Record<string, string> = {
-  inflation: "rgba(28,12,0,.72)",
-  save:      "rgba(4,8,22,.72)",
-  mpesa:     "rgba(0,20,14,.72)",
-  chama:     "rgba(22,10,0,.72)",
-  agents:    "rgba(0,14,8,.72)",
-  lightning: "rgba(6,4,26,.72)",
-  trust:     "rgba(5,18,8,.72)",
-  convert:   "rgba(18,10,0,.72)",
-  cta:       "rgba(5,10,5,.72)",
+  inflation: "rgba(6,10,24,.74)",
+  save:      "rgba(5,9,22,.74)",
+  mpesa:     "rgba(4,10,26,.74)",
+  chama:     "rgba(8,12,28,.74)",
+  agents:    "rgba(5,11,26,.74)",
+  lightning: "rgba(6,8,26,.74)",
+  invest:    "rgba(9,12,30,.74)",
+  trust:     "rgba(5,10,26,.74)",
+  convert:   "rgba(7,11,26,.74)",
+  cta:       "rgba(4,8,22,.74)",
 };
-const DEFAULT_DARK = "rgba(5,12,6,.72)";
-const SECTION_IDS = ["inflation","save","mpesa","chama","agents","lightning","trust","convert","cta"];
+const DEFAULT_DARK = "rgba(4,7,18,.74)";
+const SECTION_IDS = ["inflation","save","mpesa","chama","agents","lightning","invest","trust","convert","cta"];
 
+// Every section on the page has a nav link pointing to it.
 const NAV_LINKS: { href: string; label: string; sec: string }[] = [
   { href: "#inflation", label: "Why",    sec: "inflation" },
   { href: "#save",      label: "Save",   sec: "save" },
+  { href: "#mpesa",     label: "M-Pesa", sec: "mpesa" },
   { href: "#chama",     label: "Chama",  sec: "chama" },
   { href: "#agents",    label: "Agents", sec: "agents" },
   { href: "#lightning", label: "Send",   sec: "lightning" },
+  { href: "#invest",    label: "Invest", sec: "invest" },
   { href: "#trust",     label: "Trust",  sec: "trust" },
+  { href: "#convert",   label: "Rates",  sec: "convert" },
 ];
 
 export default function SiteNav() {
@@ -96,8 +101,7 @@ export default function SiteNav() {
           >
             <i className={`ti ${dark ? "ti-sun" : "ti-moon"}`} />
           </button>
-          <Link href="/login" className="login">Log in</Link>
-          <Button onClick={() => router.push("/login")}>Open account</Button>
+          <Button onClick={() => router.push("/login")}>Sign in</Button>
         </div>
       </div>
     </nav>

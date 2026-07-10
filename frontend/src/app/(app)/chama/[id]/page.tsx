@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num, fmtKES, kesToSats, timeAgo } from "@/lib/format";
 import {
-  getChama, getChamaMessages, getChamaVotes, getChamaJoinRequests,
+  getChama, getChamaMessages, getChamaVotes, getChamaJoinRequests, requestJoinChama,
   postChamaMessage, createChamaVote, castVote,
   voteOnJoin, chamaDeposit, chamaTransfer,
   getMyStake, getChamaGrowth, withdrawFromChama, createChamaLock,
@@ -20,8 +20,9 @@ import WhatsAppBar from "@/components/app/WhatsAppBar";
 
 // TODO(backend): realtime/polling — replace these one-shot loads with
 // WebSocket subscription or polling (every ~5s) so all members see live state.
-const CURRENT_HANDLE = "@wanjiku";
-const CURRENT_NAME   = "Wanjiku Kamau";
+import { activeHandle, activeName } from "@/lib/mock";
+const CURRENT_HANDLE = activeHandle();
+const CURRENT_NAME   = activeName();
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -836,6 +837,63 @@ export default function ChamaDashboard() {
         <p className="note">Chama not found.</p>
         <Link href="/chama"><Button variant="ghost" style={{ marginTop: 16 }}>← Back</Button></Link>
       </div>
+    );
+  }
+
+  // ── Membership gate ────────────────────────────────────────────────────────
+  // Only ACCEPTED members can open a chama. Everyone else sees the public
+  // summary with two ways forward: request to join, or create their own
+  // chama and invite friends.
+  if (!chama.isMember) {
+    return (
+      <>
+        <div style={{ marginBottom: 6 }}>
+          <Link href="/chama/discover" style={{ color: "var(--soft)", fontSize: 14 }}>
+            <i className="ti ti-arrow-left" /> Discover chamas
+          </Link>
+        </div>
+        <div className="card" style={{ textAlign: "center", padding: "40px 24px", marginTop: 12 }}>
+          <i className="ti ti-lock" style={{ fontSize: 30, color: "var(--gold-text)" }} />
+          <h1 className="page-title" style={{ marginTop: 10 }}>{chama.name}</h1>
+          <p className="note" style={{ marginTop: 6 }}>{chama.description}</p>
+          <p className="note" style={{ marginTop: 14, maxWidth: 440, marginInline: "auto" }}>
+            This chama is members-only. Its balance, chat, votes, and savings are
+            visible only to people the group has accepted.
+          </p>
+          <div className="grid-2" style={{ marginTop: 18, maxWidth: 420, marginInline: "auto" }}>
+            <div className="stat">
+              <span className="l">Members</span>
+              <span className="v">{chama.memberCount}/{chama.maxMembers}</span>
+            </div>
+            <div className="stat">
+              <span className="l">Monthly contribution</span>
+              <span className="v">{num(chama.contributionSats)} sats</span>
+            </div>
+          </div>
+          <div style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, marginInline: "auto" }}>
+            {chama.pendingJoin ? (
+              <Button variant="ghost" block disabled>
+                <i className="ti ti-clock" /> Request pending — members are voting
+              </Button>
+            ) : (
+              <Button
+                block
+                onClick={async () => {
+                  await requestJoinChama(chama.id);
+                  setChama({ ...chama, pendingJoin: true });
+                }}
+              >
+                <i className="ti ti-user-plus" /> Request to join
+              </Button>
+            )}
+            <Link href="/chama/create">
+              <Button variant="ghost" block>
+                <i className="ti ti-users-plus" /> Create your own chama &amp; invite friends
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </>
     );
   }
 
