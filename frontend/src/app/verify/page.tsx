@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
@@ -8,7 +8,7 @@ import LogoMark from "@/components/ui/LogoMark";
 import { verifyOtp } from "@/lib/api";
 import { homePath } from "@/lib/useRoleGate";
 
-export default function VerifyPage() {
+function VerifyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "";
@@ -70,5 +70,14 @@ export default function VerifyPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+// useSearchParams() must sit under a Suspense boundary to statically export.
+export default function VerifyPage() {
+  return (
+    <Suspense>
+      <VerifyForm />
+    </Suspense>
   );
 }

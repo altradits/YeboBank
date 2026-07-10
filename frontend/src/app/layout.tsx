@@ -41,8 +41,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           `if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}` +
           `document.documentElement.dataset.theme=t;}catch(e){}})();`
         }} />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="icon" type="image/svg+xml" href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/favicon.svg`} />
+        <link rel="manifest" href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/site.webmanifest`} />
         <meta name="theme-color" content="#050D08" />
         <link
           rel="stylesheet"

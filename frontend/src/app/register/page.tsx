@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import LogoMark from "@/components/ui/LogoMark";
 import { register } from "@/lib/api";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "";
@@ -52,5 +52,14 @@ export default function RegisterPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+// useSearchParams() must sit under a Suspense boundary to statically export.
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }

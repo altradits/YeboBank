@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { fmtKESraw } from "@/lib/format";
 import { getIncomeSources, upsertIncomeSource, removeIncomeSource } from "@/lib/api";
@@ -18,7 +18,7 @@ const EMPTY: IncomeSource = {
   realizedReturnPctAnnual: 0, compounding: true, liquidity: "liquid", notes: "",
 };
 
-export default function IncomePage() {
+function IncomeContent() {
   const searchParams = useSearchParams();
   const [sources, setSources] = useState<IncomeSource[]>([]);
   const [editing, setEditing] = useState<IncomeSource | null>(null);
@@ -159,5 +159,14 @@ export default function IncomePage() {
         </div>
       )}
     </>
+  );
+}
+
+// useSearchParams() must sit under a Suspense boundary to statically export.
+export default function IncomePage() {
+  return (
+    <Suspense>
+      <IncomeContent />
+    </Suspense>
   );
 }
