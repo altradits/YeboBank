@@ -8,18 +8,147 @@ import type {
   PoolDeployment, VirtualCard,
 } from "@/types";
 
-export const mockUser: User = {
-  id: "u_demo",
-  phone: "+254712345678",
-  fullName: "Wanjiku Kamau",
-  role: "mlinzi",
-  lightningAddress: "wanjiku@yebobank.com",
-  language: "en",
-  isAgent: false,
-  relationship: "self",
-  ffVerified: true,
-  accessStatus: "accepted",
+// ── Demo personas ─────────────────────────────────────────────────────────────
+// One account per role so strict route gating can be exercised end-to-end:
+//   mlinzi   → /mlinzi only          (the fund steward — Stanley)
+//   agent    → /agent only
+//   investor → /invest only          (verified friend/family of the Mlinzi)
+//   member   → /dashboard + wallet   (neither investor nor mlinzi nor agent)
+// Log in with the matching phone number (any password) to switch persona.
+
+export type PersonaKey = "mlinzi" | "agent" | "investor" | "member";
+
+export interface MockPersona extends User {
+  handle: string; // @handle used across chama/invest mock data
+}
+
+export const mockPersonas: Record<PersonaKey, MockPersona> = {
+  mlinzi: {
+    id: "u_mlinzi", handle: "@stanley",
+    phone: "+254700000001",
+    fullName: "Stanley Chege Thuita",
+    role: "mlinzi",
+    lightningAddress: "stanley@yebobank.com",
+    language: "en", isAgent: false,
+    relationship: "self", ffVerified: true, accessStatus: "accepted",
+  },
+  agent: {
+    id: "u_agent", handle: "@otieno",
+    phone: "+254700000002",
+    fullName: "Otieno Odhiambo",
+    role: "agent",
+    lightningAddress: "otieno@yebobank.com",
+    language: "sw", isAgent: true,
+    relationship: "none", ffVerified: false, accessStatus: "none",
+  },
+  investor: {
+    id: "u_investor", handle: "@prudence",
+    phone: "+254700000003",
+    fullName: "Prudence Waithira",
+    role: "customer",
+    lightningAddress: "prudence@yebobank.com",
+    language: "en", isAgent: false,
+    relationship: "family", ffVerified: true, accessStatus: "accepted",
+  },
+  member: {
+    id: "u_member", handle: "@wanjiku",
+    phone: "+254712345678",
+    fullName: "Wanjiku Kamau",
+    role: "customer",
+    lightningAddress: "wanjiku@yebobank.com",
+    language: "en", isAgent: false,
+    relationship: "none", ffVerified: false, accessStatus: "none",
+  },
 };
+
+const PERSONA_STORAGE_KEY = "yebo-persona";
+
+export function getActivePersonaKey(): PersonaKey {
+  if (typeof window !== "undefined") {
+    try {
+      const k = localStorage.getItem(PERSONA_STORAGE_KEY) as PersonaKey | null;
+      if (k && k in mockPersonas) return k;
+    } catch { /* ignore */ }
+  }
+  return "member";
+}
+
+export function setActivePersonaKey(key: PersonaKey): void {
+  if (typeof window !== "undefined") {
+    try { localStorage.setItem(PERSONA_STORAGE_KEY, key); } catch { /* ignore */ }
+  }
+}
+
+/** Find the persona whose phone matches a login attempt (defaults to member). */
+export function personaByPhone(phone: string): PersonaKey {
+  const clean = phone.replace(/\s+/g, "").replace(/^0/, "+254");
+  const hit = (Object.keys(mockPersonas) as PersonaKey[])
+    .find((k) => mockPersonas[k].phone === clean);
+  return hit ?? "member";
+}
+
+/** The currently signed-in mock user. */
+export function activeUser(): MockPersona {
+  return mockPersonas[getActivePersonaKey()];
+}
+
+export function activeHandle(): string { return activeUser().handle; }
+export function activeName(): string { return activeUser().fullName; }
+
+// Legacy alias — prefer activeUser(). Kept so nothing breaks at import time.
+export const mockUser: User = mockPersonas.member;
+
+// ── Per-account setup (settings unique to each dashboard) ────────────────────
+// Persisted per persona in localStorage so each role keeps its own setup.
+
+export interface AccountSetup {
+  // member
+  mpesaNumber?: string;
+  dailyWithdrawLimitKes?: number;
+  autoLockSavings?: boolean;
+  // agent
+  tillNumber?: string;
+  shopName?: string;
+  lowFloatAlertSats?: number;
+  // investor
+  payoutMpesaNumber?: string;
+  statementFrequency?: "monthly" | "quarterly";
+  compounding?: boolean;
+  // mlinzi
+  stewardFeePct?: number;
+  cvvRotationMins?: number;
+  defaultDeployMethod?: "mpesa" | "lightning" | "card";
+  // shared
+  language?: "en" | "sw";
+}
+
+const SETUP_DEFAULTS: Record<PersonaKey, AccountSetup> = {
+  member:   { mpesaNumber: "+254712345678", dailyWithdrawLimitKes: 100_000, autoLockSavings: false, language: "en" },
+  agent:    { tillNumber: "8203341", shopName: "Otieno Electronics — Kondele", lowFloatAlertSats: 500_000, language: "sw" },
+  investor: { payoutMpesaNumber: "+254700000003", statementFrequency: "monthly", compounding: true, language: "en" },
+  mlinzi:   { stewardFeePct: 2, cvvRotationMins: 15, defaultDeployMethod: "mpesa", language: "en" },
+};
+
+export function loadAccountSetup(): AccountSetup {
+  const key = getActivePersonaKey();
+  const base = { ...SETUP_DEFAULTS[key] };
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem(`yebo-setup:${key}`);
+      if (raw) return { ...base, ...(JSON.parse(raw) as AccountSetup) };
+    } catch { /* ignore */ }
+  }
+  return base;
+}
+
+export function persistAccountSetup(patch: AccountSetup): AccountSetup {
+  const key = getActivePersonaKey();
+  const next = { ...loadAccountSetup(), ...patch };
+  if (typeof window !== "undefined") {
+    try { localStorage.setItem(`yebo-setup:${key}`, JSON.stringify(next)); } catch { /* ignore */ }
+  }
+  return next;
+}
 
 export const mockWallet: Wallet = {
   balanceSats: 412_500,

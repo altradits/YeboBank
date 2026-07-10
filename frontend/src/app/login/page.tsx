@@ -53,6 +53,34 @@ export default function LoginPage() {
         <p className="foot-link">
           New to YeboBank? <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : "/register"}>Open an account</Link>
         </p>
+
+        {/* Demo accounts — each phone signs into a different role. Every role is
+            locked to its own dashboard and its own settings. */}
+        <div style={{ marginTop: 22, borderTop: "1px solid var(--border-soft)", paddingTop: 14 }}>
+          <p className="note" style={{ marginBottom: 8, fontSize: 12 }}>Demo accounts (any password):</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {([
+              ["Member",   "+254712345678"],
+              ["Agent",    "+254700000002"],
+              ["Investor", "+254700000003"],
+              ["Mlinzi",   "+254700000001"],
+            ] as const).map(([label, ph]) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setPhone(ph)}
+                style={{
+                  padding: "8px 10px", borderRadius: 8, fontSize: 12, cursor: "pointer",
+                  border: `1px solid ${phone === ph ? "var(--gold)" : "var(--border-soft)"}`,
+                  background: "transparent", color: "var(--text)",
+                  fontFamily: "var(--font-display)", fontWeight: 600,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </main>
   );

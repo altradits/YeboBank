@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useRoleGate } from "@/lib/useRoleGate";
+import { useRoleGate, roleOf } from "@/lib/useRoleGate";
 import Button from "@/components/ui/Button";
 import QRScanner from "@/components/ui/QRScanner";
 import TransactionRow from "@/components/app/TransactionRow";
@@ -200,7 +200,7 @@ function VerifyStep({ member, channel, codeSent, code, error, verifying, onSendC
 export default function AgentPage() {
   const rate    = useRate();
   const router  = useRouter();
-  const allowed = useRoleGate((u) => u.isAgent);
+  const allowed = useRoleGate((u) => roleOf(u) === "agent");
 
   const [agent,   setAgent]   = useState<Agent | null>(null);
   const [history, setHistory] = useState<LedgerEntry[]>([]);

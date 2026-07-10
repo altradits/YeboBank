@@ -62,7 +62,7 @@ export function Lightning() {
         y2: my + Math.sin(angle) * dist,
         life: 0,
         maxLife: 10 + Math.random() * 12,
-        color: Math.random() > 0.5 ? "rgba(224,168,0," : "rgba(150,194,68,",
+        color: Math.random() > 0.5 ? "rgba(224,168,0," : "rgba(124,199,242,",
       });
     };
 
@@ -140,8 +140,8 @@ export function Lightning() {
               <path
                 key={i}
                 d={c.d}
-                fill="rgba(47,224,186,.06)"
-                stroke="rgba(47,224,186,.28)"
+                fill="rgba(94,225,255,.06)"
+                stroke="rgba(94,225,255,.28)"
                 strokeWidth=".8"
               />
             ))}
@@ -173,7 +173,7 @@ export function Lightning() {
                 />
                 <defs>
                   <linearGradient id="bolt-grad" x1="60" y1="8" x2="60" y2="192" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#E0C040" />
+                    <stop stopColor="#D8B754" />
                     <stop offset="0.5" style={{ stopColor: "var(--gold)" }} />
                     <stop offset="1" stopColor="#7A5800" />
                   </linearGradient>
@@ -208,7 +208,7 @@ export function Lightning() {
               ↖ Move your cursor over the bolt to see the electric sparks.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
+              <Button variant="gold" onClick={() => router.push("/login?redirect=/send")}>
                 Get your Lightning address
               </Button>
             </div>
@@ -325,7 +325,7 @@ export function Trust() {
         </div>
 
         <div className="reveal d3" style={{ display: "flex", justifyContent: "center", marginTop: 48 }}>
-          <Button variant="primary" onClick={() => router.push("/login")}>
+          <Button variant="primary" onClick={() => router.push("/login?redirect=/dashboard")}>
             Open a trusted account
           </Button>
         </div>

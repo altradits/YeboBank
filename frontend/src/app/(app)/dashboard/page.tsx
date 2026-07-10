@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { ATMCard, type ActionItem } from "@/components/app/ATMCard";
 import TransactionRow from "@/components/app/TransactionRow";
 import QuickActionModal, { type QuickActionKind } from "@/components/app/QuickActionModal";
-import { getWallet, getHistory, getUser, getLocks, getChamas, chamaDeposit } from "@/lib/api";
+import { getWallet, getHistory, getUser, getLocks, getChamas, chamaDeposit, requestAccess } from "@/lib/api";
+import type { User } from "@/types";
 import { num } from "@/lib/format";
 import { useRate } from "@/lib/rate-context";
-import { mockUser } from "@/lib/mock";
 import type { LedgerEntry, SavingsLock, Chama } from "@/types";
 
 export default function DashboardPage() {
@@ -18,6 +18,13 @@ export default function DashboardPage() {
   const [balance,    setBalance]    = useState(0);
   const [history,    setHistory]    = useState<LedgerEntry[]>([]);
   const [firstName,  setFirstName]  = useState("Wanjiku");
+  const [user,       setUser]       = useState<User | null>(null);
+
+  // Invest access popup — the ONLY way a member interacts with investing.
+  // No link ever leaves this dashboard; it's a popup, and once the Mlinzi
+  // accepts, the account becomes an Investor and lives in /invest instead.
+  const [investOpen,   setInvestOpen]   = useState(false);
+  const [requesting,   setRequesting]   = useState(false);
   const [showAll,    setShowAll]    = useState(false);
 
   // Savings drawer
@@ -40,7 +47,7 @@ export default function DashboardPage() {
   useEffect(() => {
     getWallet().then((w) => setBalance(w.balanceSats));
     getHistory().then(setHistory);
-    getUser().then((u) => setFirstName(u.fullName.split(" ")[0]));
+    getUser().then((u) => { setFirstName(u.fullName.split(" ")[0]); setUser(u); });
   }, []);
 
   function openSavings() {
@@ -79,20 +86,15 @@ export default function DashboardPage() {
     }
   }
 
-  const isMlinzi  = mockUser.role === "mlinzi";
-  const isAgent   = mockUser.isAgent;
-  const canInvest = isMlinzi || mockUser.accessStatus === "accepted";
-  const showInvest = !isMlinzi && mockUser.accessStatus !== "declined";
-
+  // This dashboard only ever renders for plain members (see dashboard/layout.tsx).
+  // Nothing here links outside the member dashboard — investing is a popup.
   const actions: ActionItem[] = [
     { icon: "ti-arrow-down",  label: "Deposit",  action: "deposit" },
     { icon: "ti-arrow-up",    label: "Withdraw", action: "withdraw" },
     { icon: "ti-send",        label: "Send",     action: "send" },
     { icon: "ti-lock",        label: "Savings",  onClick: openSavings },
     { icon: "ti-users",       label: "Chamas",   onClick: openChama },
-    ...(isAgent     ? [{ icon: "ti-cash",        label: "Agent",   path: "/agent" }]   : []),
-    ...(showInvest  ? [{ icon: "ti-trending-up", label: canInvest ? "Invest" : "Invest", path: "/invest" }] : []),
-    ...(isMlinzi   ? [{ icon: "ti-shield-lock", label: "Console", path: "/mlinzi" }] : []),
+    { icon: "ti-trending-up", label: "Invest",   onClick: () => setInvestOpen(true) },
   ];
 
   const memberChamas = chamas?.filter((c) => c.isMember) ?? [];
@@ -125,6 +127,59 @@ export default function DashboardPage() {
           <p className="note">No transactions yet. Deposit to get started.</p>
         )}
       </div>
+
+      {/* ── Invest access popup (never leaves the dashboard) ─────────────── */}
+      {investOpen && (
+        <div className="modal-overlay" onClick={() => setInvestOpen(false)}>
+          <div className="modal" style={{ maxWidth: 440 }} role="dialog" aria-modal="true"
+            aria-labelledby="invest-modal-title" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setInvestOpen(false)} aria-label="Close invest">
+              <i className="ti ti-x" />
+            </button>
+            <h2 id="invest-modal-title">Invest with the Mlinzi</h2>
+            <p className="modal-sub">Friends &amp; family pilot — access by acceptance only.</p>
+
+            {user?.accessStatus === "requested" ? (
+              <p className="note" style={{ marginTop: 14 }}>
+                <i className="ti ti-clock" style={{ color: "var(--gold-text)" }} />{" "}
+                Your request is with the Mlinzi for personal review. Once accepted
+                and verified, your account becomes an Investor account with its own
+                dashboard.
+              </p>
+            ) : user?.accessStatus === "declined" ? (
+              <p className="note" style={{ marginTop: 14 }}>
+                Access isn&apos;t available for your account right now. The pilot is
+                limited to verified friends and family of the Mlinzi.
+              </p>
+            ) : (
+              <>
+                <p className="note" style={{ marginTop: 14 }}>
+                  The Mlinzi personally stewards a private pool for verified friends
+                  and family — real assets, monthly statements, compounded returns.
+                  Request access and they will review you personally.
+                </p>
+                <button
+                  className="btn btn-gold btn-block"
+                  style={{ marginTop: 18 }}
+                  disabled={requesting}
+                  onClick={async () => {
+                    setRequesting(true);
+                    try {
+                      await requestAccess();
+                      const u = await getUser();
+                      setUser(u);
+                    } finally {
+                      setRequesting(false);
+                    }
+                  }}
+                >
+                  {requesting ? "Sending…" : "Request investor access"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Savings drawer ──────────────────────────────────────────────── */}
       {savingsOpen && (

@@ -187,7 +187,7 @@ export function ATMCard({
       <div style={{ ...sharedBg, borderRadius: 18, padding: "24px 28px", boxShadow: "0 14px 44px rgba(0,0,0,.5)" }}>
         {/* Glow orbs */}
         <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,168,76,.2) 0%, transparent 70%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: -60, left: -60, width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle, rgba(46,100,46,.3) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: -60, left: -60, width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle, rgba(28,58,107,.3) 0%, transparent 70%)", pointerEvents: "none" }} />
 
         {/* Top row: brand + name */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>
@@ -338,7 +338,7 @@ export function ATMCard({
         <div key={r} style={{ position: "absolute", right: -r * .3, bottom: -r * .2, width: r, height: r, borderRadius: "50%", border: "1px solid rgba(255,255,255,.04)", pointerEvents: "none" }} />
       ))}
       <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,168,76,.22) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: -60, left: -60, width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle, rgba(46,100,46,.28) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: -60, left: -60, width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle, rgba(28,58,107,.28) 0%, transparent 70%)", pointerEvents: "none" }} />
 
       {/* Row 1: brand + chip */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative" }}>
