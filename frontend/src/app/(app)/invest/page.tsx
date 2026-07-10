@@ -102,7 +102,30 @@ export default function InvestPage() {
     );
   }
 
-  // ── Accepted: full investor dashboard ───────────────────────────────────────
+  // ── Accepted but not fully verified ────────────────────────────────────────
+  // The investor dashboard is reserved for VERIFIED friends & family of the
+  // Mlinzi (Stanley Thuita). Acceptance without verification isn't enough.
+  const isVerifiedFF =
+    user.ffVerified === true &&
+    (user.relationship === "family" || user.relationship === "friend" || user.relationship === "investor");
+  if (!isVerifiedFF) {
+    return (
+      <>
+        <div className="section-head"><div><h1 className="page-title">Invest with Mlinzi</h1></div></div>
+        <ATMCard variant="compact" />
+        <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
+          <i className="ti ti-id-badge-2" style={{ fontSize: 30, color: "var(--gold-text)" }} />
+          <h2 style={{ fontFamily: "var(--font-display)", marginTop: 10 }}>Verification pending</h2>
+          <p className="note" style={{ marginTop: 8, maxWidth: 460, marginInline: "auto" }}>
+            Your access was approved, but the Mlinzi still needs to verify you as a
+            friend or family member before the investor dashboard opens.
+          </p>
+        </div>
+      </>
+    );
+  }
+
+  // ── Accepted & verified F&F: full investor dashboard ────────────────────────
   const last = position?.monthlyStatements[position.monthlyStatements.length - 1];
   const opening = position ? (position.monthlyStatements.length > 1 ? position.monthlyStatements[position.monthlyStatements.length - 2].closingKes : position.principalKesAtEntry) : 0;
   const currentValueKes = last ? last.closingKes : position?.principalKesAtEntry ?? 0;
@@ -118,7 +141,7 @@ export default function InvestPage() {
           {notifications.map((n) => (
             <div key={n.id} className="notif-banner" style={{
               marginBottom: 8, cursor: "default",
-              background: n.kind === "statement" ? "rgba(47,224,186,.08)" : undefined,
+              background: n.kind === "statement" ? "rgba(94,225,255,.08)" : undefined,
             }}>
               <i className={`ti ${n.kind === "statement" ? "ti-chart-bar" : n.kind === "access_accepted" ? "ti-circle-check" : "ti-bell"}`} />
               <span style={{ flex: 1 }}>{n.body}</span>

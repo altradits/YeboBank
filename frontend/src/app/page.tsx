@@ -6,6 +6,7 @@ import SiteNav from "@/components/landing/SiteNav";
 import Hero from "@/components/landing/Hero";
 import FeatureSections from "@/components/landing/FeatureSections";
 import { Lightning, Trust } from "@/components/landing/Highlights";
+import InvestSection from "@/components/landing/InvestSection";
 import Converter from "@/components/landing/Converter";
 import { ClosingCTA, SiteFooter } from "@/components/landing/Footer";
 
@@ -23,6 +24,7 @@ export default function HomePage() {
       </div>
       <FeatureSections />
       <Lightning />
+      <InvestSection />
       <Trust />
       <Converter />
       <ClosingCTA />

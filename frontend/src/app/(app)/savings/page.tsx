@@ -14,8 +14,9 @@ import LockCard from "@/components/app/LockCard";
 import { ATMCard } from "@/components/app/ATMCard";
 import { bucketDeposits, type Preset } from "@/lib/bucket";
 
-const CURRENT_HANDLE = "@wanjiku";
-const CURRENT_NAME   = "Wanjiku Kamau";
+import { activeHandle, activeName } from "@/lib/mock";
+const CURRENT_HANDLE = activeHandle();
+const CURRENT_NAME   = activeName();
 
 export default function SavingsPage() {
   const rate = useRate();

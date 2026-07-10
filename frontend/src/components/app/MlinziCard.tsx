@@ -67,7 +67,7 @@ export function MlinziCard({
     }}>
       {/* Glow orbs */}
       <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,168,76,.2) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: -60, left: -60, width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle, rgba(46,100,46,.3) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: -60, left: -60, width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle, rgba(28,58,107,.3) 0%, transparent 70%)", pointerEvents: "none" }} />
 
       {/* Top row: brand + name */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>

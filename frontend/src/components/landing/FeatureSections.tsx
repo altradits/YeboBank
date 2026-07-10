@@ -684,8 +684,8 @@ function CommunityPair() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="lime" onClick={findNearMe} disabled={locating}>
-                <i className="ti ti-current-location" /> {locating ? "Locating…" : "Find agents near me"}
+              <Button variant="gold" onClick={() => router.push("/login?redirect=/agent")}>
+                Open the Agent console
               </Button>
             </div>
           </div>

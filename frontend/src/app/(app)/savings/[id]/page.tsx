@@ -13,8 +13,9 @@ import ContributeModal from "@/components/app/ContributeModal";
 import WhatsAppBar from "@/components/app/WhatsAppBar";
 
 // TODO(backend): derive from session cookie on the server
-const CURRENT_HANDLE = "@wanjiku";
-const CURRENT_NAME   = "Wanjiku Kamau";
+import { activeHandle, activeName } from "@/lib/mock";
+const CURRENT_HANDLE = activeHandle();
+const CURRENT_NAME   = activeName();
 
 const KIND_LABEL: Record<string, string> = {
   individual: "Individual",

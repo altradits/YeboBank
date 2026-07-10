@@ -17,7 +17,9 @@ import type {
   PendingInvite, LockMessage, PoolDeployment, VirtualCard,
 } from "@/types";
 import {
-  mockUser, mockWallet, mockLedger, mockLocks, mockChamas, mockAgent, mockAgentLedger, mockCustomerDirectory,
+  activeUser, activeHandle, activeName, personaByPhone, setActivePersonaKey, mockPersonas,
+  loadAccountSetup, persistAccountSetup,
+  mockWallet, mockLedger, mockLocks, mockChamas, mockAgent, mockAgentLedger, mockCustomerDirectory,
   mockAllChamas, mockChamaMessages, mockChamaVotes, mockJoinRequests,
   mockGrowthData, mockSavingsGrowth, mockSavingsDeposits, mockPendingInvites,
   mockIncomeSources, mockInvestorPositions, mockAccessRequests, mockFIProfiles,
@@ -26,6 +28,7 @@ import {
   MOCK_RESERVE_PIN, MOCK_REACTIVATION_CODES,
   mockVirtualCard, createMockCard, rotateMockCvvIfExpired, generateMockCvv, clearMockVirtualCard,
 } from "@/lib/mock";
+import type { AccountSetup, PersonaKey } from "@/lib/mock";
 
 const USE_MOCKS = true; // flip to false once the backend endpoints exist
 
@@ -46,7 +49,12 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 
 // ---- auth --------------------------------------------------------------------
 export async function login(phone: string, password: string): Promise<User> {
-  if (USE_MOCKS) return delay(mockUser);
+  if (USE_MOCKS) {
+    // Demo auth: the phone number picks the persona (mlinzi / agent / investor / member).
+    const key: PersonaKey = personaByPhone(phone);
+    setActivePersonaKey(key);
+    return delay({ ...activeUser() });
+  }
   return req<User>("/login", { method: "POST", body: JSON.stringify({ phone, password }) });
 }
 
@@ -56,7 +64,7 @@ export async function register(phone: string, fullName: string): Promise<{ otpSe
 }
 
 export async function verifyOtp(code: string): Promise<User> {
-  if (USE_MOCKS) return delay(mockUser);
+  if (USE_MOCKS) return delay({ ...activeUser() });
   return req<User>("/verify", { method: "POST", body: JSON.stringify({ code }) });
 }
 
@@ -67,7 +75,7 @@ export async function logout(): Promise<void> {
 
 // ---- account -----------------------------------------------------------------
 export async function getUser(): Promise<User> {
-  if (USE_MOCKS) return delay(mockUser);
+  if (USE_MOCKS) return delay({ ...activeUser() });
   return req<User>("/me");
 }
 
@@ -149,11 +157,11 @@ export async function addToLock(lockId: string, sats: number): Promise<SavingsLo
     const lock = mockLocks.find((l) => l.id === lockId);
     if (!lock) throw new Error(`Lock ${lockId} not found`);
     lock.principalSats += sats;
-    const mine = lock.participants?.find((p) => p.handle === MOCK_HANDLE);
+    const mine = lock.participants?.find((p) => p.handle === activeHandle());
     if (mine) {
       mine.contributedSats += sats;
     } else if (lock.participants) {
-      lock.participants.push({ handle: MOCK_HANDLE, name: MOCK_NAME, contributedSats: sats });
+      lock.participants.push({ handle: activeHandle(), name: activeName(), contributedSats: sats });
     }
     return delay({ ...lock, participants: lock.participants?.map((p) => ({ ...p })) });
   }
@@ -169,7 +177,7 @@ export async function createGroupLock(sats: number, years: number, title: string
       maturesAt: new Date(Date.now() + years * 365 * 86400e3).toISOString(),
       kind: "group", title,
       participants: [
-        { handle: MOCK_HANDLE, name: MOCK_NAME, contributedSats: sats },
+        { handle: activeHandle(), name: activeName(), contributedSats: sats },
         ...handles.map((h) => ({ handle: h, name: h, contributedSats: 0 })),
       ],
     };
@@ -188,7 +196,7 @@ export async function createChamaLock(chamaId: string, sats: number, years: numb
       status: "active", lockedAt: new Date().toISOString(),
       maturesAt: new Date(Date.now() + years * 365 * 86400e3).toISOString(),
       kind: "chama", title: chama?.name ?? "Chama lock", chamaId,
-      participants: [{ handle: MOCK_HANDLE, name: MOCK_NAME, contributedSats: sats }],
+      participants: [{ handle: activeHandle(), name: activeName(), contributedSats: sats }],
     };
     mockLocks.push(newLock);
     return delay({ ...newLock });
@@ -218,19 +226,62 @@ export async function acceptInvite(inviteId: string): Promise<void> {
 }
 
 // ---- chamas ------------------------------------------------------------------
+// Only chamas the current user has been ACCEPTED into. Everything else is
+// reachable via /chama/discover where they can request to join.
 export async function getChamas(): Promise<Chama[]> {
-  if (USE_MOCKS) return delay(mockChamas);
+  if (USE_MOCKS) return delay(mockAllChamas.filter((c) => c.isMember));
   return req<Chama[]>("/chama");
 }
 
 export async function createChama(name: string, contributionSats: number): Promise<Chama> {
   if (USE_MOCKS) {
-    return delay({
-      id: "c_new", name, description: "", balanceSats: 0,
-      contributionSats, memberCount: 1, maxMembers: 50,
-    });
+    const chama: Chama = {
+      id: `c_${Date.now()}`, name, description: "Started by you — invite friends to join.",
+      balanceSats: 0, contributionSats, memberCount: 1, maxMembers: 50,
+      isMember: true, pendingJoin: false,
+      members: [{ id: `m_${Date.now()}`, name: activeName(), handle: activeHandle(), role: "admin", balanceSats: 0 }],
+      myContributionSats: 0, poolContributionsSats: 0, poolValueSats: 0,
+    };
+    // The creator is automatically a member (and admin) of their own chama.
+    mockAllChamas.push(chama);
+    mockChamas.push(chama);
+    return delay({ ...chama });
   }
   return req<Chama>("/chama/create", { method: "POST", body: JSON.stringify({ name, contributionSats }) });
+}
+
+// Invite friends to a chama you belong to. Invitees get a pending invite they
+// must accept — access is never granted to anyone who hasn't been accepted.
+// TODO(backend): POST /chama/{id}/invite
+export async function inviteToChama(chamaId: string, contacts: string[]): Promise<{ invited: number }> {
+  if (USE_MOCKS) {
+    const chama = mockAllChamas.find((c) => c.id === chamaId);
+    if (!chama?.isMember) throw new Error("Only members can invite to a chama");
+    if (!mockChamaMessages[chamaId]) mockChamaMessages[chamaId] = [];
+    contacts.filter(Boolean).forEach((contact) => {
+      mockChamaMessages[chamaId].push({
+        id: `cm_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, chamaId, kind: "system",
+        authorHandle: "@system", authorName: "System",
+        body: `${activeName()} invited ${contact} to join the chama.`,
+        createdAt: new Date().toISOString(),
+      });
+    });
+    return delay({ invited: contacts.filter(Boolean).length });
+  }
+  return req<{ invited: number }>(`/chama/${chamaId}/invite`, { method: "POST", body: JSON.stringify({ contacts }) });
+}
+
+// ---- account setup (unique per dashboard/role) --------------------------------
+// TODO(backend): GET /me/setup
+export async function getAccountSetup(): Promise<AccountSetup> {
+  if (USE_MOCKS) return delay(loadAccountSetup(), 150);
+  return req<AccountSetup>("/me/setup");
+}
+
+// TODO(backend): PATCH /me/setup
+export async function saveAccountSetup(patch: AccountSetup): Promise<AccountSetup> {
+  if (USE_MOCKS) return delay(persistAccountSetup(patch), 250);
+  return req<AccountSetup>("/me/setup", { method: "PATCH", body: JSON.stringify(patch) });
 }
 
 // ---- agent -------------------------------------------------------------------
@@ -495,9 +546,8 @@ export async function saveEmergencyContacts(contacts: EmergencyContact[]): Promi
 }
 
 // ── Chama feature (new endpoints) ────────────────────────────────────────────
-// Current user handle used by mock layer only. Backend derives from session.
-const MOCK_HANDLE = "@wanjiku";
-const MOCK_NAME   = "Wanjiku Kamau";
+// Current user handle/name come from the active persona (mock layer only).
+// Backend derives these from the session cookie.
 
 // Returns all YeboBank chamas with isMember/pendingJoin flags.
 // TODO(backend): GET /chama/all
@@ -553,11 +603,11 @@ export async function getChamaJoinRequests(id: string): Promise<JoinRequest[]> {
 // TODO(backend): POST /chama/{id}/join
 export async function requestJoinChama(id: string): Promise<JoinRequest> {
   if (USE_MOCKS) {
-    const existing = mockJoinRequests.find((r) => r.chamaId === id && r.requesterHandle === MOCK_HANDLE);
+    const existing = mockJoinRequests.find((r) => r.chamaId === id && r.requesterHandle === activeHandle());
     if (existing) return delay(existing);
     const req_: JoinRequest = {
       id: `jr_${Date.now()}`, chamaId: id,
-      requesterHandle: MOCK_HANDLE, requesterName: MOCK_NAME,
+      requesterHandle: activeHandle(), requesterName: activeName(),
       approvals: [], status: "pending",
     };
     mockJoinRequests.push(req_);
@@ -566,7 +616,7 @@ export async function requestJoinChama(id: string): Promise<JoinRequest> {
     mockChamaMessages[id].push({
       id: `cm_${Date.now()}`, chamaId: id, kind: "join_request",
       authorHandle: "@system", authorName: "System",
-      body: `${MOCK_NAME} (${MOCK_HANDLE}) has requested to join the chama.`,
+      body: `${activeName()} (${activeHandle()}) has requested to join the chama.`,
       createdAt: new Date().toISOString(), meta: { requestId: req_.id },
     });
     // Mark the chama as pendingJoin for the current user
@@ -583,8 +633,8 @@ export async function voteOnJoin(chamaId: string, requestId: string, approve: bo
   if (USE_MOCKS) {
     const jr = mockJoinRequests.find((r) => r.id === requestId && r.chamaId === chamaId);
     if (!jr) throw new Error("Join request not found");
-    if (approve && !jr.approvals.includes(MOCK_HANDLE)) {
-      jr.approvals.push(MOCK_HANDLE);
+    if (approve && !jr.approvals.includes(activeHandle())) {
+      jr.approvals.push(activeHandle());
     }
     const chama = mockAllChamas.find((c) => c.id === chamaId);
     const memberCount = chama?.memberCount ?? 1;
@@ -639,10 +689,10 @@ export async function castVote(chamaId: string, voteId: string, option: string):
     if (vote.status !== "open") return delay({ ...vote });
     // Remove previous vote by this user from all options
     for (const opt of vote.options) {
-      vote.tallies[opt] = (vote.tallies[opt] ?? []).filter((h) => h !== MOCK_HANDLE);
+      vote.tallies[opt] = (vote.tallies[opt] ?? []).filter((h) => h !== activeHandle());
     }
     if (!vote.tallies[option]) vote.tallies[option] = [];
-    vote.tallies[option].push(MOCK_HANDLE);
+    vote.tallies[option].push(activeHandle());
 
     const chama = mockAllChamas.find((c) => c.id === chamaId);
     const memberCount = chama?.memberCount ?? 1;
@@ -804,7 +854,7 @@ export async function withdrawFromChama(chamaId: string, sats: number): Promise<
 export const CBK_DECLINE_MESSAGE =
   "Access isn't available yet. YeboBank's investment service is currently limited to the founder's family and friends while we complete Central Bank of Kenya (CBK) regulatory approval. Once we're licensed, this will open to the public — we'll let you know.";
 
-const MLINZI_HANDLE = MOCK_HANDLE;
+const MLINZI_HANDLE = activeHandle();
 
 export async function getInvestorPositionForHandle(handle: string): Promise<InvestorPosition | null> {
   if (USE_MOCKS) {
@@ -916,13 +966,14 @@ export async function acceptAccess(handle: string, relationship: "family" | "fri
     const r = mockAccessRequests.find((a) => a.handle === handle);
     if (!r) throw new Error(`Access request for ${handle} not found`);
     r.status = "accepted";
-    if (handle === MOCK_HANDLE) {
-      mockUser.relationship = relationship;
-      mockUser.ffVerified = true;
-      mockUser.accessStatus = "accepted";
-      if (!mockInvestorPositions.find((p) => p.investorHandle === MOCK_HANDLE)) {
+    const persona = Object.values(mockPersonas).find((u) => u.handle === handle);
+    if (persona) {
+      persona.relationship = relationship;
+      persona.ffVerified = true;
+      persona.accessStatus = "accepted";
+      if (!mockInvestorPositions.find((p) => p.investorHandle === handle)) {
         mockInvestorPositions.push({
-          id: `ip_${Date.now()}`, investorHandle: MOCK_HANDLE, investorName: mockUser.fullName,
+          id: `ip_${Date.now()}`, investorHandle: handle, investorName: persona.fullName,
           relationship, principalSats: 0, principalKesAtEntry: 0,
           entryDate: new Date().toISOString(), realizedReturnPctAnnual: 20, compounding: true,
           monthlyStatements: [],
@@ -941,7 +992,8 @@ export async function declineAccess(handle: string): Promise<AccessRequest> {
     const r = mockAccessRequests.find((a) => a.handle === handle);
     if (!r) throw new Error(`Access request for ${handle} not found`);
     r.status = "declined";
-    if (handle === MOCK_HANDLE) mockUser.accessStatus = "declined";
+    const declined = Object.values(mockPersonas).find((u) => u.handle === handle);
+    if (declined) declined.accessStatus = "declined";
     pushNotification(handle, "access_declined", CBK_DECLINE_MESSAGE);
     return delay({ ...r });
   }
@@ -986,10 +1038,10 @@ export async function declineWithdrawal(id: string, note?: string): Promise<With
 // TODO(backend): POST /invest/request
 export async function requestAccess(): Promise<{ ok: boolean }> {
   if (USE_MOCKS) {
-    mockUser.accessStatus = "requested";
-    const existing = mockAccessRequests.find((a) => a.handle === MOCK_HANDLE);
+    activeUser().accessStatus = "requested";
+    const existing = mockAccessRequests.find((a) => a.handle === activeHandle());
     if (existing) existing.status = "requested";
-    else mockAccessRequests.push({ handle: MOCK_HANDLE, name: mockUser.fullName, requestedAt: new Date().toISOString(), status: "requested" });
+    else mockAccessRequests.push({ handle: activeHandle(), name: activeName(), requestedAt: new Date().toISOString(), status: "requested" });
     return delay({ ok: true });
   }
   return req<{ ok: boolean }>("/invest/request", { method: "POST" });
@@ -998,7 +1050,7 @@ export async function requestAccess(): Promise<{ ok: boolean }> {
 // TODO(backend): GET /invest/me
 export async function getMyPosition(): Promise<InvestorPosition | null> {
   if (USE_MOCKS) {
-    const pos = mockInvestorPositions.find((p) => p.investorHandle === MOCK_HANDLE);
+    const pos = mockInvestorPositions.find((p) => p.investorHandle === activeHandle());
     return delay(pos ? { ...pos } : null);
   }
   return req<InvestorPosition | null>("/invest/me");
@@ -1007,10 +1059,10 @@ export async function getMyPosition(): Promise<InvestorPosition | null> {
 // TODO(backend): GET /invest/fi
 export async function getFIProfile(): Promise<FIProfile> {
   if (USE_MOCKS) {
-    const existing = mockFIProfiles[MOCK_HANDLE];
+    const existing = mockFIProfiles[activeHandle()];
     if (existing) return delay({ ...existing });
-    const fresh: FIProfile = { handle: MOCK_HANDLE, annualExpensesKes: 1_200_000, fiRule: 0.04, assumedReturnPctAnnual: 20 };
-    mockFIProfiles[MOCK_HANDLE] = fresh;
+    const fresh: FIProfile = { handle: activeHandle(), annualExpensesKes: 1_200_000, fiRule: 0.04, assumedReturnPctAnnual: 20 };
+    mockFIProfiles[activeHandle()] = fresh;
     return delay({ ...fresh });
   }
   return req<FIProfile>("/invest/fi");
@@ -1029,7 +1081,7 @@ export async function setFIProfile(profile: FIProfile): Promise<FIProfile> {
 // TODO(backend): POST /invest/withdraw
 export async function requestWithdrawal(sats: number): Promise<WithdrawalRequest> {
   if (USE_MOCKS) {
-    const wr: WithdrawalRequest = { id: `wr_${Date.now()}`, investorHandle: MOCK_HANDLE, amountSats: sats, requestedAt: new Date().toISOString(), status: "requested" };
+    const wr: WithdrawalRequest = { id: `wr_${Date.now()}`, investorHandle: activeHandle(), amountSats: sats, requestedAt: new Date().toISOString(), status: "requested" };
     mockWithdrawalRequests.push(wr);
     return delay(wr);
   }
@@ -1038,7 +1090,7 @@ export async function requestWithdrawal(sats: number): Promise<WithdrawalRequest
 
 // TODO(backend): GET /invest/notifications
 export async function getMyNotifications(): Promise<AppNotification[]> {
-  if (USE_MOCKS) return delay(mockNotifications.filter((n) => n.toHandle === MOCK_HANDLE));
+  if (USE_MOCKS) return delay(mockNotifications.filter((n) => n.toHandle === activeHandle()));
   return req<AppNotification[]>("/invest/notifications");
 }
 

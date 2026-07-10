@@ -5,12 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num, maskPhone } from "@/lib/format";
-import { mockUser } from "@/lib/mock";
-import { logout } from "@/lib/api";
+import { getUser, logout } from "@/lib/api";
+import { roleOf, homePath, type AppRole } from "@/lib/useRoleGate";
+import type { User } from "@/types";
 
-const ROLE_LABEL: Record<string, string> = {
-  customer: "Member",
+const ROLE_LABEL: Record<AppRole, string> = {
+  member:   "Member",
   agent:    "Agent",
+  investor: "F&F Investor",
   mlinzi:   "Mlinzi",
 };
 
@@ -18,17 +20,16 @@ export function TopBar() {
   const rate     = useRate();
   const pathname = usePathname();
   const router   = useRouter();
-  const initials = mockUser.fullName.split(" ").map((p) => p[0]).slice(0, 2).join("");
 
-  const isMlinzi  = mockUser.role === "mlinzi";
-  const isAgent   = mockUser.isAgent;
-  const canInvest = isMlinzi || mockUser.accessStatus === "accepted";
+  const [user, setUser] = useState<User | null>(null);
+  useEffect(() => { getUser().then(setUser); }, []);
 
-  const isOnDashboard  = pathname === "/dashboard";
-  const isInMlinziSub  = pathname.startsWith("/mlinzi/");
-  const isOnMlinziRoot = pathname === "/mlinzi";
-  const isOnAgentPage  = pathname === "/agent";
-  const isOnInvestPage = pathname === "/invest";
+  const role = user ? roleOf(user) : null;
+  const home = user ? homePath(user) : "/dashboard";
+  const initials = user ? user.fullName.split(" ").map((p) => p[0]).slice(0, 2).join("") : "·";
+
+  const isOnHome      = pathname === home;
+  const isInMlinziSub = pathname.startsWith("/mlinzi/");
 
   const [dark, setDark] = useState(false);
   const [open, setOpen] = useState(false);
@@ -71,7 +72,7 @@ export function TopBar() {
   function close() { setOpen(false); }
 
   const leftEl = (() => {
-    if (isOnDashboard || isOnAgentPage || isOnInvestPage || isOnMlinziRoot) {
+    if (isOnHome) {
       return (
         <div className="mini-ticker">
           <span className="pulse" /> 1 BTC = KES {num(rate.btcKes)}
@@ -85,9 +86,10 @@ export function TopBar() {
         </Link>
       );
     }
+    // Back always points at the signed-in user's OWN dashboard.
     return (
-      <Link href="/dashboard" className="topbar-back">
-        <i className="ti ti-layout-dashboard" /> Dashboard
+      <Link href={home} className="topbar-back">
+        <i className="ti ti-layout-dashboard" /> {role === "agent" ? "Console" : role === "investor" ? "Portal" : "Dashboard"}
       </Link>
     );
   })();
@@ -115,69 +117,54 @@ export function TopBar() {
           <i className={`ti ti-chevron-${open ? "up" : "down"} profile-caret`} />
         </button>
 
-        {open && (
+        {open && user && role && (
           <div className="profile-drop" role="menu">
 
             <div className="pd-head">
               <span className="avatar avatar--lg">{initials}</span>
               <div className="pd-head-info">
-                <span className="pd-name">{mockUser.fullName}</span>
-                <span className="pd-phone">{maskPhone(mockUser.phone)}</span>
-                <span className="pd-role-badge">{ROLE_LABEL[mockUser.role] ?? mockUser.role}</span>
+                <span className="pd-name">{user.fullName}</span>
+                <span className="pd-phone">{maskPhone(user.phone)}</span>
+                <span className="pd-role-badge">{ROLE_LABEL[role]}</span>
               </div>
             </div>
 
             <div className="pd-section">Account</div>
             <div className="pd-info-row">
               <i className="ti ti-bolt" />
-              <span>{mockUser.lightningAddress}</span>
+              <span>{user.lightningAddress}</span>
             </div>
             <div className="pd-info-row">
               <i className="ti ti-language" />
-              <span>{mockUser.language === "sw" ? "Kiswahili" : "English"}</span>
+              <span>{user.language === "sw" ? "Kiswahili" : "English"}</span>
             </div>
 
-            {isAgent && (
-              <>
-                <div className="pd-divider" />
-                <div className="pd-section">Agent</div>
-                <Link href="/agent" className="pd-item" onClick={close}>
-                  <i className="ti ti-cash" /> Agent dashboard
-                </Link>
-              </>
-            )}
-
-            {canInvest && !isMlinzi && (
-              <>
-                <div className="pd-divider" />
-                <div className="pd-section">Investments</div>
-                <Link href="/invest" className="pd-item" onClick={close}>
-                  <i className="ti ti-trending-up" /> Invest portal
-                </Link>
-              </>
-            )}
-
-            {isMlinzi && (
-              <>
-                <div className="pd-divider" />
-                <div className="pd-section">Mlinzi</div>
-                <Link href="/mlinzi" className="pd-item" onClick={close}>
-                  <i className="ti ti-shield-lock" /> Mlinzi console
-                </Link>
-                <Link href="/invest" className="pd-item" onClick={close}>
-                  <i className="ti ti-trending-up" /> Invest portal
-                </Link>
-              </>
-            )}
-
+            {/* Exactly ONE dashboard link — the signed-in user's own. */}
             <div className="pd-divider" />
-            <div className="pd-section">Security</div>
-            <button className="pd-item" disabled>
-              <i className="ti ti-lock-password" /> Change password
-            </button>
-            <button className="pd-item" disabled>
-              <i className="ti ti-keyframe-align-center" /> Change PIN
-            </button>
+            <div className="pd-section">{ROLE_LABEL[role]}</div>
+            {role === "mlinzi" && (
+              <Link href="/mlinzi" className="pd-item" onClick={close}>
+                <i className="ti ti-shield-lock" /> Mlinzi console
+              </Link>
+            )}
+            {role === "agent" && (
+              <Link href="/agent" className="pd-item" onClick={close}>
+                <i className="ti ti-cash" /> Agent console
+              </Link>
+            )}
+            {role === "investor" && (
+              <Link href="/invest" className="pd-item" onClick={close}>
+                <i className="ti ti-trending-up" /> Investor dashboard
+              </Link>
+            )}
+            {role === "member" && (
+              <Link href="/dashboard" className="pd-item" onClick={close}>
+                <i className="ti ti-home" /> Dashboard
+              </Link>
+            )}
+            <Link href="/settings" className="pd-item" onClick={close}>
+              <i className="ti ti-settings" /> Account settings
+            </Link>
 
             <div className="pd-divider" />
             <button className="pd-item pd-item--danger" onClick={onLogout}>
