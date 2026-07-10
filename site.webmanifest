@@ -1,0 +1,17 @@
+{
+  "name": "YeboBank",
+  "short_name": "YeboBank",
+  "description": "Save in Bitcoin. Spend in shillings.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030C07",
+  "theme_color": "#030C07",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
