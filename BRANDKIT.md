@@ -478,6 +478,141 @@ projections, not guarantees. Not a public offer. Pending CBK regulatory approval
 
 ---
 
+## 14. Platform Architecture
+
+### 14.1 Four-user model
+
+YeboBank serves four distinct user groups, each with a purpose-built dashboard, isolated routes,
+and a role-locked navigation. No user sees another role's UI unless they hold that role.
+
+| User Group | Primary Goal | Entry Point | Route prefix |
+|------------|--------------|-------------|--------------|
+| **Customer** | Save in sats, earn yield, transact via M-Pesa/Lightning, join chamas | Phone + M-Pesa OTP | `/dashboard` |
+| **Agent** | Serve unbanked customers, earn commission on cash-in/out | Registration + float deposit | `/agent` |
+| **Investor** | Monthly yield from Mlinzi's investment pool | Access request → Mlinzi approval | `/invest` |
+| **Mlinzi** | Deploy pool capital, manage investors, earn management fee | Pre-approved appointment | `/mlinzi` |
+
+### 14.2 User journeys
+
+#### Customer
+
+1. Sign up with phone → M-Pesa OTP verification.
+2. Dashboard: balance, stats row (locked / interest / APY), quick actions.
+3. Deposit via M-Pesa STK Push or Lightning invoice.
+4. Lock savings → earn ~5.2% APY (2% fee on yield, only if positive).
+5. Create or join a chama; contribute, vote, invite.
+6. Send instantly via Lightning to any wallet.
+7. Withdraw to M-Pesa at any time.
+8. Notifications: chama votes, join requests, deposit confirmations.
+
+#### Agent
+
+1. Register → provide business details + deposit working float.
+2. Dashboard: float, reserve, commission earned, till number.
+3. Look up customer by phone → verify identity → cash in / cash out.
+4. Assisted service: deposit/withdraw/send on behalf of verified customer (access-code required).
+5. Manage float: top up via Lightning invoice; move excess to time-locked reserve.
+6. Commissions credited automatically (0.5% per transaction).
+7. Panic button: triggers silent alarm + freezes transfers; reactivation requires codes from contacts.
+
+#### Investor
+
+1. Request access via `/invest` (provide relationship context).
+2. Mlinzi reviews and approves/declines in `/mlinzi/access`.
+3. View position: principal (KES + sats at entry), current value, total return.
+4. Read monthly statements (append-only: opening → return → fee → closing).
+5. Use FI Calculator: set annual expenses, FI rate, assumed return.
+6. Request withdrawal → Mlinzi must approve; may be delayed if capital is illiquid.
+
+#### Mlinzi (Fund Steward)
+
+1. Dashboard: total AUM (KES + sats), investor count, fee earned, own position.
+2. Deploy capital: M-Pesa, Lightning, or virtual one-time-CVV card.
+3. Manage investors: add positions, post monthly statements.
+4. Approve/decline access requests; set relationship type.
+5. Approve/decline withdrawal requests; set expected delivery date.
+6. Track income sources: real-estate, bonds, T-bills, funds + annual return %.
+7. Virtual card: auto-rotating CVV (default 15 min) prevents subscriptions.
+
+### 14.3 Route table
+
+| Route | Customer | Agent | Investor | Mlinzi | Notes |
+|-------|:--------:|:-----:|:--------:|:------:|-------|
+| `/` (landing) | ✓ | ✓ | ✓ | ✓ | Public |
+| `/login` / `/register` | ✓ | ✓ | ✓ | ✓ | Public |
+| `/dashboard` | ✓ | ✓ | ✓ | ✓ | All authenticated users |
+| `/savings` | ✓ | ✓ | ✓ | ✓ | |
+| `/savings/lock` | ✓ | ✓ | ✓ | ✓ | |
+| `/savings/{id}` | ✓ | ✓ | ✓ | ✓ | |
+| `/chama` | ✓ | ✓ | ✓ | ✓ | |
+| `/chama/create` | ✓ | ✓ | ✓ | ✓ | |
+| `/chama/discover` | ✓ | ✓ | ✓ | ✓ | |
+| `/chama/portfolio` | ✓ | ✓ | ✓ | ✓ | |
+| `/chama/{id}` | ✓ | ✓ | ✓ | ✓ | |
+| `/agent` | ✗ | ✓ | ✗ | ✗ | `isAgent: true` required |
+| `/agent/settings` | ✗ | ✓ | ✗ | ✗ | |
+| `/invest` | ✓* | ✓* | ✓ | ✓ | *if `accessStatus === "accepted"` |
+| `/invest/settings` | ✓* | ✓* | ✓ | ✓ | |
+| `/mlinzi` | ✗ | ✗ | ✗ | ✓ | `role === "mlinzi"` only |
+| `/mlinzi/*` | ✗ | ✗ | ✗ | ✓ | Isolated; middleware redirects all others |
+| `/history` | ✓ | ✓ | ✓ | ✓ | |
+| `/settings` | ✓ | ✓ | ✓ | ✓ | |
+
+### 14.4 Dashboard specifications
+
+#### Customer dashboard (`/dashboard`)
+
+- **Balance card (ATM Card)** — total available in KES/sats with toggle; action grid.
+- **Stats row** — locked savings (sats), interest earned (KES), target APY (%).
+- **Quick actions** — Deposit, Withdraw, Send, Lock Savings, Chamas (all modals).
+- **Notifications** — chama votes, join requests, deposit confirmations.
+- **Recent activity** — last 5 transactions; "View all" → `/history`.
+
+#### Agent dashboard (`/agent`)
+
+- **Float header** — working float (KES), today's earnings, KES/Sats toggle.
+- **Customer lookup panel** — phone/ID search → Cash In / Cash Out buttons.
+- **Reserve card** — locked amount, countdown to unlock, "Manage Reserve" CTA.
+- **Bento stats** — customers served today, avg transaction time, commission growth %.
+- **Transaction ledger** — recent operations with ID, customer, type, amount, commission, status.
+- **Panic button** — bottom of sidebar; triggers silent alarm, freezes transfers.
+
+#### Investor dashboard (`/invest`)
+
+- **Position card** — principal (sats + KES at entry), current value, total return %.
+- **Monthly statements** — append-only list; opening / return / fee / closing.
+- **FI Calculator** — annual expenses, FI rate, assumed return → target, coverage, years to FI.
+- **Actions** — Request withdrawal (submits to Mlinzi queue).
+
+#### Mlinzi dashboard (`/mlinzi`)
+
+- **Pool overview cards** — AUM (KES + sats), income sources count, investors count, fee earned.
+- **Quick-action grid** — Deploy, Investors, Access Requests, Withdrawals, Income, Virtual Card.
+- **My position** — Mlinzi's own investment: principal, current value, monthly statements.
+- **FI Calculator** — same as investor, for Mlinzi's own planning.
+- **Recent activity** — latest deployments, statement postings, approved withdrawals.
+
+### 14.5 Investment model
+
+- Pool composition: all investor capital custodied 1:1 in sats.
+- Yield: Mlinzi deploys into income-producing assets (real-estate, bonds, T-bills, funds).
+- Distribution: monthly — returns calculated, 2% management fee deducted, remainder pro-rata.
+- Statements: append-only; each month shows opening → return → fee → closing.
+- Withdrawals: Mlinzi-approved; may be delayed if capital is illiquid.
+
+### 14.6 Security model
+
+| Control | Implementation |
+|---------|---------------|
+| Role-based access | Middleware checks `role` + `accessStatus`; unknown paths redirect |
+| Transaction PIN | Required for withdrawals, sends, and sensitive actions |
+| Append-only ledger | Every transaction immutable; nothing deleted or silently edited |
+| Mlinzi isolation | Routes hidden from all non-Mlinzi users |
+| Reserve time-lock | Agent reserve: PIN + 15-min delay before release |
+| Panic system | Multi-tier contacts; reactivation requires codes from all required contacts |
+
+---
+
 ## 13. Governance
 
 - This file (`BRANDKIT.md`) is the source of truth; the codebase implements it.
@@ -496,3 +631,4 @@ projections, not guarantees. Not a public offer. Pending CBK regulatory approval
 | 3.1     | **Logo system** — Y-Bolt mark fully documented (construction table, variants, do/don'ts). Favicon refined: 5.2 stroke width, 3-stop gold gradient, 4-layer node with outer lime glow. Webmanifest updated to `"purpose": "any maskable"`. BRANDKIT §2 expanded to cover all logo treatments and minimum-size rules. |
 | 4.0     | **New logo & favicon** — Y-Bolt retired. Replaced with the **Chevron mark**: upward-opening gold chevron on deep navy rounded square. Combination mark (icon + Playfair Display wordmark). Navy logo palette introduced (`#080D1E / #111828` field; `#F0CC58 → #C49020 → #8A5E08` gold gradient). Peak cap circle at apex. Favicon: identical geometry, no glow overlay, reads clearly at 16 × 16. §2 fully rewritten with construction table, variant matrix, and do/don't table. §3.1 extended with logo-specific navy palette. |
 | 5.0     | **Button palette system** — Landing section CTAs now use section-matched variants: emerald-primary (Save, Chama, Trust), lime (M-Pesa, Agents), gold (Lightning, ClosingCTA). Section-specific CSS overrides ensure high contrast on both dark and light section backgrounds. `#inflation .hero-btn` gets solid forest-green treatment in light mode. **Nav update** — UserPaths section removed; Trust section added as 6th nav item (`#trust`, lime underline). §3.1 palette table corrected with actual CSS hex values and dark-mode overrides. §7.1 expanded with full landing CTA map. §7.5 expanded with landing nav table. |
+| 6.0     | **Platform architecture** — §14 added: four-user model (Customer, Agent, Investor, Mlinzi), full route table, user journey maps, and dashboard specifications documented. Tooling: Tailwind CSS (preflight disabled, coexists with globals.css), shadcn/ui component primitives (Badge, Tabs, Card, Avatar, Progress, Separator), 21st.dev MCP server. UI/UX Pro Max skill (v2.6.2) installed for design intelligence. Customer dashboard gains notifications panel + stats row. Agent dashboard matches stitch reference design (float header, bento stats, ledger table). Mlinzi dashboard gains AUM overview cards + quick-action grid. Landing page UserPaths section expanded with journey steps and entry-point pills. |

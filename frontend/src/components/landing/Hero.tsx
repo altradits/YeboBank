@@ -227,6 +227,13 @@ export default function Hero() {
               Open your Member dashboard
             </button>
           </div>
+          <p className="hero-trust reveal d3">
+            <span><i className="ti ti-brand-open-source" />Open source</span>
+            <span className="hero-trust-dot">·</span>
+            <span><i className="ti ti-device-mobile" />M-Pesa native</span>
+            <span className="hero-trust-dot">·</span>
+            <span><i className="ti ti-lock-open" />Free to join</span>
+          </p>
         </div>
 
         {/* ── Phone frame ── */}

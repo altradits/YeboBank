@@ -1,159 +1,169 @@
 # YeboBank — Frontend
 
-The complete frontend for **YeboBank**, an open-source Bitcoin savings bank for
-Kenya. This is a Next.js (App Router) + TypeScript app. Every page renders and
-every link works against **mock data** so you can build the Go backend behind a
-single, well-defined seam.
+Open-source Bitcoin savings bank for Kenya. Save in sats, spend in shillings — top up via M-Pesa, earn yield, save with your chama, and cash out at a local agent.
 
-## Run it
+## Quick start
 
 ```bash
+cd frontend
 npm install
-npm run dev      # http://localhost:3000
+npm run dev        # http://localhost:3000
 ```
 
-Build for production:
+All pages run against mock data — no backend or environment variables required.
 
-```bash
-npm run build && npm start
+---
+
+## Tech stack
+
+| Layer | Choice |
+|-------|--------|
+| Framework | Next.js 14 (App Router) |
+| Styling | Custom CSS design system (`globals.css`) + Tailwind CSS (utility layer, preflight disabled) |
+| Components | shadcn/ui primitives (Badge, Tabs, Card, Avatar, Progress, Separator) |
+| Icons | Tabler Icons webfont (`@tabler/icons-webfont` v3.7.0) |
+| Fonts | Playfair Display (display) · Inter (body) · JetBrains Mono (data) |
+| Design intelligence | UI/UX Pro Max skill (v2.6.2) |
+| MCP | 21st.dev (`https://21st.dev/api/mcp`) — set `API_KEY_21ST` to activate |
+
+---
+
+## Route reference
+
+### Public
+
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page — hero, feature sections, 4-role UserPaths, platform stats strip, converter |
+| `/login` | Phone + PIN login |
+| `/register` | New account registration |
+| `/verify` | M-Pesa OTP verification |
+
+### Customer (`/dashboard` and below)
+
+| Route | Description |
+|-------|-------------|
+| `/dashboard` | Balance (ATM card), stats row (locked/interest/APY), notifications panel, recent activity |
+| `/deposit` | M-Pesa STK Push + Lightning invoice |
+| `/withdraw` | M-Pesa B2C payout |
+| `/send` | Lightning send + receive (Lightning address) |
+| `/history` | Full transaction ledger with credit/debit filters |
+| `/settings` | Profile, language, security, notifications, privacy |
+
+### Savings locks
+
+| Route | Description |
+|-------|-------------|
+| `/savings` | All locks — growth chart, timeframe selector, contribute inline |
+| `/savings/lock` | Create individual, group, or chama-linked lock |
+| `/savings/{id}` | Per-lock dashboard — principal + interest, time-elapsed, activity, chat (multi-member) |
+
+### Chamas (group wallets)
+
+| Route | Description |
+|-------|-------------|
+| `/chama` | Your chamas — balance, contribution, member count |
+| `/chama/create` | Create a new chama |
+| `/chama/discover` | Browse and request to join public chamas |
+| `/chama/portfolio` | Combined view — share %, personal value, gains, growth chart |
+| `/chama/{id}` | Full chama — stats, members sidebar, chat, deposit, withdraw, vote, join-request management |
+
+### Agent console
+
+Requires `mockUser.isAgent === true`.
+
+| Route | Description |
+|-------|-------------|
+| `/agent` | Float header (KES/Sats toggle + bento stats), customer lookup, cash-in/out, reserve management, transaction ledger, panic button |
+| `/agent/settings` | Profile, till number, emergency contacts, commission rate (read-only), security |
+
+### Investor portal
+
+Requires `mockUser.accessStatus === "accepted"` (or Mlinzi role).
+
+| Route | Description |
+|-------|-------------|
+| `/invest` | Position card (principal + current value + return %), monthly statements, FI Calculator, withdrawal request |
+| `/invest/settings` | Profile, FI preferences, security, notifications |
+
+### Mlinzi dashboard
+
+Requires `mockUser.role === "mlinzi"`. Routes isolated via middleware — all other users are redirected.
+
+| Route | Description |
+|-------|-------------|
+| `/mlinzi` | AUM overview cards (KES + sats, income sources, investors, fee), quick-action grid (6 tiles), my position, FI Calculator |
+| `/mlinzi/deploy` | Deploy capital — pool availability progress bar, M-Pesa / Lightning / card tabs |
+| `/mlinzi/investors` | Investor positions — post monthly statements, view per-investor history |
+| `/mlinzi/access` | Access request queue — approve/decline, set relationship type (family/friend/self) |
+| `/mlinzi/withdrawals` | Withdrawal queue — approve/decline, set expected delivery date |
+| `/mlinzi/income` | Income sources — add/edit/remove real-estate, bonds, T-bills, funds with yield tracking |
+| `/mlinzi/card` | Virtual card — auto-rotating CVV (default 15 min), per-transaction limit, deployment log |
+
+---
+
+## Role switching (mock data)
+
+Edit `src/lib/mock.ts` and change `mockUser`:
+
+```ts
+// Customer (default)
+role: "customer", isAgent: false, accessStatus: "none"
+
+// Customer who is also an agent
+role: "customer", isAgent: true
+
+// Approved investor
+role: "customer", accessStatus: "accepted"
+
+// Mlinzi (fund steward)
+role: "mlinzi"
 ```
 
-> Node 18.18+ or 20+ recommended.
+---
 
-## What's included
+## Design system
 
-**Public**
-- `/` — full marketing landing page (live ticker, hero, inflation, savings,
-  M-Pesa, chamas, agents, Lightning, trust, live converter, CTA, footer)
-- `/login`, `/register`, `/verify` — auth flow (navigates straight to the app)
+See `BRANDKIT.md` at the repo root — single source of truth for colors, typography, spacing, motion, and components (v6.0).
 
-**Authenticated app** (route group `(app)` with sidebar + mobile bottom nav)
+- **Palette**: Forest greens + gold. CSS tokens in `:root` in `globals.css`. Bitcoin Orange and Safari Green available as Tailwind utilities.
+- **Dark/light**: toggled via `data-theme` on `<html>`; persisted to `localStorage`.
+- **Tailwind**: installed with `preflight: false` so it coexists with the existing custom CSS. Use utility classes for shadcn component interiors; use BEM-style custom classes for everything else.
 
-Core
-- `/dashboard` — balance, savings + interest stats, recent activity
-- `/deposit` — M-Pesa STK Push + Lightning invoice tabs
-- `/withdraw` — M-Pesa B2C payout
-- `/send` — Lightning send + receive (your Lightning address)
-- `/history` — full ledger with credit/debit filters
-- `/settings` — profile, language, security, logout
+---
 
-Savings locks
-- `/savings` — all your locks, deposits-over-time chart with Daily / Weekly /
-  Monthly / Q1–Q3 / 1Y–10Y timeframe selector, contribute from any lock card
-- `/savings/lock` — create a new individual, group, or chama savings lock
-- `/savings/{id}` — per-lock dashboard (principal + interest stats, progress
-  bar). Single-member: simple activity list. Multi-member: participants sidebar
-  + shared chat panel. Highlights new deposit when redirected with
-  `?justDeposited=1`.
+## Platform architecture (§14 of BRANDKIT.md)
 
-Chamas (group wallets)
-- `/chama` — your chamas overview
-- `/chama/create` — create a new chama
-- `/chama/discover` — browse and request to join public chamas
-- `/chama/portfolio` — combined stake view (share %, personal value, gains,
-  growth chart across all chamas)
-- `/chama/{id}` — full chama dashboard (stats, members sidebar, chat/activity
-  feed, deposit, withdraw, vote, join-request management)
+Four isolated user groups, each with a purpose-built dashboard:
 
-Mlinzi — friends & family investor program
-- `/invest` — investor view (request access, position + projected growth,
-  FI calculator, withdrawal requests)
-- `/steward` — fund steward overview (AUM, fees, pending queue counts)
-- `/steward/income` — income sources (add / edit / remove yield sources)
-- `/steward/investors` — investor positions + monthly statement posting
-- `/steward/access` — access request queue (accept / decline, set relationship)
-- `/steward/withdrawals` — withdrawal queue (approve / decline, set delivery
-  date)
+| Role | Entry point | Primary actions |
+|------|-------------|----------------|
+| **Customer** | Phone + M-Pesa OTP | Save, lock sats, chama, send via Lightning, withdraw to M-Pesa |
+| **Agent** | Registration + float deposit | Cash in/out (0.5% commission), reserve management, panic system |
+| **Investor** | Access request → Mlinzi approval | Monthly yield, FI Calculator, withdrawal request |
+| **Mlinzi** | Pre-approved appointment | Deploy capital, manage investors, approve access/withdrawals, virtual card |
 
-Agent
-- `/agent` — cash-in / cash-out operations, float tracking
+All money actions (deposit, withdraw, send, lock) are **modals** — no core action navigates away from the current dashboard.
 
-Every amount is in **satoshis** and converts to KES / BTC / USD using one live
-exchange rate shared across the whole UI.
+---
 
-## Live exchange rate
+## API layer
 
-`src/lib/rate-context.tsx` provides a React context with the current rate. It
-fetches BTC/USD + BTC/KES from CoinGecko every 60s and gently random-walks
-between fetches so tickers always feel alive. If the request is blocked it falls
-back to a simulated feed automatically.
+All API calls go through `src/lib/api.ts`. Every function currently returns mock data from `src/lib/mock.ts`. To connect a real backend: replace the mock implementations in `api.ts`. The rest of the frontend requires no changes.
 
-**For production:** point `fetchPrice()` at your own `/api/rate` endpoint
-(backed by the `rate_snapshots` table) instead of calling CoinGecko from the
-browser — you already cache the rate server-side every 60s.
+---
 
-## Wiring the backend (the one file that matters)
+## Design intelligence
 
-All data access goes through **`src/lib/api.ts`**. Right now each function
-returns mock data after a short delay. To go live:
-
-1. Set `USE_MOCKS = false` at the top of `src/lib/api.ts`.
-2. Implement the matching Go routes (see `docs/API.md` in the main repo). The
-   `req()` helper already sends cookies and JSON; each function notes its route.
-3. Keep the function signatures and return types identical — the UI keeps
-   working unchanged.
-
-Types live in `src/types/index.ts` and mirror the database schema, so the Go
-handlers can serialize straight into them.
-
-## Project structure
+The **UI/UX Pro Max skill** (v2.6.2) is installed at `~/.claude/skills/ui-ux-pro-max/`. It provides 84 UI styles, 161 color palettes, 73 font pairings, and 99 UX guidelines. Use it from Claude Code:
 
 ```
-src/
-  app/
-    layout.tsx            fonts (next/font), Tabler icons, RateProvider
-    globals.css           full design system (tokens, landing, app shell, UI)
-    page.tsx              landing page
-    login|register|verify auth pages
-    (app)/
-      layout.tsx          app shell (sidebar + bottom nav + top bar)
-      dashboard|deposit|withdraw|send|history|agent|settings
-      savings/            overview + deposits chart
-        lock/             new-lock wizard
-        [id]/             per-lock dashboard (activity / shared chat)
-      chama/              overview
-        create/           new chama wizard
-        discover/         browse public chamas
-        portfolio/        combined stake + growth view
-        [id]/             full chama dashboard (chat, votes, join requests)
-      invest/             F&F investor view
-      steward/            fund steward overview
-        income/           income sources CRUD
-        investors/        positions + monthly statements
-        access/           access request queue
-        withdrawals/      withdrawal queue
-  components/
-    landing/              Ticker, SiteNav, Hero, FeatureSections, Highlights,
-                          Converter, Footer
-    app/                  Nav, TopBar, BalanceCard, TransactionRow,
-                          ContributeModal, LockCard
-    ui/                   Button (material ripple), useReveal hook
-  lib/
-    api.ts                ← backend seam (mock now, fetch later)
-    rate-context.tsx      live rate provider + useRate()
-    format.ts             money + time formatters
-    mock.ts               placeholder data
-    bucket.ts             deposit bucketing for the savings chart
-  types/index.ts          domain types (User, SavingsLock, Chama, LockMessage,
-                          IncomeSource, InvestorPosition, FIProfile, …)
+python3 ~/.claude/skills/ui-ux-pro-max/scripts/search.py "banking dashboard" --domain style
+python3 ~/.claude/skills/ui-ux-pro-max/scripts/search.py "fintech mobile" --domain color
 ```
 
-## Design notes
+---
 
-- **Palette** leans into wealth (gold), hope/growth (emerald), and authority
-  (deep forest), with a terracotta spark. This intentionally goes more vibrant
-  than the spec's muted brand tokens, per the design brief.
-- **Fonts:** Space Grotesk (display), IBM Plex Sans (body), JetBrains Mono
-  (all numbers/codes), loaded via `next/font`.
-- **Motion:** material ripple on buttons, scroll-reveal, count-ups, ticker
-  flashes. All of it respects `prefers-reduced-motion`.
-- **Responsive:** sidebar collapses to a mobile bottom nav under 900px.
+## Contributing
 
-## Notes / TODO for production
-
-- Auth is cosmetic until the backend exists — `login`/`register`/`verify` just
-  navigate forward. Add real session handling + route protection (middleware
-  redirecting unauthenticated users to `/login`).
-- Agent locations and names on the landing map are placeholder content.
-- Add a transaction-PIN prompt before debits (withdraw, send, lock, contribute)
-  per `docs/SECURITY.md`.
+See `BRANDKIT.md` §13 (Governance). Design and code changes ship together in the same PR — update the brand kit and the implementation in a single change.

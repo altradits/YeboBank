@@ -9,6 +9,8 @@ import {
 import type { IncomeSource, InvestorPosition, AccessRequest, WithdrawalRequest, FIProfile, User } from "@/types";
 import { FICalculator } from "@/components/app/FICalculator";
 import { MlinziCard } from "@/components/app/MlinziCard";
+import AumOverviewCards from "@/components/app/AumOverviewCards";
+import MlinziQuickActions from "@/components/app/MlinziQuickActions";
 
 export default function MlinziPage() {
   const [user,        setUser]        = useState<User | null>(null);
@@ -55,6 +57,23 @@ export default function MlinziPage() {
         <i className="ti ti-shield-lock" />
         <span>Friends &amp; family pilot — figures are projections, not guarantees. Not a public offer.</span>
       </div>
+
+      {/* AUM overview cards */}
+      <AumOverviewCards
+        totalAumKes={totalAumKes}
+        totalAumSats={investors.reduce((s, p) => s + p.principalSats, 0)}
+        incomeCount={income.length}
+        investorCount={investors.length}
+        feeEarnedKes={totalFeeKes}
+        pendingAccess={pendingAccess}
+        pendingWithdrawals={pendingWithdrawals}
+      />
+
+      {/* Quick-action grid */}
+      <MlinziQuickActions
+        pendingAccess={pendingAccess}
+        pendingWithdrawals={pendingWithdrawals}
+      />
 
       {/* Console card — primary navigation + stats */}
       <div style={{ marginTop: 18 }}>

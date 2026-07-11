@@ -1,29 +1,9 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
+import "@fontsource-variable/playfair-display";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/jetbrains-mono";
 import "./globals.css";
 import { RateProvider } from "@/lib/rate-context";
-
-// Playfair Display: editorial high-contrast serif — authority and elegance for headlines
-const display = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-playfair",
-  display: "swap",
-});
-// Inter: neutral humanist sans — outstanding legibility at every body size
-const body = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-inter",
-  display: "swap",
-});
-// JetBrains Mono: developer-grade monospace for sats, addresses, hashes
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-jetbrains",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "YeboBank — Save in Bitcoin. Spend in shillings.",
@@ -33,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Resolve theme before first paint — prevents flash of wrong theme */}
         <script dangerouslySetInnerHTML={{ __html:
