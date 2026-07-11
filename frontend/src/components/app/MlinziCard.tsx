@@ -52,10 +52,12 @@ export function MlinziCard({
   const pendingTotal = pendingAccess + pendingWithdrawals;
 
   const actions: { icon: string; label: string; path: string; badge?: number }[] = [
-    { icon: "ti-send",           label: "Deploy",      path: "/mlinzi/deploy" },
-    { icon: "ti-users",         label: "Investors",   path: "/mlinzi/investors" },
-    { icon: "ti-user-check",    label: "Access",      path: "/mlinzi/access",      badge: pendingAccess },
-    { icon: "ti-receipt",       label: "Withdrawals", path: "/mlinzi/withdrawals", badge: pendingWithdrawals },
+    { icon: "ti-send-2",        label: "Deploy",       path: "/mlinzi/deploy" },
+    { icon: "ti-users-group",   label: "Investors",    path: "/mlinzi/investors" },
+    { icon: "ti-user-check",    label: "Access",       path: "/mlinzi/access",      badge: pendingAccess },
+    { icon: "ti-arrow-up-circle", label: "Withdrawals", path: "/mlinzi/withdrawals", badge: pendingWithdrawals },
+    { icon: "ti-chart-bar",     label: "Income",       path: "/mlinzi/income" },
+    { icon: "ti-credit-card",   label: "Card",         path: "/mlinzi/card" },
   ];
 
   return (
@@ -133,7 +135,7 @@ export function MlinziCard({
       </div>
 
       {/* Action buttons */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginTop: 16 }}>
+      <div className="mlinzi-qa-grid" style={{ marginTop: 16 }}>
         {actions.map(({ icon, label, path, badge }) => (
           <button key={path} onClick={() => router.push(path)} style={{
             background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.1)",

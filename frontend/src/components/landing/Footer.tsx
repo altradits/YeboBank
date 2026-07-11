@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
@@ -50,22 +51,47 @@ export function ClosingCTA() {
   );
 }
 
+const SOCIALS = [
+  { href: "#", icon: "ti-brand-facebook", label: "Facebook",   hoverColor: "#1877f2" },
+  { href: "#", icon: "ti-brand-x",         label: "Twitter / X", hoverColor: "#1a8cd8" },
+  { href: "#", icon: "ti-brand-instagram", label: "Instagram",  hoverColor: "#e4405f" },
+  { href: "#", icon: "ti-brand-linkedin",  label: "LinkedIn",   hoverColor: "#0a66c2" },
+  { href: "#", icon: "ti-brand-tiktok",    label: "TikTok",     hoverColor: "#ffffff" },
+  { href: "#", icon: "ti-brand-youtube",   label: "YouTube",    hoverColor: "#ff0000" },
+];
+
 export function SiteFooter() {
   return (
     <footer className="foot">
       <div className="wrap">
         <div className="top">
-          <div>
+
+          {/* Brand + tagline + social icons */}
+          <div className="foot-brand">
             <div className="brand" style={{ color: "#fff" }}>
               <LogoMark size={34} /> YeboBank
             </div>
-            <p style={{ maxWidth: "30ch", marginTop: 14, fontSize: 14 }}>
+            <p className="foot-tagline">
               An open-source Bitcoin savings bank built for the hard-working many.
               Karibu.
             </p>
+            <div className="foot-socials" role="list" aria-label="Social media">
+              {SOCIALS.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  aria-label={s.label}
+                  className="foot-social-link"
+                  title={s.label}
+                  style={{ "--social-hover": s.hoverColor } as React.CSSProperties}
+                >
+                  <i className={`ti ${s.icon}`} />
+                </a>
+              ))}
+            </div>
           </div>
+
           <div className="cols">
-            {/* Every explore link anchors a section; every section serves ONE dashboard */}
             <div className="col">
               <h4>Explore</h4>
               <a href="#inflation">Why Bitcoin</a>
@@ -78,7 +104,6 @@ export function SiteFooter() {
               <a href="#trust">Trust</a>
               <a href="#convert">Rates</a>
             </div>
-            {/* Each footer link opens one specific dashboard — no choices inside */}
             <div className="col">
               <h4>Dashboards</h4>
               <Link href="/login?redirect=/dashboard">Member dashboard</Link>
@@ -95,36 +120,21 @@ export function SiteFooter() {
               <a href="https://github.com/altradits/YeboBank" target="_blank" rel="noopener noreferrer">Open source</a>
             </div>
           </div>
+
         </div>
-        <ul className="social-wrapper" aria-label="Social media">
-          <li className="icon facebook">
-            <span className="tooltip">Facebook</span>
-            <a href="#" aria-label="Facebook"><i className="ti ti-brand-facebook" /></a>
-          </li>
-          <li className="icon twitter">
-            <span className="tooltip">Twitter / X</span>
-            <a href="#" aria-label="Twitter"><i className="ti ti-brand-x" /></a>
-          </li>
-          <li className="icon instagram">
-            <span className="tooltip">Instagram</span>
-            <a href="#" aria-label="Instagram"><i className="ti ti-brand-instagram" /></a>
-          </li>
-          <li className="icon linkedin">
-            <span className="tooltip">LinkedIn</span>
-            <a href="#" aria-label="LinkedIn"><i className="ti ti-brand-linkedin" /></a>
-          </li>
-          <li className="icon tiktok">
-            <span className="tooltip">TikTok</span>
-            <a href="#" aria-label="TikTok"><i className="ti ti-brand-tiktok" /></a>
-          </li>
-          <li className="icon youtube">
-            <span className="tooltip">YouTube</span>
-            <a href="#" aria-label="YouTube"><i className="ti ti-brand-youtube" /></a>
-          </li>
-        </ul>
         <div className="bottom">
           <span>Built for Kenya · Open source · CBK sandbox pathway</span>
-          <span>© 2026 YeboBank · <a href="https://www.linkedin.com/in/stanmobitech/" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline", textDecorationColor: "rgba(255,255,255,.25)", textUnderlineOffset: "3px" }}>Developer</a></span>
+          <span>
+            © 2026 YeboBank ·{" "}
+            <a
+              href="https://www.linkedin.com/in/stanmobitech/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "inherit", textDecoration: "underline", textDecorationColor: "rgba(255,255,255,.25)", textUnderlineOffset: "3px" }}
+            >
+              Developer
+            </a>
+          </span>
         </div>
       </div>
     </footer>
