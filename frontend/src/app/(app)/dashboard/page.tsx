@@ -10,6 +10,8 @@ import type { User } from "@/types";
 import { num } from "@/lib/format";
 import { useRate } from "@/lib/rate-context";
 import type { LedgerEntry, SavingsLock, Chama } from "@/types";
+import DashboardStats from "@/components/app/DashboardStats";
+import NotificationsPanel from "@/components/app/NotificationsPanel";
 
 export default function DashboardPage() {
   const rate   = useRate();
@@ -102,6 +104,10 @@ export default function DashboardPage() {
   const contributingChama = contributeId ? memberChamas.find((c) => c.id === contributeId) : null;
   const contributeSats = Math.round(parseFloat(contributeKes.replace(/[^0-9.]/g, "")) * (rate.satsPerKes ?? 0));
 
+  const lockedSats   = (locks ?? []).reduce((s, l) => s + l.principalSats, 0);
+  const interestKes  = (locks ?? []).reduce((s, l) => s + l.accruedSats, 0) * (rate.kesPerSat ?? 0);
+  const targetApy    = 5.2;
+
   return (
     <>
       <h1 className="page-title">Habari, {firstName}</h1>
@@ -110,6 +116,9 @@ export default function DashboardPage() {
       <div style={{ marginTop: 18 }}>
         <ATMCard sats={balance} variant="dashboard" actions={actions} />
       </div>
+
+      {/* Stats row */}
+      <DashboardStats lockedSats={lockedSats} interestKes={interestKes} targetApy={targetApy} />
 
       {/* Activity */}
       <div className="card" style={{ marginTop: 18 }}>
@@ -180,6 +189,9 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Notifications */}
+      <NotificationsPanel />
 
       {/* ── Savings drawer ──────────────────────────────────────────────── */}
       {savingsOpen && (

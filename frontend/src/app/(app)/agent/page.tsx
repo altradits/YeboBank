@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import QRScanner from "@/components/ui/QRScanner";
 import TransactionRow from "@/components/app/TransactionRow";
 import { ATMCard } from "@/components/app/ATMCard";
+import AgentFloatHeader from "@/components/app/AgentFloatHeader";
 import { useRate } from "@/lib/rate-context";
 import { num, fmtKESraw } from "@/lib/format";
 import {
@@ -254,6 +255,7 @@ export default function AgentPage() {
 
   // Security / panic
   const [panicExecuting, setPanicExecuting] = useState(false);
+  const [headerCurrency, setHeaderCurrency] = useState<"KES" | "Sats">("KES");
   const [reactivation,   setReactivation]   = useState<Record<string, string>>({});
   const [reactivErr,     setReactivErr]     = useState<Record<string, string>>({});
   const [reactivOk,      setReactivOk]      = useState<Record<string, boolean>>({});
@@ -541,6 +543,17 @@ export default function AgentPage() {
 
   return (
     <>
+      {/* ── Stitch-style float header + bento stats ──────────────────────── */}
+      <AgentFloatHeader
+        floatSats={agent.workingFloatSats}
+        reserveSats={agent.reserveSats}
+        commissionEarnedSats={agent.totalEarnedSats}
+        commissionRate={agent.commissionRate}
+        currency={headerCurrency}
+        onToggleCurrency={() => setHeaderCurrency(c => c === "KES" ? "Sats" : "KES")}
+        tillNumber={agent.mpesaTillNumber}
+      />
+
       <ATMCard
         variant="dashboard"
         chipLabel="AGENT CONSOLE"

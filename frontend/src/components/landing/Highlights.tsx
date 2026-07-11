@@ -160,9 +160,8 @@ export function Lightning() {
       <div className="wrap" style={{ position: "relative", zIndex: 2 }}>
         <div className="lightning-layout">
 
-          {/* LEFT — animated bolt + stats, clean stack layout */}
+          {/* LEFT — animated bolt + stats + address chip */}
           <div className="bolt-visual reveal">
-            {/* Bolt SVG */}
             <div className="bolt-svg-wrap">
               <svg className="bolt-svg" width="120" height="200" viewBox="0 0 120 200" fill="none">
                 <path
@@ -181,6 +180,31 @@ export function Lightning() {
               </svg>
             </div>
 
+            <div className="bolt-stats-row">
+              <div className="bolt-stat">
+                <span className="bolt-stat-n">&lt;1s</span>
+                <span className="bolt-stat-l">settlement</span>
+              </div>
+              <div className="bolt-stat">
+                <span className="bolt-stat-n">0</span>
+                <span className="bolt-stat-l">internal fees</span>
+              </div>
+              <div className="bolt-stat">
+                <span className="bolt-stat-n">∞</span>
+                <span className="bolt-stat-l">destinations</span>
+              </div>
+            </div>
+
+            <div className="transmit-wrap">
+              <div className="transmit-chip" onMouseEnter={startTransmit}>
+                <span className="transmit-addr">
+                  {transmitting ? ADDR.slice(0, visibleChars) : ADDR}
+                </span>
+                <button className="transmit-cpy" onClick={copy} aria-label="Copy Lightning address">
+                  <i className={`ti ${copied ? "ti-check" : "ti-copy"}`} />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* RIGHT — copy */}
@@ -204,9 +228,6 @@ export function Lightning() {
                 <div className="m-key">fees inside YeboBank</div>
               </div>
             </div>
-            <p style={{ marginBottom: 24, fontSize: 13, color: "var(--muted)", fontStyle: "italic" }}>
-              ↖ Move your cursor over the bolt to see the electric sparks.
-            </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Button variant="gold" onClick={() => router.push("/login?redirect=/send")}>
                 Get your Lightning address
