@@ -1,13 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import LogoMark from "@/components/ui/LogoMark";
+import QuickProductModal from "./QuickProductModal";
 
 export function ClosingCTA() {
   const router = useRouter();
+  const [quickOpen, setQuickOpen] = useState(false);
+
   return (
     <section className="cta" id="cta">
 
@@ -40,16 +43,26 @@ export function ClosingCTA() {
           to stay honest over time.
         </p>
 
-        <div className="cta-actions reveal d2">
-          <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
-            Open your Member dashboard
+        <div className="cta-actions reveal d2" style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+          <Button variant="gold" onClick={() => setQuickOpen(true)}>
+            ⚡ 1-Click Start Saving (5.2% APY)
+          </Button>
+          <Button variant="ghost" onClick={() => router.push("/login?redirect=/dashboard")}>
+            Open Member Dashboard →
           </Button>
         </div>
 
       </div>
+
+      <QuickProductModal
+        isOpen={quickOpen}
+        onClose={() => setQuickOpen(false)}
+        initialProduct="savings"
+      />
     </section>
   );
 }
+
 
 const SOCIALS = [
   { href: "#", icon: "ti-brand-facebook", label: "Facebook",   hoverColor: "#1877f2" },

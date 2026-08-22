@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
+import QuickProductModal, { type ProductType } from "./QuickProductModal";
 
 interface Step { icon: string; text: string }
 interface PathCard {
@@ -13,6 +15,8 @@ interface PathCard {
   tagline: string;
   entry: string;
   steps: Step[];
+  productType?: ProductType;
+  quickLabel?: string;
   primaryLabel?: string;
   primaryPath?: string;
   primaryVariant?: "gold" | "ghost";
@@ -27,13 +31,15 @@ const PATHS: PathCard[] = [
     name: "Member",
     tagline: "Save in sats. Spend in shillings.",
     entry: "Phone + M-Pesa OTP",
+    productType: "savings",
+    quickLabel: "⚡ 1-Click Save (5.2% APY)",
     steps: [
       { icon: "ti-arrow-down", text: "Deposit via M-Pesa or Lightning" },
       { icon: "ti-lock",       text: "Lock sats — earn ~5.2% APY" },
       { icon: "ti-users",      text: "Join a chama — save as a group" },
       { icon: "ti-send",       text: "Send globally via Lightning" },
     ],
-    primaryLabel: "Open free account",
+    primaryLabel: "Open Free Account",
     primaryPath: "/login?redirect=/dashboard",
   },
   {
@@ -44,6 +50,8 @@ const PATHS: PathCard[] = [
     name: "Agent",
     tagline: "The cash point in your neighbourhood.",
     entry: "Register + deposit float",
+    productType: "agent",
+    quickLabel: "⚡ 1-Click Agent Code",
     steps: [
       { icon: "ti-device-mobile", text: "Look up customer by phone" },
       { icon: "ti-arrows-exchange", text: "Cash in / out at live rate" },
@@ -62,6 +70,8 @@ const PATHS: PathCard[] = [
     name: "Investor",
     tagline: "Monthly yield from real assets.",
     entry: "Access request → Mlinzi approval",
+    productType: "invest",
+    quickLabel: "⚡ 1-Click Allocation",
     steps: [
       { icon: "ti-file-text",    text: "View principal + current value" },
       { icon: "ti-calendar",     text: "Monthly statements, append-only" },
@@ -86,6 +96,9 @@ const PATHS: PathCard[] = [
       { icon: "ti-users-group",    text: "Manage investor positions + statements" },
       { icon: "ti-credit-card",    text: "One-time CVV card — auto-rotates" },
     ],
+    primaryLabel: "Enter Mlinzi Console",
+    primaryPath: "/login?redirect=/mlinzi",
+    primaryVariant: "ghost",
   },
 ];
 
@@ -98,6 +111,13 @@ const STATS = [
 
 export default function UserPaths() {
   const router = useRouter();
+  const [quickOpen, setQuickOpen] = useState(false);
+  const [activeProduct, setActiveProduct] = useState<ProductType>("savings");
+
+  const openQuick = (prod: ProductType) => {
+    setActiveProduct(prod);
+    setQuickOpen(true);
+  };
 
   return (
     <>
@@ -162,22 +182,38 @@ export default function UserPaths() {
                   ))}
                 </ul>
 
-                {p.primaryLabel && (
-                  <div className="path-actions">
+                <div className="path-actions" style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "auto" }}>
+                  {p.quickLabel && p.productType && (
                     <Button
-                      variant={p.primaryVariant ?? "gold"}
+                      variant="gold"
+                      onClick={() => openQuick(p.productType!)}
+                      block
+                    >
+                      {p.quickLabel}
+                    </Button>
+                  )}
+                  {p.primaryLabel && (
+                    <Button
+                      variant={p.primaryVariant ?? "ghost"}
                       onClick={() => router.push(p.primaryPath!)}
                       block
                     >
                       {p.primaryLabel}
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      <QuickProductModal
+        isOpen={quickOpen}
+        onClose={() => setQuickOpen(false)}
+        initialProduct={activeProduct}
+      />
     </>
   );
 }
+

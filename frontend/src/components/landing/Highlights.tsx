@@ -6,6 +6,8 @@ import Button from "@/components/ui/Button";
 import { KENYA_COUNTIES, KENYA_VIEWBOX } from "@/lib/kenya-counties";
 import { useReveal } from "@/components/ui/useReveal";
 
+import QuickProductModal from "./QuickProductModal";
+
 /* ══════════════════════════════════════════════════════════════════════════
    LIGHTNING — "The Spark": animated bolt + transmitting address
    ══════════════════════════════════════════════════════════════════════════ */
@@ -20,8 +22,10 @@ export function Lightning() {
   const [copied, setCopied]           = useState(false);
   const [transmitting, setTransmit]   = useState(false);
   const [visibleChars, setVisible]    = useState(0);
+  const [quickOpen, setQuickOpen]     = useState(false);
   const rafRef   = useRef<number>(0);
   const mouseRef = useRef({ x: 0, y: 0, active: false });
+
 
   /* ── Transmit address animation on hover ── */
   function startTransmit() {
@@ -229,17 +233,27 @@ export function Lightning() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="gold" onClick={() => router.push("/login?redirect=/send")}>
-                Get your Lightning address
+              <Button variant="gold" onClick={() => setQuickOpen(true)}>
+                ⚡ 1-Click Send / Receive Sats
+              </Button>
+              <Button variant="ghost" onClick={() => router.push("/login?redirect=/send")}>
+                Get your Lightning address →
               </Button>
             </div>
           </div>
 
         </div>
       </div>
+
+      <QuickProductModal
+        isOpen={quickOpen}
+        onClose={() => setQuickOpen(false)}
+        initialProduct="lightning"
+      />
     </section>
   );
 }
+
 
 /* ══════════════════════════════════════════════════════════════════════════
    TRUST — "The Ledger": blockchain-style append-only block list

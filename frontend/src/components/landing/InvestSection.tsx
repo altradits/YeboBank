@@ -1,13 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
+import QuickProductModal from "./QuickProductModal";
 
-// #invest — Friends & Family investing. One CTA, one destination:
-// the Investor dashboard. The steward line serves exactly one user (the
-// Mlinzi) and points only at the Mlinzi console.
+// #invest — Friends & Family investing.
 export default function InvestSection() {
   const router = useRouter();
+  const [quickOpen, setQuickOpen] = useState(false);
 
   return (
     <section className="sec" id="invest" style={{ position: "relative" }}>
@@ -30,8 +31,11 @@ export default function InvestSection() {
             returns. Access is by acceptance only.
           </p>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 26 }}>
-            <Button variant="gold" onClick={() => router.push("/login?redirect=/invest")}>
-              Open the Investor dashboard
+            <Button variant="gold" onClick={() => setQuickOpen(true)}>
+              ⚡ 1-Click Request Allocation
+            </Button>
+            <Button variant="ghost" onClick={() => router.push("/login?redirect=/invest")}>
+              Investor Dashboard →
             </Button>
           </div>
           <p style={{ marginTop: 18, fontSize: 13, color: "var(--soft)" }}>
@@ -47,17 +51,19 @@ export default function InvestSection() {
 
         <div className="reveal d2" aria-hidden="true">
           {/* Compounding curve — quiet, futuristic, alive */}
-          <div style={{
-            border: "1px solid rgba(124,199,242,.18)", borderRadius: 24,
-            padding: "28px 26px", background: "rgba(10,18,36,.55)",
+          <div className="invest-curve-card" style={{
+            border: "1px solid var(--border)", borderRadius: 24,
+            padding: "28px 26px", background: "var(--surface)",
+            boxShadow: "var(--shadow-2)",
             backdropFilter: "blur(8px)",
           }}>
             <div style={{
               fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: ".1em",
-              textTransform: "uppercase", color: "rgba(228,235,247,.55)", marginBottom: 18,
+              textTransform: "uppercase", color: "var(--muted)", marginBottom: 18,
             }}>
               Compounded monthly · 2% steward fee on gains only
             </div>
+
             <svg viewBox="0 0 320 150" width="100%" role="img" aria-label="Compounding growth curve">
               <defs>
                 <linearGradient id="inv-fill" x1="0" y1="0" x2="0" y2="1">
@@ -92,6 +98,12 @@ export default function InvestSection() {
 
       </div>
       <style>{`@media (max-width: 900px) { #invest .wrap { grid-template-columns: 1fr !important } }`}</style>
+      <QuickProductModal
+        isOpen={quickOpen}
+        onClose={() => setQuickOpen(false)}
+        initialProduct="invest"
+      />
     </section>
   );
 }
+

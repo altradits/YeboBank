@@ -7,16 +7,38 @@ import { num } from "@/lib/format";
 import Button from "@/components/ui/Button";
 import { KENYA_COUNTIES, KENYA_CITIES } from "@/lib/kenya-counties";
 
+import QuickProductModal, { type ProductType } from "./QuickProductModal";
+
 export default function FeatureSections() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [activeProduct, setActiveProduct] = useState<ProductType>("savings");
+
+  const openModal = (product: ProductType) => {
+    setActiveProduct(product);
+    setModalOpen(true);
+  };
+
   return (
     <>
-      <Inflation />
+      <Inflation onQuickAction={() => openModal("savings")} />
       <StatementBridge />
-      <SavingsMpesaPair />
-      <CommunityPair />
+      <SavingsMpesaPair
+        onLockSavings={() => openModal("savings")}
+        onMpesaDeposit={() => openModal("mpesa")}
+      />
+      <CommunityPair
+        onChamaAction={() => openModal("chama")}
+        onAgentAction={() => openModal("agent")}
+      />
+      <QuickProductModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        initialProduct={activeProduct}
+      />
     </>
   );
 }
+
 
 /* ══════════════════════════════════════════════════════════════════════════
    STATEMENT BRIDGE — full-width animated text between Inflation and Savings.
@@ -129,7 +151,7 @@ const ORBIT_CUPS = [
   { type: "sat" as const, delay: "-7.5s", vy:  16 },
 ] as const;
 
-function Inflation() {
+function Inflation({ onQuickAction }: { onQuickAction?: () => void }) {
   const router   = useRouter();
   const secRef   = useRef<HTMLElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -255,9 +277,12 @@ function Inflation() {
               </p>
             </div>
 
-            <div className="infl-cta">
+            <div className="infl-cta" style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <Button variant="gold" onClick={onQuickAction}>
+                ⚡ 1-Click Save in Sats
+              </Button>
               <Button variant="primary" onClick={() => router.push("/login?redirect=/savings")}>
-                Protect my savings with sats
+                Protect my savings
               </Button>
             </div>
           </div>
@@ -273,7 +298,13 @@ function Inflation() {
    Phone screen emphasis shifts with the active panel (confirmed / STK push).
    ══════════════════════════════════════════════════════════════════════════ */
 
-function SavingsMpesaPair() {
+function SavingsMpesaPair({
+  onLockSavings,
+  onMpesaDeposit,
+}: {
+  onLockSavings?: () => void;
+  onMpesaDeposit?: () => void;
+}) {
   const router   = useRouter();
   const rate     = useRate();
   const sats     = Math.round(500 * rate.satsPerKes);
@@ -390,8 +421,8 @@ function SavingsMpesaPair() {
               <h2 className="h2">Your money earns <span className="accent">while you sleep.</span></h2>
               <div className="stat-row">
                 <div className="stat-item">
-                  <div className="s-num">2%</div>
-                  <div className="s-lbl">yield fee — flat</div>
+                  <div className="s-num">5.2%</div>
+                  <div className="s-lbl">target APY real yield</div>
                 </div>
                 <div className="stat-item">
                   <div className="s-num">Monthly</div>
@@ -404,8 +435,11 @@ function SavingsMpesaPair() {
               </div>
               <p className="stat-pull">If the pool earns nothing, we earn nothing.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Button variant="primary" onClick={() => router.push("/login?redirect=/savings")}>
-                  Start saving today
+                <Button variant="gold" onClick={onLockSavings}>
+                  ⚡ Lock Sats at 5.2% APY
+                </Button>
+                <Button variant="ghost" onClick={() => router.push("/login?redirect=/savings")}>
+                  Open Savings Vault →
                 </Button>
               </div>
             </div>
@@ -439,8 +473,11 @@ function SavingsMpesaPair() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Button variant="lime" onClick={() => router.push("/login?redirect=/deposit")}>
-                  Deposit via M-Pesa
+                <Button variant="lime" onClick={onMpesaDeposit}>
+                  ⚡ Instant M-Pesa Deposit (1-Click)
+                </Button>
+                <Button variant="ghost" onClick={() => router.push("/login?redirect=/deposit")}>
+                  Deposit Guide →
                 </Button>
               </div>
             </div>
@@ -451,6 +488,7 @@ function SavingsMpesaPair() {
     </div>
   );
 }
+
 
 /* ══════════════════════════════════════════════════════════════════════════
    COMMUNITY PAIR — Chama + Agents share the Kenya map via position:sticky.
@@ -469,7 +507,13 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function CommunityPair() {
+function CommunityPair({
+  onChamaAction,
+  onAgentAction,
+}: {
+  onChamaAction?: () => void;
+  onAgentAction?: () => void;
+}) {
   const router    = useRouter();
   const shellRef  = useRef<HTMLDivElement>(null);
   const visRef    = useRef<HTMLDivElement>(null);
@@ -659,8 +703,11 @@ function CommunityPair() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="primary" onClick={() => router.push("/login?redirect=/chama")}>
-                Start or join a chama
+              <Button variant="gold" onClick={onChamaAction}>
+                ⚡ 1-Click Join Chama
+              </Button>
+              <Button variant="ghost" onClick={() => router.push("/login?redirect=/chama")}>
+                Start or join a chama →
               </Button>
             </div>
           </div>
@@ -684,8 +731,11 @@ function CommunityPair() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="gold" onClick={() => router.push("/login?redirect=/agent")}>
-                Open the Agent console
+              <Button variant="lime" onClick={onAgentAction}>
+                📍 Generate Cash-In Code (1-Click)
+              </Button>
+              <Button variant="ghost" onClick={() => router.push("/login?redirect=/agent")}>
+                Agent Console →
               </Button>
             </div>
           </div>
@@ -696,6 +746,7 @@ function CommunityPair() {
     </div>
   );
 }
+
 
 /* ── Shared ────────────────────────────────────────────────────────────── */
 

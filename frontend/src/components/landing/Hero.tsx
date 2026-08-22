@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
+import QuickProductModal, { type ProductType } from "./QuickProductModal";
 
 // ── Web Audio synthesizer (module-level singleton) ────────────────────────────
 let _actx: AudioContext | null = null;
@@ -76,6 +77,8 @@ export default function Hero() {
   const router  = useRouter();
   const rate    = useRate();
   const [loopKey, setLoopKey] = useState(0);
+  const [quickModalOpen, setQuickModalOpen] = useState(false);
+  const [modalProduct, setModalProduct] = useState<ProductType>("savings");
 
   // simulation
   const [phase,        setPhase]        = useState<Phase>(0);
@@ -220,11 +223,23 @@ export default function Hero() {
             ))}
           </h1>
           <p className="hero-sub reveal d1">
-            Earn interest in sats. Top up and cash out through M-Pesa.
+            Earn ~5.2% real yield in satoshis. Top up and cash out instantly through M-Pesa or 47 county cash agents.
           </p>
-          <div className="hero-cta reveal d2">
-            <button className="hero-btn" onClick={() => router.push("/login?redirect=/dashboard")}>
-              Open your Member dashboard
+          <div className="hero-cta reveal d2" style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <button
+              className="btn btn-gold"
+              onClick={() => {
+                setModalProduct("savings");
+                setQuickModalOpen(true);
+              }}
+            >
+              <i className="ti ti-bolt" /> ⚡ 1-Click Save (5.2% APY)
+            </button>
+            <button
+              className="btn btn-ghost on-dark"
+              onClick={() => router.push("/login?redirect=/dashboard")}
+            >
+              Open Member Dashboard →
             </button>
           </div>
           <p className="hero-trust reveal d3">
@@ -232,8 +247,11 @@ export default function Hero() {
             <span className="hero-trust-dot">·</span>
             <span><i className="ti ti-device-mobile" />M-Pesa native</span>
             <span className="hero-trust-dot">·</span>
+            <span><i className="ti ti-shield-check" />5.2% APY Yield</span>
+            <span className="hero-trust-dot">·</span>
             <span><i className="ti ti-lock-open" />Free to join</span>
           </p>
+
         </div>
 
         {/* ── Phone frame ── */}
@@ -372,6 +390,13 @@ export default function Hero() {
           </div>
         </div>
       </div>
+
+      <QuickProductModal
+        isOpen={quickModalOpen}
+        onClose={() => setQuickModalOpen(false)}
+        initialProduct={modalProduct}
+      />
     </header>
   );
 }
+

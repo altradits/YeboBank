@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 import Button from "@/components/ui/Button";
+import QuickProductModal from "./QuickProductModal";
 
 type Unit = "kes" | "sats" | "btc";
 
@@ -13,6 +14,7 @@ export default function Converter() {
   const rate = useRate();
   const [unit, setUnit] = useState<Unit>("kes");
   const [raw, setRaw] = useState("1,000");
+  const [quickOpen, setQuickOpen] = useState(false);
 
   const value = parseFloat(raw.replace(/[^0-9.]/g, "")) || 0;
   let sats: number;
@@ -58,13 +60,23 @@ export default function Converter() {
           <div className="rate-note">
             <span className="pulse" /> 1 BTC = ${num(rate.btcUsd)} · KES {num(rate.btcKes)} ({rate.source})
           </div>
-          <div style={{ marginTop: 24, display: "flex", justifyContent: "center" }}>
-            <Button variant="gold" onClick={() => router.push("/login?redirect=/dashboard")}>
-              Start saving in sats
+          <div style={{ marginTop: 24, display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
+            <Button variant="gold" onClick={() => setQuickOpen(true)}>
+              ⚡ 1-Click Lock This in Sats (5.2% APY)
+            </Button>
+            <Button variant="ghost" onClick={() => router.push("/login?redirect=/dashboard")}>
+              Open Account →
             </Button>
           </div>
         </div>
       </div>
+
+      <QuickProductModal
+        isOpen={quickOpen}
+        onClose={() => setQuickOpen(false)}
+        initialProduct="savings"
+      />
     </section>
   );
 }
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
@@ -8,7 +8,7 @@ import LogoMark from "@/components/ui/LogoMark";
 import { verifyOtp } from "@/lib/api";
 import { homePath } from "@/lib/useRoleGate";
 
-export default function VerifyPage() {
+function VerifyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "";
@@ -40,35 +40,43 @@ export default function VerifyPage() {
   }
 
   return (
+    <div className="auth-card">
+      <Link href="/" className="brand"><LogoMark size={34} /> YeboBank</Link>
+      <h1>Enter the code</h1>
+      <p className="sub">We sent a 6-digit code to your phone.</p>
+      <form onSubmit={onSubmit}>
+        <div className="otp">
+          {digits.map((d, i) => (
+            <input
+              key={i}
+              ref={(el) => { refs.current[i] = el; }}
+              className="input"
+              inputMode="numeric"
+              maxLength={1}
+              value={d}
+              onChange={(e) => setDigit(i, e.target.value)}
+              onKeyDown={(e) => onKey(i, e)}
+              aria-label={`Digit ${i + 1}`}
+            />
+          ))}
+        </div>
+        <Button type="submit" variant="gold" block disabled={loading}>
+          {loading ? "Verifying…" : "Verify and open account"}
+        </Button>
+      </form>
+      <p className="foot-link">
+        Didn&apos;t get the code? <button type="button" className="inline-link" onClick={() => {}}>Resend</button>
+      </p>
+    </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
     <main className="auth">
-      <div className="auth-card">
-        <Link href="/" className="brand"><LogoMark size={34} /> YeboBank</Link>
-        <h1>Enter the code</h1>
-        <p className="sub">We sent a 6-digit code to your phone.</p>
-        <form onSubmit={onSubmit}>
-          <div className="otp">
-            {digits.map((d, i) => (
-              <input
-                key={i}
-                ref={(el) => { refs.current[i] = el; }}
-                className="input"
-                inputMode="numeric"
-                maxLength={1}
-                value={d}
-                onChange={(e) => setDigit(i, e.target.value)}
-                onKeyDown={(e) => onKey(i, e)}
-                aria-label={`Digit ${i + 1}`}
-              />
-            ))}
-          </div>
-          <Button type="submit" block disabled={loading}>
-            {loading ? "Verifying…" : "Verify & continue"}
-          </Button>
-        </form>
-        <p className="foot-link">
-          Didn&apos;t get it? <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : "/register"}>Resend code</Link>
-        </p>
-      </div>
+      <Suspense fallback={<div className="auth-card"><p>Loading…</p></div>}>
+        <VerifyForm />
+      </Suspense>
     </main>
   );
 }
