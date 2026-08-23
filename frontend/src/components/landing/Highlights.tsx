@@ -234,12 +234,13 @@ export function Lightning() {
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Button variant="gold" onClick={() => setQuickOpen(true)}>
-                Send Sats
+                Send
               </Button>
               <Button variant="ghost" onClick={() => router.push("/login?redirect=/send")}>
-                Get your Lightning address →
+                Receive
               </Button>
             </div>
+
 
           </div>
 
@@ -362,9 +363,10 @@ export function Trust() {
 
         <div className="reveal d3" style={{ display: "flex", justifyContent: "center", marginTop: 48 }}>
           <Button variant="primary" onClick={() => router.push("/login?redirect=/dashboard")}>
-            Open a trusted account
+            Join
           </Button>
         </div>
+
       </div>
     </section>
   );

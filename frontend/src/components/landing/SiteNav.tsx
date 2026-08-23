@@ -116,7 +116,7 @@ export default function SiteNav() {
   function toggleTheme() {
     const next = dark ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("yebo-theme", next); } catch {}
+    try { localStorage.setItem("yebo-theme", next); } catch { }
     setDark(!dark);
   }
 

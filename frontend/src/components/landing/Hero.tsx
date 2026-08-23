@@ -22,13 +22,13 @@ function getACtx(): AudioContext | null {
 function playKey() {
   const ctx = getACtx();
   if (!ctx || ctx.state !== "running") return;
-  const sr  = ctx.sampleRate;
+  const sr = ctx.sampleRate;
   const len = Math.floor(sr * 0.048);
   const buf = ctx.createBuffer(1, len, sr);
-  const d   = buf.getChannelData(0);
+  const d = buf.getChannelData(0);
   for (let i = 0; i < len; i++)
     d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sr * 0.006));
-  const src  = ctx.createBufferSource();
+  const src = ctx.createBufferSource();
   const gain = ctx.createGain();
   src.buffer = buf;
   gain.gain.setValueAtTime(0.22, ctx.currentTime);
@@ -47,7 +47,7 @@ function playNotify(variant: "confirm" | "deposit" = "confirm") {
     ? [[0, 784, 0.18], [0.13, 988, 0.15], [0.26, 1175, 0.11]]  // G5 B5 D6
     : [[0, 1046.5, 0.18], [0.15, 1318.5, 0.14]];                // C6 E6
   notes.forEach(([delay, freq, vol]) => {
-    const osc  = ctx.createOscillator();
+    const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
     osc.frequency.value = freq;
@@ -71,29 +71,29 @@ const WORDS: { t: string; cls?: string }[] = [
   { t: "Spend" }, { t: "in" }, { t: "shillings.", cls: "grn" },
 ];
 const DEMO_PHONE = "0707172370";
-const DEMO_KES   = 500;
+const DEMO_KES = 500;
 
 export default function Hero() {
-  const router  = useRouter();
-  const rate    = useRate();
+  const router = useRouter();
+  const rate = useRate();
   const [loopKey, setLoopKey] = useState(0);
   const [quickModalOpen, setQuickModalOpen] = useState(false);
   const [modalProduct, setModalProduct] = useState<ProductType>("savings");
 
   // simulation
-  const [phase,        setPhase]        = useState<Phase>(0);
-  const [typedPhone,   setTypedPhone]   = useState("");
-  const [typedAmount,  setTypedAmount]  = useState("");
-  const [pinDots,      setPinDots]      = useState(0);
+  const [phase, setPhase] = useState<Phase>(0);
+  const [typedPhone, setTypedPhone] = useState("");
+  const [typedAmount, setTypedAmount] = useState("");
+  const [pinDots, setPinDots] = useState(0);
   const [simConfirmed, setSimConfirmed] = useState(false);
   const [lockConfirmed, setLockConfirmed] = useState(false);
 
   // cursor
-  const [cursorPos,  setCursorPos]  = useState({ x: 149, y: 260 });
-  const [clicking,   setClicking]   = useState(false);
+  const [cursorPos, setCursorPos] = useState({ x: 149, y: 260 });
+  const [clicking, setClicking] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
 
-  const hRef       = useRef<HTMLHeadingElement>(null);
+  const hRef = useRef<HTMLHeadingElement>(null);
   const depositSats = Math.round(DEMO_KES * rate.satsPerKes);
 
   /* ── Reset all sim state when loop restarts ── */
@@ -113,10 +113,10 @@ export default function Hero() {
   useEffect(() => {
     const resume = () => getACtx()?.resume();
     window.addEventListener("pointerdown", resume, { once: true });
-    window.addEventListener("keydown",     resume, { once: true });
+    window.addEventListener("keydown", resume, { once: true });
     return () => {
       window.removeEventListener("pointerdown", resume);
-      window.removeEventListener("keydown",     resume);
+      window.removeEventListener("keydown", resume);
     };
   }, []);
 
@@ -145,10 +145,10 @@ export default function Hero() {
     DEMO_PHONE.split("").forEach((ch, i) =>
       t.push(setTimeout(() => { setTypedPhone(p => p + ch); playKey(); }, 520 + i * 120))
     );
-    ["5","0","0"].forEach((ch, i) =>
+    ["5", "0", "0"].forEach((ch, i) =>
       t.push(setTimeout(() => { setTypedAmount(p => p + ch); playKey(); }, 2820 + i * 260))
     );
-    [0,1,2,3].forEach(i =>
+    [0, 1, 2, 3].forEach(i =>
       t.push(setTimeout(() => { setPinDots(i + 1); playKey(); }, 4720 + i * 280))
     );
     t.push(setTimeout(() => setSimConfirmed(true), 5700));
@@ -174,15 +174,15 @@ export default function Hero() {
   /* ── Cursor choreography ── */
   useEffect(() => {
     const t: ReturnType<typeof setTimeout>[] = [];
-    const mv  = (x: number, y: number, ms: number) =>
+    const mv = (x: number, y: number, ms: number) =>
       t.push(setTimeout(() => setCursorPos({ x, y }), ms));
     const tap = (ms: number) => {
-      t.push(setTimeout(() => setClicking(true),  ms));
+      t.push(setTimeout(() => setClicking(true), ms));
       t.push(setTimeout(() => setClicking(false), ms + 340));
     };
 
     // Phase 0 — phone number
-    mv(149, 232, 100);  tap(260);
+    mv(149, 232, 100); tap(260);
     mv(149, 322, 1980); tap(2130);
 
     // Phase 1 — deposit amount
@@ -233,27 +233,17 @@ export default function Hero() {
                 setQuickModalOpen(true);
               }}
             >
-              <i className="ti ti-bolt" /> Save (5.2% APY)
+              <i className="ti ti-bolt" /> Save
             </button>
             <button
               className="btn btn-ghost on-dark"
               onClick={() => router.push("/login?redirect=/dashboard")}
             >
-              Open Member Dashboard →
+              Explore
             </button>
           </div>
-
-          <p className="hero-trust reveal d3">
-            <span><i className="ti ti-brand-open-source" />Open source</span>
-            <span className="hero-trust-dot">·</span>
-            <span><i className="ti ti-device-mobile" />M-Pesa native</span>
-            <span className="hero-trust-dot">·</span>
-            <span><i className="ti ti-shield-check" />5.2% APY Yield</span>
-            <span className="hero-trust-dot">·</span>
-            <span><i className="ti ti-lock-open" />Free to join</span>
-          </p>
-
         </div>
+
 
         {/* ── Phone frame ── */}
         <div className="hero-phone reveal d3">
@@ -273,11 +263,11 @@ export default function Hero() {
 
               {/* Progress dots — 4 steps: login → deposit → confirm → lock */}
               <div className="hp-dots" aria-hidden="true">
-                {[0,1,2,3].map(i => (
+                {[0, 1, 2, 3].map(i => (
                   <span key={i} className={
                     phase >= 4 ? "done" :
-                    i === phase ? "on" :
-                    i < phase ? "done" : ""
+                      i === phase ? "on" :
+                        i < phase ? "done" : ""
                   } />
                 ))}
               </div>
@@ -316,7 +306,7 @@ export default function Hero() {
                   </div>
                   <div className="hp-sim-spacer" />
                   <div className="hp-sim-btn hp-sim-mpesa">
-                    <i className="ti ti-device-mobile" /> Send via M-Pesa
+                    <i className="ti ti-device-mobile" /> Deposit
                   </div>
                 </div>
               )}
@@ -336,7 +326,7 @@ export default function Hero() {
                     <div className="hp-sim-pin-wrap">
                       <div className="hp-sim-field-label">Enter M-Pesa PIN</div>
                       <div className="hp-sim-pin">
-                        {[0,1,2,3].map(i => (
+                        {[0, 1, 2, 3].map(i => (
                           <div key={i} className={`hp-sim-pin-dot${i < pinDots ? " filled" : ""}`} />
                         ))}
                       </div>
@@ -360,7 +350,7 @@ export default function Hero() {
                     <div className="hp-sim-row"><span>In shillings</span><b>KES {num(depositSats * rate.kesPerSat, 2)}</b></div>
                   </div>
                   <div className="hp-sim-earn">
-                    <i className="ti ti-lock" /> Tap Lock to earn ~5.2% APY
+                    <i className="ti ti-lock" /> Lock
                   </div>
                 </div>
               )}
@@ -377,7 +367,7 @@ export default function Hero() {
                   </div>
                   {!lockConfirmed ? (
                     <div className="hp-sim-btn hp-sim-lock">
-                      <i className="ti ti-lock" /> Lock sats
+                      <i className="ti ti-lock" /> Lock
                     </div>
                   ) : (
                     <div className="hp-sim-ok">
@@ -386,6 +376,7 @@ export default function Hero() {
                   )}
                 </div>
               )}
+
 
             </div>
           </div>

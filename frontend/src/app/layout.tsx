@@ -16,10 +16,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Resolve theme before first paint — prevents flash of wrong theme */}
-        <script dangerouslySetInnerHTML={{ __html:
-          `(function(){try{var t=localStorage.getItem('yebo-theme');` +
-          `if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}` +
-          `document.documentElement.dataset.theme=t;}catch(e){}})();`
+        <script dangerouslySetInnerHTML={{
+          __html:
+            `(function(){try{var t=localStorage.getItem('yebo-theme');` +
+            `if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}` +
+            `document.documentElement.dataset.theme=t;}catch(e){}})();`
         }} />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="manifest" href="/site.webmanifest" />

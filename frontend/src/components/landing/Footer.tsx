@@ -19,12 +19,12 @@ export function ClosingCTA() {
         <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="ctaWmG" x1="20" y1="11" x2="20" y2="31" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#F0CC58" stopOpacity=".22"/>
-              <stop offset="1" stopColor="#8A5E08" stopOpacity=".04"/>
+              <stop stopColor="#F0CC58" stopOpacity=".22" />
+              <stop offset="1" stopColor="#8A5E08" stopOpacity=".04" />
             </linearGradient>
           </defs>
-          <path d="M8 31L20 11L32 31" stroke="url(#ctaWmG)" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-          <circle cx="20" cy="11" r="3" fill="#F0CC58" fillOpacity=".16"/>
+          <path d="M8 31L20 11L32 31" stroke="url(#ctaWmG)" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <circle cx="20" cy="11" r="3" fill="#F0CC58" fillOpacity=".16" />
         </svg>
       </div>
 
@@ -45,12 +45,13 @@ export function ClosingCTA() {
 
         <div className="cta-actions reveal d2" style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
           <Button variant="gold" onClick={() => setQuickOpen(true)}>
-            Save (5.2% APY)
+            Save
           </Button>
           <Button variant="ghost" onClick={() => router.push("/login?redirect=/dashboard")}>
-            Open Member Dashboard →
+            Explore
           </Button>
         </div>
+
 
 
       </div>
@@ -65,12 +66,12 @@ export function ClosingCTA() {
 }
 
 const SOCIALS = [
-  { href: "#", icon: "ti-brand-facebook", label: "Facebook",   hoverColor: "#1877f2" },
-  { href: "#", icon: "ti-brand-x",         label: "Twitter / X", hoverColor: "#1a8cd8" },
-  { href: "#", icon: "ti-brand-instagram", label: "Instagram",  hoverColor: "#e4405f" },
-  { href: "#", icon: "ti-brand-linkedin",  label: "LinkedIn",   hoverColor: "#0a66c2" },
-  { href: "#", icon: "ti-brand-tiktok",    label: "TikTok",     hoverColor: "#ffffff" },
-  { href: "#", icon: "ti-brand-youtube",   label: "YouTube",    hoverColor: "#ff0000" },
+  { href: "#", icon: "ti-brand-facebook", label: "Facebook", hoverColor: "#1877f2" },
+  { href: "#", icon: "ti-brand-x", label: "Twitter / X", hoverColor: "#1a8cd8" },
+  { href: "#", icon: "ti-brand-instagram", label: "Instagram", hoverColor: "#e4405f" },
+  { href: "#", icon: "ti-brand-linkedin", label: "LinkedIn", hoverColor: "#0a66c2" },
+  { href: "#", icon: "ti-brand-tiktok", label: "TikTok", hoverColor: "#ffffff" },
+  { href: "#", icon: "ti-brand-youtube", label: "YouTube", hoverColor: "#ff0000" },
 ];
 
 export function SiteFooter() {

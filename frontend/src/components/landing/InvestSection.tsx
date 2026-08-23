@@ -32,12 +32,13 @@ export default function InvestSection() {
           </p>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 26 }}>
             <Button variant="gold" onClick={() => setQuickOpen(true)}>
-              Request Allocation
+              Invest
             </Button>
             <Button variant="ghost" onClick={() => router.push("/login?redirect=/invest")}>
-              Investor Dashboard →
+              Explore
             </Button>
           </div>
+
 
           <p style={{ marginTop: 18, fontSize: 13, color: "var(--soft)" }}>
             Are you the steward?{" "}
