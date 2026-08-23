@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+
 import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
@@ -12,6 +14,7 @@ interface QuickProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialProduct?: ProductType;
+  initialAmount?: string;
 }
 
 const META: Record<ProductType, { title: string; icon: string; buttonLabel: string; hint: string }> = {
@@ -57,9 +60,11 @@ export default function QuickProductModal({
   isOpen,
   onClose,
   initialProduct = "savings",
+  initialAmount,
 }: QuickProductModalProps) {
   const router = useRouter();
   const rate = useRate();
+  const [mounted, setMounted] = useState(false);
 
   const [activeTab, setActiveTab] = useState<ProductType>(initialProduct);
   const [kesAmount, setKesAmount] = useState("1000");
@@ -73,17 +78,17 @@ export default function QuickProductModal({
   const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
-    if (initialProduct) {
-      setActiveTab(initialProduct);
-    }
-  }, [initialProduct]);
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      if (initialProduct) setActiveTab(initialProduct);
+      if (initialAmount) setKesAmount(initialAmount);
       setPhase("input");
       setStatusMessage("");
     }
-  }, [isOpen]);
+  }, [isOpen, initialProduct, initialAmount]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -93,7 +98,7 @@ export default function QuickProductModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const currentMeta = META[activeTab] || META.savings;
   const numKes = parseFloat(kesAmount.replace(/[^0-9.]/g, "")) || 0;
@@ -126,33 +131,82 @@ export default function QuickProductModal({
     router.push(`/login?redirect=/${activeTab === "invest" ? "invest" : activeTab === "agent" ? "agent" : "dashboard"}`);
   };
 
-  return (
+  return createPortal(
     <div className="qpm-overlay" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="qpm-modal" style={{ maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="qpm-header" style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-soft)" }}>
-          <div className="qpm-brand" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 18, color: "var(--gold-text)" }}>
+      <div className="qpm-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Card Header with 3D Badge & Title */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "18px 22px",
+            borderBottom: "1px solid var(--border-soft)",
+            background: "rgba(255, 255, 255, 0.02)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                background: "linear-gradient(135deg, rgba(240, 204, 88, 0.2) 0%, rgba(240, 204, 88, 0.05) 100%)",
+                border: "1px solid rgba(240, 204, 88, 0.35)",
+                display: "grid",
+                placeItems: "center",
+                fontSize: 19,
+                color: "var(--gold-text)",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
+                flexShrink: 0,
+              }}
+            >
               <i className={`ti ${currentMeta.icon}`} />
-            </span>
-            <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16 }}>
-              {currentMeta.title}
-            </span>
+            </div>
+            <div>
+              <h3
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  fontSize: 17,
+                  color: "var(--text)",
+                  margin: 0,
+                  lineHeight: 1.2,
+                }}
+              >
+                {currentMeta.title}
+              </h3>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "var(--muted)",
+                  margin: "2px 0 0",
+                  lineHeight: 1.3,
+                }}
+              >
+                {currentMeta.hint}
+              </p>
+            </div>
           </div>
-          <button className="qpm-close" onClick={onClose} aria-label="Close modal">
+          <button
+            className="modal-close"
+            onClick={onClose}
+            aria-label="Close modal"
+            style={{ position: "static" }}
+          >
             <i className="ti ti-x" />
           </button>
         </div>
 
-        {/* Content area */}
-        <div className="qpm-body" style={{ padding: "20px" }}>
+        {/* Card Body */}
+        <div style={{ padding: "20px 22px" }}>
           {phase === "input" && (
-            <form onSubmit={handleInstantAction} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <form onSubmit={handleInstantAction} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {/* SAVINGS */}
               {activeTab === "savings" && (
                 <>
                   <div className="qa-field">
-                    <label className="qa-lbl">Amount (KES)</label>
+                    <label className="qa-lbl">Amount to Lock (KES)</label>
                     <div className="qa-amount-wrap">
                       <span className="qa-amount-pfx">KES</span>
                       <input
@@ -167,7 +221,16 @@ export default function QuickProductModal({
                       />
                     </div>
                     {numKes > 0 && (
-                      <div className="qa-hint">
+                      <div
+                        className="qa-hint"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          color: "var(--emerald-deep)",
+                          fontWeight: 600,
+                        }}
+                      >
                         <i className="ti ti-lock" /> ≈ {num(sats)} sats · 5.2% APY real yield
                       </div>
                     )}
@@ -175,17 +238,47 @@ export default function QuickProductModal({
 
                   <div className="qa-field">
                     <label className="qa-lbl">Lock Duration</label>
-                    <div className="seg">
-                      {[1, 2, 3, 5].map((yrs) => (
-                        <button
-                          key={yrs}
-                          type="button"
-                          className={lockYears === yrs ? "on" : ""}
-                          onClick={() => setLockYears(yrs)}
-                        >
-                          {yrs} {yrs === 1 ? "yr" : "yrs"}
-                        </button>
-                      ))}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(4, 1fr)",
+                        gap: 8,
+                        background: "var(--cream)",
+                        padding: 4,
+                        borderRadius: 12,
+                        border: "1px solid var(--border-soft)",
+                      }}
+                    >
+                      {[1, 2, 3, 5].map((yrs) => {
+                        const isSelected = lockYears === yrs;
+                        return (
+                          <button
+                            key={yrs}
+                            type="button"
+                            onClick={() => setLockYears(yrs)}
+                            style={{
+                              padding: "9px 0",
+                              fontSize: 13,
+                              fontWeight: isSelected ? 700 : 500,
+                              fontFamily: "var(--font-mono)",
+                              borderRadius: 8,
+                              border: "none",
+                              cursor: "pointer",
+                              transition: "all 0.15s ease",
+                              background: isSelected
+                                ? "linear-gradient(180deg, #F5D770 0%, #D8A928 100%)"
+                                : "transparent",
+                              color: isSelected ? "#07160F" : "var(--muted)",
+                              boxShadow: isSelected
+                                ? "0 2px 8px rgba(240, 204, 88, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
+                                : "none",
+                              transform: isSelected ? "translateY(-1px)" : "none",
+                            }}
+                          >
+                            {yrs} {yrs === 1 ? "yr" : "yrs"}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </>
@@ -210,7 +303,7 @@ export default function QuickProductModal({
                       />
                     </div>
                     {numKes > 0 && (
-                      <div className="qa-hint">
+                      <div className="qa-hint" style={{ color: "var(--emerald-deep)", fontWeight: 600 }}>
                         <i className="ti ti-bolt" /> Receives ≈ {num(sats)} sats immediately
                       </div>
                     )}
@@ -260,7 +353,7 @@ export default function QuickProductModal({
                       />
                     </div>
                     {numKes > 0 && (
-                      <div className="qa-hint">
+                      <div className="qa-hint" style={{ color: "var(--emerald-deep)", fontWeight: 600 }}>
                         <i className="ti ti-users" /> ≈ {num(sats)} sats per cycle
                       </div>
                     )}
@@ -351,7 +444,7 @@ export default function QuickProductModal({
                       />
                     </div>
                     {numKes > 0 && (
-                      <div className="qa-hint">
+                      <div className="qa-hint" style={{ color: "var(--emerald-deep)", fontWeight: 600 }}>
                         <i className="ti ti-trending-up" /> ≈ {num(sats)} sats into productive real assets
                       </div>
                     )}
@@ -359,16 +452,19 @@ export default function QuickProductModal({
                 </>
               )}
 
-              {/* Single Goal Action Button */}
+              {/* 3D Action Button */}
               <button
                 type="submit"
                 className="btn btn-gold"
                 style={{
                   width: "100%",
-                  padding: "13px",
+                  padding: "14px",
                   fontWeight: 700,
                   fontSize: 15,
                   marginTop: 6,
+                  borderRadius: 12,
+                  boxShadow: "0 4px 16px rgba(240, 204, 88, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
+                  cursor: "pointer",
                 }}
               >
                 {currentMeta.buttonLabel}
@@ -377,46 +473,67 @@ export default function QuickProductModal({
           )}
 
           {phase === "processing" && (
-            <div style={{ textAlign: "center", padding: "30px 10px" }}>
+            <div style={{ textAlign: "center", padding: "34px 10px" }}>
               <div
                 style={{
-                  width: 38,
-                  height: 38,
-                  border: "3px solid var(--border)",
+                  width: 44,
+                  height: 44,
+                  border: "3px solid var(--border-soft)",
                   borderTopColor: "var(--gold)",
                   borderRadius: "50%",
                   animation: "spin 0.8s linear infinite",
-                  margin: "0 auto 14px",
+                  margin: "0 auto 16px",
                 }}
               />
-              <h4 style={{ fontFamily: "var(--font-display)", fontSize: 16 }}>Processing {currentMeta.title}…</h4>
+              <h4 style={{ fontFamily: "var(--font-display)", fontSize: 17, margin: "0 0 6px" }}>
+                Processing {currentMeta.title}…
+              </h4>
+              <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
+                Securing transaction on Bitcoin settlement rails
+              </p>
             </div>
           )}
 
           {phase === "success" && (
-            <div style={{ textAlign: "center", padding: "20px 10px" }}>
+            <div style={{ textAlign: "center", padding: "24px 10px" }}>
               <div
                 style={{
-                  width: 48,
-                  height: 48,
+                  width: 52,
+                  height: 52,
                   borderRadius: "50%",
                   background: "rgba(28, 180, 96, 0.15)",
+                  border: "1px solid rgba(28, 180, 96, 0.3)",
                   color: "var(--emerald-deep)",
                   display: "grid",
                   placeItems: "center",
-                  fontSize: 24,
-                  margin: "0 auto 12px",
+                  fontSize: 26,
+                  margin: "0 auto 14px",
+                  boxShadow: "0 4px 16px rgba(28, 180, 96, 0.2)",
                 }}
               >
                 <i className="ti ti-check" />
               </div>
-              <h4 style={{ fontFamily: "var(--font-display)", fontSize: 18, marginBottom: 6 }}>Done</h4>
-              <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 18 }}>{statusMessage}</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <button className="btn btn-gold" onClick={handleNavigateToApp} style={{ width: "100%" }}>
+              <h4 style={{ fontFamily: "var(--font-display)", fontSize: 19, margin: "0 0 6px" }}>Done</h4>
+              <p style={{ fontSize: 13.5, color: "var(--muted)", margin: "0 0 20px" }}>{statusMessage}</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <button
+                  className="btn btn-gold"
+                  onClick={handleNavigateToApp}
+                  style={{
+                    width: "100%",
+                    padding: "13px",
+                    fontWeight: 700,
+                    borderRadius: 12,
+                    boxShadow: "0 4px 14px rgba(240, 204, 88, 0.3)",
+                  }}
+                >
                   Open Member Dashboard →
                 </button>
-                <button className="btn btn-ghost" onClick={() => setPhase("input")} style={{ width: "100%" }}>
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => setPhase("input")}
+                  style={{ width: "100%", padding: "11px", borderRadius: 12 }}
+                >
                   New Transaction
                 </button>
               </div>
@@ -424,6 +541,9 @@ export default function QuickProductModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
+
+

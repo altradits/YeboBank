@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Button from "@/components/ui/Button";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
@@ -9,11 +10,11 @@ import SecurityTransactionGuard from "@/components/ui/SecurityTransactionGuard";
 
 export type QuickActionKind = "deposit" | "withdraw" | "send" | "lock";
 
-const META: Record<QuickActionKind, { title: string; icon: string }> = {
-  deposit:  { title: "Deposit",        icon: "ti-arrow-down" },
-  withdraw: { title: "Withdraw",       icon: "ti-arrow-up" },
-  send:     { title: "Send",           icon: "ti-send" },
-  lock:     { title: "Lock Savings",   icon: "ti-lock" },
+const META: Record<QuickActionKind, { title: string; icon: string; subtitle: string }> = {
+  deposit:  { title: "Deposit",        icon: "ti-arrow-down", subtitle: "Top up your wallet via M-Pesa or Lightning" },
+  withdraw: { title: "Withdraw",       icon: "ti-arrow-up",   subtitle: "Withdraw sats directly to M-Pesa cash" },
+  send:     { title: "Send",           icon: "ti-send",       subtitle: "Send instant Bitcoin sats globally" },
+  lock:     { title: "Lock Savings",   icon: "ti-lock",       subtitle: "Earn ~5.2% APY real yield in Bitcoin" },
 };
 
 interface Props {
@@ -24,6 +25,7 @@ interface Props {
 
 export default function QuickActionModal({ kind, onClose, onDone }: Props) {
   const rate = useRate();
+  const [mounted, setMounted] = useState(false);
   const [phase,   setPhase]   = useState<"form" | "result">("form");
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
@@ -44,58 +46,72 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
   const [invoice,   setInvoice]   = useState("");
   const [copied,    setCopied]    = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const kesNum      = parseFloat(kes.replace(/[^0-9.]/g, "")) || 0;
+  const sendSatsNum = parseInt(sendSats.replace(/\D/g, ""), 10) || 0;
+  const lockSatsNum = parseInt(lockSats.replace(/\D/g, ""), 10) || 0;
+
+  // Conversions for hints
   const satsFromKes = Math.round(kesNum * rate.satsPerKes);
-  const sendSatsNum = parseInt(sendSats.replace(/[^0-9]/g, ""), 10) || 0;
-  const lockSatsNum = parseInt(lockSats.replace(/[^0-9]/g, ""), 10) || 0;
+  const kesFromSend = sendSatsNum * rate.kesPerSat;
+  const kesFromLock = lockSatsNum * rate.kesPerSat;
 
+  // Determine current transaction amount and currency for SecurityTransactionGuard
   const currentAmount =
-    kind === "deposit" || kind === "withdraw" ? kesNum :
     kind === "send" ? sendSatsNum :
-    lockSatsNum;
+    kind === "lock" ? lockSatsNum :
+    kesNum;
 
-  const currentCurrency =
-    kind === "deposit" || kind === "withdraw" ? "KES" : "sats";
+  const currentCurrency = (kind === "send" || kind === "lock") ? "sats" : "KES";
 
   function copyInvoice() {
-    if (navigator.clipboard) navigator.clipboard.writeText(invoice);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
+    if (!invoice) return;
+    navigator.clipboard.writeText(invoice).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   async function handleSubmit() {
-    setLoading(true);
     setError(null);
+    setLoading(true);
+
     try {
       if (kind === "deposit") {
-        if (!kesNum || kesNum <= 0) throw new Error("Enter a valid amount");
+        if (kesNum <= 0) throw new Error("Enter an amount to deposit");
         if (method === "mpesa") {
-          await depositMpesa(kesNum);
-          setResultAmt(`KES ${num(kesNum, 0)}`);
-          setResultMsg("STK Push sent to your phone. Enter your M-Pesa PIN to confirm the deposit.");
+          const res = await depositMpesa(kesNum);
+          setResultAmt(`KES ${num(kesNum)}`);
+          setResultMsg(`STK Push initiated (ref: ${res.checkoutRequestId || "pending"}). Check your phone to enter your M-Pesa PIN.`);
         } else {
           const res = await depositLightning(satsFromKes);
-          setInvoice(res.invoice);
           setResultAmt(`${num(satsFromKes)} sats`);
-          setResultMsg("Lightning invoice ready. Scan or copy it to complete the deposit.");
+          setResultMsg("Pay this Lightning invoice to complete your deposit:");
+          setInvoice(res.invoice || "");
         }
       } else if (kind === "withdraw") {
-        if (!kesNum || kesNum <= 0) throw new Error("Enter a valid amount");
+        if (kesNum <= 0) throw new Error("Enter an amount to withdraw");
         await withdrawMpesa(satsFromKes);
-        setResultAmt(`KES ${num(kesNum, 0)}`);
-        setResultMsg("On its way — shillings will arrive in your M-Pesa within moments.");
+        setResultAmt(`KES ${num(kesNum)}`);
+        setResultMsg(`Withdrawal initiated. Funds will arrive on your M-Pesa shortly.`);
       } else if (kind === "send") {
-        if (!dest.trim()) throw new Error("Enter a Lightning address or invoice");
-        if (!sendSatsNum || sendSatsNum <= 0) throw new Error("Enter a valid amount");
+        if (!dest.trim()) throw new Error("Enter a recipient address or invoice");
+        if (sendSatsNum <= 0) throw new Error("Enter sats to send");
         await sendLightning(dest.trim(), sendSatsNum);
         setResultAmt(`${num(sendSatsNum)} sats`);
-        setResultMsg(`Sent to ${dest.trim()}.`);
-      } else {
-        if (!lockSatsNum || lockSatsNum <= 0) throw new Error("Enter an amount to lock");
+        setResultMsg(`Sent successfully via Lightning network.`);
+      } else if (kind === "lock") {
+
+        if (lockSatsNum <= 0) throw new Error("Enter sats to lock");
         await createLock(lockSatsNum, lockYears);
         setResultAmt(`${num(lockSatsNum)} sats`);
-        setResultMsg(`Locked for ${lockYears} year${lockYears > 1 ? "s" : ""}. Your savings are growing.`);
+        setResultMsg(`Locked for ${lockYears} year${lockYears > 1 ? "s" : ""}. Your savings are growing at 5.2% APY.`);
       }
+
+
       setPhase("result");
       onDone?.();
     } catch (e) {
@@ -107,31 +123,84 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
 
   const meta = META[kind];
 
-  // RULE 2: Single outcome verb
   const submitLabel =
     kind === "deposit"   ? "Deposit"  :
     kind === "withdraw"  ? "Withdraw" :
     kind === "send"      ? "Send"     :
     "Lock";
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       <div className="qa-backdrop" onClick={onClose} />
 
       <div className="qa-modal" role="dialog" aria-modal="true" style={{ maxWidth: 440 }}>
-
-        {/* Header */}
-        <div className="qa-hd">
-          <span className={`qa-hd-icon qa-hd-icon--${kind}`}>
-            <i className={`ti ${meta.icon}`} />
-          </span>
-          <span className="qa-hd-title">{meta.title}</span>
-          <button className="qa-hd-close" onClick={onClose} aria-label="Close">
+        {/* Header with 3D tactile icon badge */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "18px 22px",
+            borderBottom: "1px solid var(--border-soft)",
+            background: "rgba(255, 255, 255, 0.02)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                background: "linear-gradient(135deg, rgba(240, 204, 88, 0.2) 0%, rgba(240, 204, 88, 0.05) 100%)",
+                border: "1px solid rgba(240, 204, 88, 0.35)",
+                display: "grid",
+                placeItems: "center",
+                fontSize: 19,
+                color: "var(--gold-text)",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
+                flexShrink: 0,
+              }}
+            >
+              <i className={`ti ${meta.icon}`} />
+            </div>
+            <div>
+              <h3
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  fontSize: 17,
+                  color: "var(--text)",
+                  margin: 0,
+                  lineHeight: 1.2,
+                }}
+              >
+                {meta.title}
+              </h3>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "var(--muted)",
+                  margin: "2px 0 0",
+                  lineHeight: 1.3,
+                }}
+              >
+                {meta.subtitle}
+              </p>
+            </div>
+          </div>
+          <button
+            className="modal-close"
+            onClick={onClose}
+            aria-label="Close"
+            style={{ position: "static" }}
+          >
             <i className="ti ti-x" />
           </button>
         </div>
 
-        <div className="qa-body">
+        <div className="qa-body" style={{ padding: "20px 22px" }}>
           {phase === "form" ? (
             <>
               {/* Deposit: method toggle */}
@@ -151,7 +220,7 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
                 <div className="qa-field">
                   <label className="qa-lbl">To</label>
                   <input
-                    className="qa-input"
+                    className="input"
                     type="text"
                     placeholder="you@wallet.com or lnbc…"
                     value={dest}
@@ -178,8 +247,7 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
                   </div>
                   {sendSatsNum > 0 && (
                     <div className="qa-hint">
-                      <i className="ti ti-arrows-exchange" />
-                      ≈ KES {num(sendSatsNum * rate.kesPerSat, 2)} &middot; free to other YeboBank members
+                      <i className="ti ti-arrows-exchange" /> ≈ KES {num(kesFromSend, 2)} at today&apos;s rate
                     </div>
                   )}
                 </div>
@@ -192,31 +260,68 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
                         className="qa-amount-input"
                         type="text"
                         inputMode="numeric"
-                        placeholder="100 000"
+                        placeholder="50 000"
                         value={lockSats}
                         onChange={(e) => setLockSats(e.target.value)}
+                        autoFocus
                       />
                     </div>
                     {lockSatsNum > 0 && (
                       <div className="qa-hint">
-                        <i className="ti ti-trending-up" />
-                        ≈ KES {num(lockSatsNum * rate.kesPerSat, 2)} at today&apos;s rate
+                        <i className="ti ti-arrows-exchange" /> ≈ KES {num(kesFromLock, 2)} · Yield: ~5.2% p.a.
                       </div>
                     )}
                   </div>
+
+
                   <div className="qa-field">
                     <label className="qa-lbl">Lock duration</label>
-                    <div className="seg">
-                      {([1, 3, 5, 7] as const).map((y) => (
-                        <button key={y} className={lockYears === y ? "on" : ""} onClick={() => setLockYears(y)}>
-                          {y}y
-                        </button>
-                      ))}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(4, 1fr)",
+                        gap: 8,
+                        background: "var(--cream)",
+                        padding: 4,
+                        borderRadius: 12,
+                        border: "1px solid var(--border-soft)",
+                      }}
+                    >
+                      {[1, 3, 5, 7].map((y) => {
+                        const isSelected = lockYears === y;
+                        return (
+                          <button
+                            key={y}
+                            type="button"
+                            onClick={() => setLockYears(y)}
+                            style={{
+                              padding: "9px 0",
+                              fontSize: 13,
+                              fontWeight: isSelected ? 700 : 500,
+                              fontFamily: "var(--font-mono)",
+                              borderRadius: 8,
+                              border: "none",
+                              cursor: "pointer",
+                              transition: "all 0.15s ease",
+                              background: isSelected
+                                ? "linear-gradient(180deg, #F5D770 0%, #D8A928 100%)"
+                                : "transparent",
+                              color: isSelected ? "#07160F" : "var(--muted)",
+                              boxShadow: isSelected
+                                ? "0 2px 8px rgba(240, 204, 88, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
+                                : "none",
+                              transform: isSelected ? "translateY(-1px)" : "none",
+                            }}
+                          >
+                            {y}y
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </>
               ) : (
-                /* deposit or withdraw — KES amount */
+                /* deposit / withdraw: KES input */
                 <div className="qa-field">
                   <label className="qa-lbl">
                     {kind === "withdraw" ? "Amount to withdraw (KES)" : "Amount (KES)"}
@@ -232,21 +337,11 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
                       onChange={(e) => setKes(e.target.value)}
                     />
                   </div>
-                  {kesNum > 0 && (
-                    <div className="qa-hint">
-                      <i className="ti ti-arrows-exchange" />
-                      {kind === "deposit"
-                        ? `You'll receive ≈ ${num(satsFromKes)} sats at today's rate`
-                        : `Debits ≈ ${num(satsFromKes)} sats from your balance`
-                      }
-                    </div>
-                  )}
                 </div>
               )}
 
               {error && <div className="qa-error">{error}</div>}
 
-              {/* RULES 1, 2, 3, 5: Security Guard with Timeout, OTP, Amount in Words, Service Fee */}
               {currentAmount > 0 ? (
                 <SecurityTransactionGuard
                   amount={currentAmount}
@@ -262,6 +357,12 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
                   onClick={() => void handleSubmit()}
                   disabled={loading || currentAmount <= 0}
                   block
+                  style={{
+                    borderRadius: 12,
+                    padding: "13px",
+                    fontWeight: 700,
+                    boxShadow: "0 4px 16px rgba(240, 204, 88, 0.35)",
+                  }}
                 >
                   {submitLabel}
                 </Button>
@@ -269,13 +370,31 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
             </>
           ) : (
             /* ── Result phase ── */
-            <div className="qa-result">
-              <div className="qa-check-ring">
+            <div className="qa-result" style={{ textAlign: "center", padding: "10px 0" }}>
+              <div
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: "50%",
+                  background: "rgba(28, 180, 96, 0.15)",
+                  border: "1px solid rgba(28, 180, 96, 0.3)",
+                  color: "var(--emerald-deep)",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 26,
+                  margin: "0 auto 14px",
+                  boxShadow: "0 4px 16px rgba(28, 180, 96, 0.2)",
+                }}
+              >
                 <i className="ti ti-circle-check" />
               </div>
 
-              <div className="qa-result-amount">{resultAmt}</div>
-              <p className="qa-result-msg">{resultMsg}</p>
+              <div className="qa-result-amount" style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 22, color: "var(--text)", marginBottom: 6 }}>
+                {resultAmt}
+              </div>
+              <p className="qa-result-msg" style={{ fontSize: 13.5, color: "var(--muted)", margin: "0 0 16px" }}>
+                {resultMsg}
+              </p>
 
               {/* Lightning invoice */}
               {invoice && (
@@ -299,12 +418,19 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
                 </div>
               )}
 
-              <Button variant="ghost" onClick={onClose} block>Done</Button>
+              <Button
+                variant="primary"
+                onClick={onClose}
+                block
+                style={{ borderRadius: 12, padding: "12px", marginTop: 12 }}
+              >
+                Done
+              </Button>
             </div>
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
-

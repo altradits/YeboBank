@@ -76,8 +76,10 @@ export default function Converter() {
         isOpen={quickOpen}
         onClose={() => setQuickOpen(false)}
         initialProduct="savings"
+        initialAmount={String(Math.round(sats * rate.kesPerSat))}
       />
     </section>
   );
 }
+
 
