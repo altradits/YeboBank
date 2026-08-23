@@ -155,21 +155,25 @@ export default function SecurityTransactionGuard({
 
         {otpSentNotice && (
           <div
+            onClick={() => setOtp(generatedOtp)}
             style={{
               fontSize: 11,
               color: "var(--muted)",
               background: "rgba(255,255,255,0.04)",
-              padding: "4px 8px",
+              padding: "5px 10px",
               borderRadius: 6,
               marginBottom: 6,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              cursor: "pointer",
+              border: "1px dashed rgba(240, 204, 88, 0.3)",
             }}
+            title="Click to auto-fill security code"
           >
             <span>Sent to {userPhone}</span>
             <span style={{ fontFamily: "var(--font-mono)", color: "var(--emerald-deep)", fontWeight: 700 }}>
-              Code: {generatedOtp}
+              Click to fill: {generatedOtp}
             </span>
           </div>
         )}
@@ -199,15 +203,43 @@ export default function SecurityTransactionGuard({
 
       {/* Security Check 2: Amount in Words */}
       <div style={{ marginBottom: 16 }}>
-        <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>
-          Confirm Amount in Words:
-        </label>
-        <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 6 }}>
-          Type <strong style={{ color: "var(--gold-text)" }}>&quot;{expectedWords}&quot;</strong> to authorize:
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>
+            Confirm Amount in Words:
+          </label>
+          <button
+            type="button"
+            onClick={() => setWordsInput(expectedWords)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--gold-text)",
+              fontSize: 11,
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            Auto-fill
+          </button>
+        </div>
+        <div
+          onClick={() => setWordsInput(expectedWords)}
+          style={{
+            fontSize: 11,
+            color: "var(--muted)",
+            marginBottom: 6,
+            cursor: "pointer",
+            padding: "4px 8px",
+            background: "rgba(255,255,255,0.03)",
+            borderRadius: 6,
+          }}
+          title="Click to fill amount in words"
+        >
+          Click to authorize: <strong style={{ color: "var(--gold-text)" }}>&quot;{expectedWords}&quot;</strong>
         </div>
         <input
           type="text"
-          placeholder={`Type "${expectedWords}"`}
+          placeholder={`Type or click "${expectedWords}"`}
           value={wordsInput}
           onChange={(e) => setWordsInput(e.target.value)}
           style={{
@@ -227,6 +259,7 @@ export default function SecurityTransactionGuard({
           </div>
         )}
       </div>
+
 
       {/* Single Action Button (Rule 1 & Rule 2) */}
       <button
