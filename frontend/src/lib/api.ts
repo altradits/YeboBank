@@ -90,22 +90,62 @@ export async function getHistory(): Promise<LedgerEntry[]> {
 }
 
 // ---- deposit / withdraw ------------------------------------------------------
-export async function depositMpesa(kes: number): Promise<{ checkoutRequestId: string }> {
-  if (USE_MOCKS) return delay({ checkoutRequestId: "ws_CO_demo" });
+export async function depositMpesa(kes: number, satsRate = 8.33): Promise<{ checkoutRequestId: string; satsCredited: number }> {
+  const sats = Math.round(kes * satsRate);
+  if (USE_MOCKS) {
+    mockWallet.balanceSats += sats;
+    mockLedger.unshift({
+      id: "dep_" + Date.now(),
+      type: "deposit_mpesa",
+      direction: "credit",
+      amountSats: sats,
+      balanceAfter: mockWallet.balanceSats,
+      note: `M-Pesa deposit KES ${kes.toLocaleString()} → +${sats.toLocaleString()} sats`,
+      createdAt: new Date().toISOString(),
+      status: "confirmed",
+    });
+    return delay({ checkoutRequestId: "ws_CO_" + Date.now(), satsCredited: sats });
+  }
   return req("/deposit/mpesa", { method: "POST", body: JSON.stringify({ kes }) });
 }
 
 export async function withdrawMpesa(sats: number): Promise<{ ok: boolean }> {
-  if (USE_MOCKS) return delay({ ok: true });
+  if (USE_MOCKS) {
+    mockWallet.balanceSats = Math.max(0, mockWallet.balanceSats - sats);
+    mockLedger.unshift({
+      id: "wdr_" + Date.now(),
+      type: "withdrawal_mpesa",
+      direction: "debit",
+      amountSats: sats,
+      balanceAfter: mockWallet.balanceSats,
+      note: `M-Pesa withdrawal: -${sats.toLocaleString()} sats`,
+      createdAt: new Date().toISOString(),
+      status: "confirmed",
+    });
+    return delay({ ok: true });
+  }
   return req("/withdraw/mpesa", { method: "POST", body: JSON.stringify({ sats }) });
 }
 
-export async function depositLightning(sats: number): Promise<{ invoice: string }> {
+export async function depositLightning(sats: number): Promise<{ invoice: string; satsCredited: number }> {
   if (USE_MOCKS) {
-    return delay({ invoice: "lnbc" + sats + "n1pdemoinvoiceonlyplaceholdervalue" });
+    const inv = "lnbc" + sats + "0n1p3" + Math.random().toString(36).substring(2, 12) + "yebobank";
+    mockWallet.balanceSats += sats;
+    mockLedger.unshift({
+      id: "dep_ln_" + Date.now(),
+      type: "deposit_lightning",
+      direction: "credit",
+      amountSats: sats,
+      balanceAfter: mockWallet.balanceSats,
+      note: `Lightning invoice payment → +${sats.toLocaleString()} sats`,
+      createdAt: new Date().toISOString(),
+      status: "confirmed",
+    });
+    return delay({ invoice: inv, satsCredited: sats });
   }
   return req("/deposit/lightning", { method: "POST", body: JSON.stringify({ sats }) });
 }
+
 
 export async function sendLightning(invoiceOrAddress: string, sats: number): Promise<{ ok: boolean }> {
   if (USE_MOCKS) return delay({ ok: true });

@@ -75,8 +75,9 @@ export function TopBar() {
     if (isOnHome) {
       return (
         <div className="mini-ticker">
-          <span className="pulse" /> 1 BTC = KES {num(rate.btcKes)}
+          1 BTC = KES {num(rate.btcKes)}
         </div>
+
       );
     }
     if (isInMlinziSub) {

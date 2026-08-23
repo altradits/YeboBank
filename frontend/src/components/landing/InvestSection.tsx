@@ -15,14 +15,8 @@ export default function InvestSection() {
       <div className="wrap" style={{ display: "grid", gridTemplateColumns: "1.05fr 1fr", gap: 56, alignItems: "center" }}>
 
         <div className="reveal d1">
-          <p style={{
-            fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600,
-            letterSpacing: ".12em", textTransform: "uppercase",
-            color: "var(--lime)", marginBottom: 14,
-          }}>
-            <span className="sec-live-dot" aria-hidden="true" />Friends &amp; family pilot
-          </p>
           <h2 className="h2">
+
             Invested for you, <span className="accent">guarded by the Mlinzi.</span>
           </h2>
           <p className="lead">

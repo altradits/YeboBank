@@ -146,7 +146,7 @@ export default function DashboardPage() {
               <i className="ti ti-x" />
             </button>
             <h2 id="invest-modal-title">Invest with the Mlinzi</h2>
-            <p className="modal-sub">Friends &amp; family pilot — access by acceptance only.</p>
+            <p className="modal-sub">Private investment circle — access by acceptance only.</p>
 
             {user?.accessStatus === "requested" ? (
               <p className="note" style={{ marginTop: 14 }}>
@@ -157,9 +157,10 @@ export default function DashboardPage() {
               </p>
             ) : user?.accessStatus === "declined" ? (
               <p className="note" style={{ marginTop: 14 }}>
-                Access isn&apos;t available for your account right now. The pilot is
-                limited to verified friends and family of the Mlinzi.
+                Access isn&apos;t available for your account right now. Membership is
+                limited to verified partners of the Mlinzi.
               </p>
+
             ) : (
               <>
                 <p className="note" style={{ marginTop: 14 }}>

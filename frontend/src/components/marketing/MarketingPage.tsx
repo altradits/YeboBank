@@ -106,9 +106,9 @@ function HeroSection() {
             *5.2% APY is a target projection, not a guarantee.
           </p>
           <div className="mkt-hero-rate">
-            <span className="pulse" />
             1 BTC = KES {num(rate.btcKes)} · {rate.satsPerKes.toFixed(1)} sats per shilling
           </div>
+
         </div>
 
         {/* Animated comparison: KES shrinks vs Sats grow */}

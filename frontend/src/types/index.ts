@@ -219,10 +219,17 @@ export interface Rate {
   btcUsd: number;
   usdKes: number;
   btcKes: number;     // derived
+  btcEtb: number;     // Ethiopian Birr per BTC
+  kesEtb: number;     // Live real-world rate: 1 KES in ETB
+  kesUsd: number;     // Live rate: 1 KES in USD (Somalia Zaad electronic balance)
+  kesSos: number;     // Live rate: 1 KES in Somali Shillings
   satsPerKes: number; // derived
   kesPerSat: number;  // derived
-  source: string;     // "CoinGecko · live" | "simulated feed"
+  satsPerEtb: number; // derived
+  etbPerSat: number;  // derived
+  source: string;     // e.g. "CoinGecko / Yadio API · Live"
 }
+
 
 // ── Mlinzi (Fund Steward) — friends & family investor program ───────────────
 

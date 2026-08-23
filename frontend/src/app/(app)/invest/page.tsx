@@ -11,7 +11,8 @@ import {
 import { ATMCard } from "@/components/app/ATMCard";
 import type { User, InvestorPosition, FIProfile, IncomeSource, AppNotification } from "@/types";
 
-const PILOT_BANNER = "Friends & family pilot — figures are projections, not guarantees. Not a public offer.";
+const PILOT_BANNER = "Figures are projections based on historical asset yield. Access is by acceptance only.";
+
 
 export default function InvestPage() {
   const rate = useRate();

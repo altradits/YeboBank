@@ -253,9 +253,9 @@ export default function SiteNav() {
               className="nav-sell-btn"
               onClick={() => launchProductModal("savings")}
             >
-              <i className="ti ti-bolt" />
               <span>Save</span>
             </button>
+
 
 
             {/* Sign In */}

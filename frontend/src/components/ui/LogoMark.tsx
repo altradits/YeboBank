@@ -1,62 +1,91 @@
 "use client";
 
-import { useId } from "react";
+import React, { useId } from "react";
 
 interface Props {
   size?: number;
   className?: string;
+  animated?: boolean;
 }
 
-export default function LogoMark({ size = 34, className }: Props) {
+export default function LogoMark({ size = 36, className = "", animated = false }: Props) {
   const uid = useId().replace(/:/g, "");
+
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 40 40"
+      viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
+      className={`yebo-logo-svg ${animated ? "yebo-logo-animated" : ""} ${className}`}
       aria-hidden="true"
       focusable="false"
     >
       <defs>
-        {/* Deep navy background — NW dark → SE slightly lighter */}
-        <linearGradient id={`${uid}bg`} x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-          <stop style={{ stopColor: "var(--ink, #080D1E)" }} />
-          <stop offset="1" style={{ stopColor: "var(--ink, #111828)", stopOpacity: 0.85 }} />
+        {/* Rich Kenyan Gold Gradient */}
+        <linearGradient id={`${uid}gold`} x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#F9DF7B" />
+          <stop offset="0.45" stopColor="#D4A018" />
+          <stop offset="1" stopColor="#8C6200" />
         </linearGradient>
-        {/* Gold: bright crown at peak → brand gold → deep amber at base */}
-        <linearGradient id={`${uid}g`} x1="20" y1="11" x2="20" y2="31" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#F0CC58" />
-          <stop offset="0.58" stopColor="#C49020" />
-          <stop offset="1" stopColor="#8A5E08" />
+
+        {/* Inner Leaf Highlights */}
+        <linearGradient id={`${uid}goldLight`} x1="24" y1="8" x2="24" y2="40" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#FFF2B2" />
+          <stop offset="0.6" stopColor="#E5B83B" />
+          <stop offset="1" stopColor="#A3760B" />
         </linearGradient>
-        {/* Subtle gold glow centered at the peak */}
-        <radialGradient id={`${uid}glow`} cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
-          gradientTransform="translate(20 11) scale(22 18)">
-          <stop stopColor="#C49020" stopOpacity=".20" />
-          <stop offset="1" stopColor="#C49020" stopOpacity="0" />
+
+        {/* Ambient Halo Glow */}
+        <radialGradient
+          id={`${uid}glow`}
+          cx="24"
+          cy="24"
+          r="22"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#D4A018" stopOpacity="0.25" />
+          <stop offset="1" stopColor="#D4A018" stopOpacity="0" />
         </radialGradient>
       </defs>
 
-      {/* Background */}
-      <rect width="40" height="40" rx="9" fill={`url(#${uid}bg)`} />
-      {/* Gold glow at peak */}
-      <rect width="40" height="40" rx="9" fill={`url(#${uid}glow)`} />
+      {/* Ambient background glow */}
+      <circle cx="24" cy="24" r="22" fill={`url(#${uid}glow)`} />
 
-      {/* Upward chevron — growth mark */}
-      <path
-        d="M8 31L20 11L32 31"
-        stroke={`url(#${uid}g)`}
-        strokeWidth="5.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
+      {/* Outer Golden Coin Ring */}
+      <circle
+        cx="24"
+        cy="24"
+        r="21"
+        stroke={`url(#${uid}gold)`}
+        strokeWidth="2.2"
+        className="yebo-logo-ring"
       />
 
-      {/* Peak cap — solid gold dot anchoring the apex */}
-      <circle cx="20" cy="11" r="3" fill="#F0CC58" />
+      {/* Left Wing / Curved Leaf */}
+      <path
+        d="M24 38C16 34 11 27 11 18C16 18 21 21 24 26C24 30 24 34 24 38Z"
+        fill={`url(#${uid}gold)`}
+        className="yebo-logo-left-wing"
+      />
+
+      {/* Right Wing / Curved Leaf */}
+      <path
+        d="M24 38C32 34 37 27 37 18C32 18 27 21 24 26C24 30 24 34 24 38Z"
+        fill={`url(#${uid}gold)`}
+        className="yebo-logo-right-wing"
+      />
+
+      {/* Central Ascending Seed / Diamond Pillar */}
+      <path
+        d="M24 10L28 19L24 28L20 19L24 10Z"
+        fill={`url(#${uid}goldLight)`}
+        className="yebo-logo-core"
+      />
+
+      {/* Apex Crown Seed Beacon */}
+      <circle cx="24" cy="10" r="2.2" fill="#FFF2B2" />
     </svg>
   );
 }

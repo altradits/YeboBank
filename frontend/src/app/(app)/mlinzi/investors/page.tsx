@@ -39,7 +39,7 @@ export default function InvestorsPage() {
         chipLabel="INVESTORS"
         balanceLabel="TOTAL AUM"
         balancePrimary={fmtKESraw(totalAum, 0)}
-        balanceSecondary={`${positions.length} position${positions.length !== 1 ? "s" : ""} · friends & family pilot`}
+        balanceSecondary={`${positions.length} active position${positions.length !== 1 ? "s" : ""}`}
         stats={[
           { label: "Fee earned", value: fmtKESraw(totalFee, 0), color: "var(--lime)", sub: "2% of profit" },
           { label: "Statements", value: `${totalStatements}`, sub: "Posted monthly" },
@@ -55,8 +55,9 @@ export default function InvestorsPage() {
 
       <div className="notif-banner" style={{ marginTop: 14 }}>
         <i className="ti ti-shield-lock" />
-        <span>Friends &amp; family pilot — figures are projections, not guarantees. Not a public offer.</span>
+        <span>Figures are calculated from monthly portfolio statements. Access is by acceptance only.</span>
       </div>
+
 
       <div className="card" style={{ marginTop: 16 }}>
         {positions.map((p) => (

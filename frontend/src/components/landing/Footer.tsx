@@ -31,11 +31,15 @@ export function ClosingCTA() {
       {/* ── Background layer 2: golden dot grid for texture ── */}
       <div className="cta-dot-bg" aria-hidden="true" />
 
-      <div className="wrap">
+      <div className="wrap" style={{ textAlign: "center" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+          <LogoMark size={68} animated />
+        </div>
 
         <h2 className="reveal d1">
           Your money should work as hard<br />as <span className="gold">you do.</span>
         </h2>
+
 
         <p className="cta-lead reveal d2">
           Inflation has quietly taxed Kenyan savings at 6–9% a year for decades.

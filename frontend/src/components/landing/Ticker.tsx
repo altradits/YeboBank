@@ -22,8 +22,9 @@ export default function Ticker() {
     <div className="ticker">
       <div className="wrap">
         <div className="live">
-          <span className="pulse" /> Live
+          Live
         </div>
+
         <div className="item">
           <span className="k">BTC/USD</span>
           <span className="v" ref={usdRef}>${num(rate.btcUsd)}</span>

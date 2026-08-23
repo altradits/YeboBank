@@ -142,9 +142,9 @@ export default function MlinziProjectTracking({
               Live POS Revenue &amp; Projection Chart
             </h3>
             <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--lime)" }}>
-              <span className="pulse" style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "var(--lime)", marginRight: 4 }} />
               Auto-sync POS live
             </span>
+
           </div>
 
           {/* SVG Sales Curve */}
