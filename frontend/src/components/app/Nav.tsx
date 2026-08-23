@@ -8,13 +8,13 @@ import { roleOf, type AppRole } from "@/lib/useRoleGate";
 import LogoMark from "@/components/ui/LogoMark";
 
 // Every role gets ONLY its own dashboard links. Nothing cross-role.
+// RULE 4: Hide Investment from main navigation. Transactions is the default view.
 const NAV_BY_ROLE: Record<AppRole, { section: string; links: { href: string; icon: string; label: string }[] }[]> = {
   member: [
     { section: "Wallet", links: [
-      { href: "/dashboard", icon: "ti-home",    label: "Dashboard" },
+      { href: "/dashboard", icon: "ti-history", label: "Transactions" },
       { href: "/savings",   icon: "ti-lock",    label: "Savings" },
       { href: "/chama",     icon: "ti-users",   label: "Chamas" },
-      { href: "/history",   icon: "ti-history", label: "History" },
     ]},
   ],
   agent: [
@@ -23,22 +23,22 @@ const NAV_BY_ROLE: Record<AppRole, { section: string; links: { href: string; ico
     ]},
   ],
   investor: [
-    { section: "Investments", links: [
-      { href: "/invest", icon: "ti-trending-up", label: "Investor dashboard" },
+    { section: "Portfolio", links: [
+      { href: "/invest", icon: "ti-wallet", label: "Portfolio" },
     ]},
   ],
   mlinzi: [
-    { section: "Mlinzi", links: [
-      { href: "/mlinzi", icon: "ti-shield-lock", label: "Mlinzi console" },
+    { section: "Operations", links: [
+      { href: "/dashboard", icon: "ti-history", label: "Transactions" },
     ]},
   ],
 };
 
 const HOME_BY_ROLE: Record<AppRole, { href: string; icon: string; label: string }> = {
-  member:   { href: "/dashboard", icon: "ti-home",         label: "Home" },
-  agent:    { href: "/agent",     icon: "ti-cash",         label: "Console" },
-  investor: { href: "/invest",    icon: "ti-trending-up",  label: "Invest" },
-  mlinzi:   { href: "/mlinzi",    icon: "ti-shield-lock",  label: "Console" },
+  member:   { href: "/dashboard", icon: "ti-history",     label: "Transactions" },
+  agent:    { href: "/agent",     icon: "ti-cash",        label: "Console" },
+  investor: { href: "/invest",    icon: "ti-wallet",      label: "Portfolio" },
+  mlinzi:   { href: "/mlinzi",    icon: "ti-shield",      label: "Mlinzi" },
 };
 
 function useAppRole(): AppRole | null {
@@ -80,6 +80,18 @@ export function Sidebar() {
       <Link href="/settings" className={`side-link${isActive("/settings") ? " active" : ""}`}>
         <i className="ti ti-settings" /> Settings
       </Link>
+
+      {/* RULE 4 & RULE 8: Mlinzi Footer Link */}
+      <div style={{ marginTop: "auto", paddingTop: 14, borderTop: "1px solid var(--border-soft)" }}>
+        <Link
+          href="/mlinzi"
+          className={`side-link${isActive("/mlinzi") ? " active" : ""}`}
+          style={{ color: "var(--gold-text)", fontWeight: 600 }}
+        >
+          <i className="ti ti-shield" /> Mlinzi
+        </Link>
+      </div>
+
       <div className="side-bottom">
         <button className="side-link" onClick={onLogout} style={{ width: "100%", background: "none", cursor: "pointer" }}>
           <i className="ti ti-logout" /> Log out
@@ -88,6 +100,7 @@ export function Sidebar() {
     </aside>
   );
 }
+
 
 export function BottomNav() {
   const path     = usePathname();

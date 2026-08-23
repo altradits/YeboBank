@@ -279,12 +279,13 @@ function Inflation({ onQuickAction }: { onQuickAction?: () => void }) {
 
             <div className="infl-cta" style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               <Button variant="gold" onClick={onQuickAction}>
-                ⚡ 1-Click Save in Sats
+                Save in Sats
               </Button>
               <Button variant="primary" onClick={() => router.push("/login?redirect=/savings")}>
                 Protect my savings
               </Button>
             </div>
+
           </div>
         </div>
       </div>
@@ -436,7 +437,7 @@ function SavingsMpesaPair({
               <p className="stat-pull">If the pool earns nothing, we earn nothing.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Button variant="gold" onClick={onLockSavings}>
-                  ⚡ Lock Sats at 5.2% APY
+                  Lock Sats
                 </Button>
                 <Button variant="ghost" onClick={() => router.push("/login?redirect=/savings")}>
                   Open Savings Vault →
@@ -474,12 +475,13 @@ function SavingsMpesaPair({
               </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Button variant="lime" onClick={onMpesaDeposit}>
-                  ⚡ Instant M-Pesa Deposit (1-Click)
+                  Deposit via M-Pesa
                 </Button>
                 <Button variant="ghost" onClick={() => router.push("/login?redirect=/deposit")}>
                   Deposit Guide →
                 </Button>
               </div>
+
             </div>
           </div>
 
@@ -704,7 +706,7 @@ function CommunityPair({
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Button variant="gold" onClick={onChamaAction}>
-                ⚡ 1-Click Join Chama
+                Join Chama
               </Button>
               <Button variant="ghost" onClick={() => router.push("/login?redirect=/chama")}>
                 Start or join a chama →
@@ -732,12 +734,13 @@ function CommunityPair({
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Button variant="lime" onClick={onAgentAction}>
-                📍 Generate Cash-In Code (1-Click)
+                Cash In
               </Button>
               <Button variant="ghost" onClick={() => router.push("/login?redirect=/agent")}>
                 Agent Console →
               </Button>
             </div>
+
           </div>
         </div>
 

@@ -45,12 +45,13 @@ export function ClosingCTA() {
 
         <div className="cta-actions reveal d2" style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
           <Button variant="gold" onClick={() => setQuickOpen(true)}>
-            ⚡ 1-Click Start Saving (5.2% APY)
+            Save (5.2% APY)
           </Button>
           <Button variant="ghost" onClick={() => router.push("/login?redirect=/dashboard")}>
             Open Member Dashboard →
           </Button>
         </div>
+
 
       </div>
 
@@ -62,7 +63,6 @@ export function ClosingCTA() {
     </section>
   );
 }
-
 
 const SOCIALS = [
   { href: "#", icon: "ti-brand-facebook", label: "Facebook",   hoverColor: "#1877f2" },
@@ -113,7 +113,6 @@ export function SiteFooter() {
               <a href="#chama">Chamas</a>
               <a href="#agents">Agents</a>
               <a href="#lightning">Send</a>
-              <a href="#invest">Invest</a>
               <a href="#trust">Trust</a>
               <a href="#convert">Rates</a>
             </div>
@@ -121,8 +120,9 @@ export function SiteFooter() {
               <h4>Dashboards</h4>
               <Link href="/login?redirect=/dashboard">Member dashboard</Link>
               <Link href="/login?redirect=/agent">Agent console</Link>
-              <Link href="/login?redirect=/invest">Investor dashboard</Link>
-              <Link href="/login?redirect=/mlinzi">Mlinzi console</Link>
+              <Link href="/login?redirect=/mlinzi" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--gold-text)", fontWeight: 600 }}>
+                <i className="ti ti-shield" /> Mlinzi
+              </Link>
             </div>
             <div className="col">
               <h4>Member tools</h4>
@@ -130,12 +130,12 @@ export function SiteFooter() {
               <Link href="/login?redirect=/deposit">Deposit via M-Pesa</Link>
               <Link href="/login?redirect=/chama">My chamas</Link>
               <Link href="/login?redirect=/send">Send sats</Link>
-              <a href="https://github.com/altradits/YeboBank" target="_blank" rel="noopener noreferrer">Open source</a>
             </div>
           </div>
 
         </div>
         <div className="bottom">
+
           <span>Built for Kenya · Open source · CBK sandbox pathway</span>
           <span>
             © 2026 YeboBank ·{" "}

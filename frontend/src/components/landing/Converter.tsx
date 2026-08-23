@@ -62,12 +62,13 @@ export default function Converter() {
           </div>
           <div style={{ marginTop: 24, display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
             <Button variant="gold" onClick={() => setQuickOpen(true)}>
-              ⚡ 1-Click Lock This in Sats (5.2% APY)
+              Lock Sats (5.2% APY)
             </Button>
             <Button variant="ghost" onClick={() => router.push("/login?redirect=/dashboard")}>
               Open Account →
             </Button>
           </div>
+
         </div>
       </div>
 

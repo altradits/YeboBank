@@ -234,12 +234,13 @@ export function Lightning() {
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Button variant="gold" onClick={() => setQuickOpen(true)}>
-                ⚡ 1-Click Send / Receive Sats
+                Send Sats
               </Button>
               <Button variant="ghost" onClick={() => router.push("/login?redirect=/send")}>
                 Get your Lightning address →
               </Button>
             </div>
+
           </div>
 
         </div>

@@ -5,13 +5,15 @@ import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 import { depositMpesa, depositLightning, withdrawMpesa, sendLightning, createLock } from "@/lib/api";
 
+import SecurityTransactionGuard from "@/components/ui/SecurityTransactionGuard";
+
 export type QuickActionKind = "deposit" | "withdraw" | "send" | "lock";
 
 const META: Record<QuickActionKind, { title: string; icon: string }> = {
-  deposit:  { title: "Add Money",    icon: "ti-arrow-down" },
-  withdraw: { title: "Withdraw",     icon: "ti-arrow-up" },
-  send:     { title: "Send",         icon: "ti-send" },
-  lock:     { title: "Lock Savings", icon: "ti-lock" },
+  deposit:  { title: "Deposit",        icon: "ti-arrow-down" },
+  withdraw: { title: "Withdraw",       icon: "ti-arrow-up" },
+  send:     { title: "Send",           icon: "ti-send" },
+  lock:     { title: "Lock Savings",   icon: "ti-lock" },
 };
 
 interface Props {
@@ -46,6 +48,14 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
   const satsFromKes = Math.round(kesNum * rate.satsPerKes);
   const sendSatsNum = parseInt(sendSats.replace(/[^0-9]/g, ""), 10) || 0;
   const lockSatsNum = parseInt(lockSats.replace(/[^0-9]/g, ""), 10) || 0;
+
+  const currentAmount =
+    kind === "deposit" || kind === "withdraw" ? kesNum :
+    kind === "send" ? sendSatsNum :
+    lockSatsNum;
+
+  const currentCurrency =
+    kind === "deposit" || kind === "withdraw" ? "KES" : "sats";
 
   function copyInvoice() {
     if (navigator.clipboard) navigator.clipboard.writeText(invoice);
@@ -97,18 +107,18 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
 
   const meta = META[kind];
 
+  // RULE 2: Single outcome verb
   const submitLabel =
-    kind === "deposit" && method === "mpesa"      ? "Send STK Push"      :
-    kind === "deposit" && method === "lightning"  ? "Generate invoice"   :
-    kind === "withdraw"                           ? "Withdraw to M-Pesa" :
-    kind === "send"                               ? "Send now"           :
-    "Lock savings";
+    kind === "deposit"   ? "Deposit"  :
+    kind === "withdraw"  ? "Withdraw" :
+    kind === "send"      ? "Send"     :
+    "Lock";
 
   return (
     <>
       <div className="qa-backdrop" onClick={onClose} />
 
-      <div className="qa-modal" role="dialog" aria-modal="true">
+      <div className="qa-modal" role="dialog" aria-modal="true" style={{ maxWidth: 440 }}>
 
         {/* Header */}
         <div className="qa-hd">
@@ -236,14 +246,26 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
 
               {error && <div className="qa-error">{error}</div>}
 
-              <Button
-                variant="primary"
-                onClick={() => void handleSubmit()}
-                disabled={loading}
-                block
-              >
-                {loading ? "Processing…" : submitLabel}
-              </Button>
+              {/* RULES 1, 2, 3, 5: Security Guard with Timeout, OTP, Amount in Words, Service Fee */}
+              {currentAmount > 0 ? (
+                <SecurityTransactionGuard
+                  amount={currentAmount}
+                  currencyName={currentCurrency}
+                  onConfirm={() => void handleSubmit()}
+                  onClose={onClose}
+                  confirmLabel={submitLabel}
+                  loading={loading}
+                />
+              ) : (
+                <Button
+                  variant="primary"
+                  onClick={() => void handleSubmit()}
+                  disabled={loading || currentAmount <= 0}
+                  block
+                >
+                  {submitLabel}
+                </Button>
+              )}
             </>
           ) : (
             /* ── Result phase ── */
@@ -285,3 +307,4 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
     </>
   );
 }
+

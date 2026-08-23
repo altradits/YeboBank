@@ -19,6 +19,8 @@ const METHOD_ICON: Record<string, string> = {
   card:      "ti-credit-card",
 };
 
+import SecurityTransactionGuard from "@/components/ui/SecurityTransactionGuard";
+
 export default function DeployCapitalPage() {
   const rate = useRate();
 
@@ -98,23 +100,34 @@ export default function DeployCapitalPage() {
       setDeployed(dep);
       loadDeployments();
       setKesInput(""); setSatsInput(""); setNotes(""); setPlatform("");
-      setDestination(phone);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Deployment failed");
     } finally {
       setSubmitting(false);
     }
   }
+
+  const canSubmit =
+    !exceedsAvailable &&
+    (tab === "mpesa"     ? kesNum > 0 && destination.trim().length > 0 :
+     tab === "card"      ? cardKesNum > 0 && Boolean(virtualCard) :
+     (parseInt(satsInput) || 0) > 0 && destination.trim().length > 0);
+
+  const activeAmount =
+    tab === "mpesa" ? kesNum :
+    tab === "card"  ? cardKesNum :
+    (parseInt(satsInput) || 0);
+
+  const activeCurrency =
+    tab === "mpesa" || tab === "card" ? "KES" : "sats";
 
   function reset() {
     setDeployed(null);
     setDestination(phone);
   }
 
-  const canSubmit =
-    tab === "mpesa"     ? kesNum > 0 && destination.trim().length > 0 && !exceedsAvailable :
-    tab === "card"      ? cardKesNum > 0 && !exceedsAvailable :
-    (parseInt(satsInput) || 0) > 0 && destination.trim().length > 0 && !exceedsAvailable;
-
   if (loading) {
+
     return (
       <div style={{ padding: "60px 0", textAlign: "center" }}>
         <p className="note">Loading…</p>
@@ -215,7 +228,7 @@ export default function DeployCapitalPage() {
                     value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </label>
                 <button className="btn btn-primary" disabled={!canSubmit || submitting} onClick={onDeploy}>
-                  {submitting ? "Sending…" : <><i className="ti ti-send" /> Deploy via M-Pesa</>}
+                  {submitting ? "Deploying…" : <><i className="ti ti-send" /> Deploy</>}
                 </button>
               </div>
             )}
@@ -249,7 +262,7 @@ export default function DeployCapitalPage() {
                     value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </label>
                 <button className="btn btn-primary" disabled={!canSubmit || submitting} onClick={onDeploy}>
-                  {submitting ? "Sending…" : <><i className="ti ti-bolt" /> Deploy via Lightning</>}
+                  {submitting ? "Deploying…" : <><i className="ti ti-bolt" /> Deploy</>}
                 </button>
               </div>
             )}
@@ -260,7 +273,7 @@ export default function DeployCapitalPage() {
                 {!virtualCard ? (
                   /* No card generated yet */
                   <div style={{ textAlign: "center", padding: "28px 0" }}>
-                    <i className="ti ti-credit-card" style={{ fontSize: 36, color: "var(--gold)", display: "block", marginBottom: 12 }} />
+                    <i className="ti ti-credit-card-off" style={{ fontSize: 36, color: "var(--soft)", display: "block", marginBottom: 12 }} />
                     <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, marginBottom: 6 }}>
                       No payment card yet
                     </p>
@@ -333,7 +346,7 @@ export default function DeployCapitalPage() {
                         value={notes} onChange={(e) => setNotes(e.target.value)} />
                     </label>
                     <button className="btn btn-primary" disabled={!canSubmit || submitting} onClick={onDeploy}>
-                      {submitting ? "Recording…" : <><i className="ti ti-credit-card" /> Record card deployment</>}
+                      {submitting ? "Recording…" : <><i className="ti ti-credit-card" /> Record</>}
                     </button>
                   </>
                 )}

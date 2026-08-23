@@ -32,7 +32,7 @@ const PATHS: PathCard[] = [
     tagline: "Save in sats. Spend in shillings.",
     entry: "Phone + M-Pesa OTP",
     productType: "savings",
-    quickLabel: "⚡ 1-Click Save (5.2% APY)",
+    quickLabel: "Save (5.2% APY)",
     steps: [
       { icon: "ti-arrow-down", text: "Deposit via M-Pesa or Lightning" },
       { icon: "ti-lock",       text: "Lock sats — earn ~5.2% APY" },
@@ -51,7 +51,7 @@ const PATHS: PathCard[] = [
     tagline: "The cash point in your neighbourhood.",
     entry: "Register + deposit float",
     productType: "agent",
-    quickLabel: "⚡ 1-Click Agent Code",
+    quickLabel: "Agent Code",
     steps: [
       { icon: "ti-device-mobile", text: "Look up customer by phone" },
       { icon: "ti-arrows-exchange", text: "Cash in / out at live rate" },
@@ -71,7 +71,7 @@ const PATHS: PathCard[] = [
     tagline: "Monthly yield from real assets.",
     entry: "Access request → Mlinzi approval",
     productType: "invest",
-    quickLabel: "⚡ 1-Click Allocation",
+    quickLabel: "Request Allocation",
     steps: [
       { icon: "ti-file-text",    text: "View principal + current value" },
       { icon: "ti-calendar",     text: "Monthly statements, append-only" },

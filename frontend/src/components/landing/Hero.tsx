@@ -233,7 +233,7 @@ export default function Hero() {
                 setQuickModalOpen(true);
               }}
             >
-              <i className="ti ti-bolt" /> ⚡ 1-Click Save (5.2% APY)
+              <i className="ti ti-bolt" /> Save (5.2% APY)
             </button>
             <button
               className="btn btn-ghost on-dark"
@@ -242,6 +242,7 @@ export default function Hero() {
               Open Member Dashboard →
             </button>
           </div>
+
           <p className="hero-trust reveal d3">
             <span><i className="ti ti-brand-open-source" />Open source</span>
             <span className="hero-trust-dot">·</span>

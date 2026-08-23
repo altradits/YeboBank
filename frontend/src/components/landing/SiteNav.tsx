@@ -247,15 +247,16 @@ export default function SiteNav() {
               <i className={`ti ${dark ? "ti-sun" : "ti-moon"}`} />
             </button>
 
-            {/* 1-Click Quick Save CTA */}
+            {/* Quick Save CTA */}
             <button
               type="button"
               className="nav-sell-btn"
               onClick={() => launchProductModal("savings")}
             >
               <i className="ti ti-bolt" />
-              <span>⚡ 1-Click Save</span>
+              <span>Save</span>
             </button>
+
 
             {/* Sign In */}
             <button
