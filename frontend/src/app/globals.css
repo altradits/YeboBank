@@ -271,7 +271,8 @@ a { color: inherit; text-decoration: none; }
 
 /* Uniform, Minimalist Nav Links */
 .nav-link-btn,
-.nav-link-direct {
+.nav-link-direct,
+.navlinks a {
   background: transparent;
   border: 1px solid transparent;
   color: rgba(255, 255, 255, 0.88);
@@ -284,35 +285,41 @@ a { color: inherit; text-decoration: none; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  text-decoration: none;
+  text-decoration: none !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
 }
 [data-theme="light"] .nav-link-btn,
-[data-theme="light"] .nav-link-direct {
-  color: #071911;
+[data-theme="light"] .nav-link-direct,
+[data-theme="light"] .navlinks a {
+  color: #071911 !important;
+  font-weight: 600;
 }
 
 /* Active & Hover States with Lamp Glass Highlight */
 .nav-link-btn:hover,
 .nav-link-btn.active,
-.nav-link-direct:hover {
+.nav-link-direct:hover,
+.navlinks a:hover {
   background: rgba(255, 255, 255, 0.12);
-  color: #FFFFFF;
+  color: #FFFFFF !important;
   border-color: rgba(255, 255, 255, 0.18);
   box-shadow: 
     inset 0 1px 0 rgba(255, 255, 255, 0.25),
     0 2px 8px rgba(0, 0, 0, 0.15);
+  text-decoration: none !important;
 }
 [data-theme="light"] .nav-link-btn:hover,
 [data-theme="light"] .nav-link-btn.active,
-[data-theme="light"] .nav-link-direct:hover {
-  background: rgba(10, 40, 25, 0.08);
-  color: #0B5C35;
-  border-color: rgba(10, 40, 25, 0.14);
+[data-theme="light"] .nav-link-direct:hover,
+[data-theme="light"] .navlinks a:hover {
+  background: rgba(10, 40, 25, 0.08) !important;
+  color: #0B5C35 !important;
+  border-color: rgba(10, 40, 25, 0.14) !important;
   box-shadow: 
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 2px 8px rgba(10, 30, 20, 0.06);
+  text-decoration: none !important;
 }
 
 .nav-caret {
@@ -320,6 +327,7 @@ a { color: inherit; text-decoration: none; }
   opacity: 0.75;
   transition: transform 0.2s;
 }
+
 
 .navactions {
   display: flex;
@@ -2714,18 +2722,19 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#5EE1FF 0%,#9
 #trust .kicker{color:var(--lime)}
 
 /* =========================================================================
-   NAV LINK SECTION ACCENTS — each link glows its section color on hover
+   NAV LINK SECTION ACCENTS — handled cleanly via glassmorphism pill hover
    ========================================================================= */
-.navlinks a{position:relative;transition:color .25s}
-.navlinks a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1.5px;border-radius:1px;transform:scaleX(0);transition:transform .22s ease,background .22s}
-.navlinks a[data-sec="inflation"]:hover::after,.navlinks a[data-sec="inflation"].active-link::after{background:var(--gold-soft);transform:scaleX(1)}
-.navlinks a[data-sec="save"]:hover::after,.navlinks a[data-sec="save"].active-link::after{background:rgba(150,160,255,.9);transform:scaleX(1)}
-.navlinks a[data-sec="mpesa"]:hover::after,.navlinks a[data-sec="mpesa"].active-link::after{background:var(--lime);transform:scaleX(1)}
-.navlinks a[data-sec="chama"]:hover::after,.navlinks a[data-sec="chama"].active-link::after{background:var(--gold-soft);transform:scaleX(1)}
-.navlinks a[data-sec="agents"]:hover::after,.navlinks a[data-sec="agents"].active-link::after{background:var(--lime);transform:scaleX(1)}
-.navlinks a[data-sec="lightning"]:hover::after,.navlinks a[data-sec="lightning"].active-link::after{background:var(--gold-soft);transform:scaleX(1)}
-.navlinks a[data-sec="trust"]:hover::after,.navlinks a[data-sec="trust"].active-link::after{background:var(--lime);transform:scaleX(1)}
-.navlinks a[data-sec="convert"]:hover::after,.navlinks a[data-sec="convert"].active-link::after{background:var(--lime);transform:scaleX(1)}
+.navlinks a,
+.nav-link-direct,
+.nav-link-btn {
+  text-decoration: none !important;
+}
+.navlinks a:hover,
+.nav-link-direct:hover,
+.nav-link-btn:hover {
+  text-decoration: none !important;
+}
+
 
 /* M-Pesa 3D phone tilt via CSS custom properties set by JS */
 .mpesa-phone-3d{
@@ -3056,25 +3065,7 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#5EE1FF 0%,#9
 /* ── Auth pages ───────────────────────────────────────────────────────── */
 [data-theme="light"] .auth .brand { color: var(--text) }
 
-/* ── Nav — always sits over dark background (hero is hardcoded dark;
-          scrolled state uses dark frosted glass) so the primary button
-          must stay forest-mid regardless of theme ── */
-[data-theme="light"] .nav .btn-primary {
-  background: var(--forest-mid);
-  color: #fff;
-}
-[data-theme="light"] .nav .btn-primary:hover {
-  background: var(--emerald-deep);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-3);
-}
 
-/* Ensure brand text, nav links, and login link stay white on dark hero */
-[data-theme="light"] .nav .brand       { color: #fff }
-[data-theme="light"] .nav .navlinks    { color: rgba(255,255,255,.65) }
-[data-theme="light"] .nav .navlinks a  { color: rgba(255,255,255,.65) }
-[data-theme="light"] .nav .navlinks a:hover { color: #fff }
-[data-theme="light"] .nav .login       { color: rgba(255,255,255,.82); border-color: rgba(255,255,255,.28) }
 
 /* ── QuickActionModal: 3D backdrop blur and immersion ──── */
 .qa-backdrop {
@@ -3187,8 +3178,7 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#5EE1FF 0%,#9
 [data-theme="dark"] .qa-error{background:rgba(200,72,56,.10)}
 [data-theme="dark"] .qa-check-ring{background:rgba(28,180,96,.10)}
 [data-theme="dark"] .qa-invoice-cpy:hover,[data-theme="dark"] .qa-invoice-cpy.copied{background:rgba(28,180,96,.08)}
-[data-theme="dark"] .qa-stk-notice{background:rgba(28,180,96,.08)}
-[data-theme="light"] .nav .login:hover { color: #fff; border-color: rgba(255,255,255,.62); background: rgba(255,255,255,.07) }
+
 
 /* ── Settings page ───────────────────────────────────────────────────────── */
 .settings-link-row{display:flex;align-items:center;gap:12px;padding:12px 0;text-decoration:none;color:var(--text);border-bottom:1px solid var(--border-soft);transition:color .15s}
@@ -3298,14 +3288,7 @@ h1.hero-h .grn{color:var(--lime);background:linear-gradient(125deg,#5EE1FF 0%,#9
 }
 @keyframes gold-sheen { 0%,100% { background-position: 110% 0 } 50% { background-position: -10% 0 } }
 
-/* Nav links: ice underline sweeps in from the left */
-.navlinks a { position: relative; padding-bottom: 3px; }
-.navlinks a::before {
-  content: ""; position: absolute; left: 0; right: 100%; bottom: 0; height: 1.5px;
-  background: linear-gradient(90deg, var(--lime), transparent);
-  transition: right .28s cubic-bezier(.2,.7,.2,1);
-}
-.navlinks a:hover::before { right: 20%; }
+
 
 /* Ambient navy aurora drifting behind every landing section */
 .sec { position: relative; }
