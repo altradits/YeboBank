@@ -4192,11 +4192,11 @@ h1.hero-h .grn {
 
 
 /* 3. Left Wing Laurel: 3D Depth Snap */
-.auto-wing-3d {
-  animation: auto-wing-3d-anim 6.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+.auto-wing-l-3d {
+  animation: auto-wing-l-3d-anim 6.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
-@keyframes auto-wing-3d-anim {
+@keyframes auto-wing-l-3d-anim {
   0%, 40% {
     transform: translate3d(-18px, 0, 30px) rotateY(-35deg) scale(0.4);
     opacity: 0;
@@ -4215,7 +4215,7 @@ h1.hero-h .grn {
 }
 
 /* 4. Right Wing Laurel: 3D Depth Snap */
-.auto-wing-3d {
+.auto-wing-r-3d {
   animation: auto-wing-r-3d-anim 6.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
@@ -4236,6 +4236,7 @@ h1.hero-h .grn {
     opacity: 0;
   }
 }
+
 
 /* 5. Central Diamond Seed Core: 3D Z-Depth Fly-In */
 .auto-core-3d {

@@ -143,14 +143,14 @@ export default function StatementBridge() {
               <path
                 d="M24 38C16 34 11 27 11 18C16 18 21 21 24 26C24 30 24 34 24 38Z"
                 fill={`url(#${uid}gold)`}
-                className="auto-part auto-wing-left auto-wing-3d"
+                className="auto-part auto-wing-left auto-wing-l-3d"
               />
 
               {/* 4. Right Wing / Curved Laurel Leaf (3D Tilt Assembly) */}
               <path
                 d="M24 38C32 34 37 27 37 18C32 18 27 21 24 26C24 30 24 34 24 38Z"
                 fill={`url(#${uid}gold)`}
-                className="auto-part auto-wing-right auto-wing-3d"
+                className="auto-part auto-wing-right auto-wing-r-3d"
               />
 
               {/* 5. Central Diamond Seed Core (3D Z-Depth Snap) */}
