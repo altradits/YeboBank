@@ -495,10 +495,10 @@ function SavingsMpesaPair({
             <div className="reveal d1">
               <h2 className="h2" style={{ color: "#071911" }}>
                 Deposit.<br />
-                <span style={{ color: "#0B6B3D" }}>No brokers or complex exchanges.</span>
+                <span style={{ color: "#0B6B3D" }}>No brokers or exchanges.</span>
               </h2>
               <p className="lead" style={{ color: "rgba(7, 25, 17, 0.78)" }}>
-                Top up Sats directly from your M-Pesa with the PIN you already know in seconds.
+                Top up Sats from M-Pesa with your PIN in seconds.
               </p>
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 24 }}>
                 <Button variant="primary" onClick={onMpesaDeposit}>
