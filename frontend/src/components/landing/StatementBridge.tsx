@@ -73,11 +73,11 @@ export default function StatementBridge() {
           </h2>
         </div>
 
-        {/* ── Logo Animation Column (Constant coordinates & exact matching height) ── */}
+        {/* ── Logo Animation Column (3D Depth Perspective & Vertical Bounce Assembly) ── */}
         <div className="statement-anim-col" aria-hidden="true">
           <svg
-            viewBox="-48 0 96 48"
-            className="logo-auto-assemble-svg"
+            viewBox="-48 -4 96 66"
+            className="logo-auto-assemble-svg logo-3d-scene"
             style={{
               height: textHeight ? `${textHeight}px` : "clamp(120px, 16vw, 220px)",
               width: "auto",
@@ -86,28 +86,40 @@ export default function StatementBridge() {
             xmlns="http://www.w3.org/2000/svg"
           >
             <defs>
-              {/* Rich Kenyan Gold Gradient */}
-              <linearGradient id={`${uid}gold`} x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#F9DF7B" />
-                <stop offset="0.45" stopColor="#D4A018" />
-                <stop offset="1" stopColor="#8C6200" />
+              {/* Rich Kenyan 3D Gold Metallic Gradient */}
+              <linearGradient id={`${uid}gold`} x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#FFF4B8" />
+                <stop offset="0.25" stopColor="#E5B83B" />
+                <stop offset="0.65" stopColor="#D4A018" />
+                <stop offset="1" stopColor="#7A5300" />
               </linearGradient>
 
-              {/* Inner Leaf Highlights */}
+              {/* Embossed Inner Leaf Highlights */}
               <linearGradient id={`${uid}goldLight`} x1="24" y1="8" x2="24" y2="40" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#FFF2B2" />
-                <stop offset="0.6" stopColor="#E5B83B" />
-                <stop offset="1" stopColor="#A3760B" />
+                <stop stopColor="#FFF8D6" />
+                <stop offset="0.5" stopColor="#E5B83B" />
+                <stop offset="1" stopColor="#966C06" />
               </linearGradient>
 
-              {/* Ambient Halo Glow */}
+              {/* Ambient 3D Volumetric Glow */}
               <radialGradient id={`${uid}glow`} cx="24" cy="24" r="24" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#D4A018" stopOpacity="0.35" />
+                <stop stopColor="#D4A018" stopOpacity="0.45" />
+                <stop offset="0.7" stopColor="#D4A018" stopOpacity="0.15" />
                 <stop offset="1" stopColor="#D4A018" stopOpacity="0" />
               </radialGradient>
             </defs>
 
-            <g transform="translate(0, 0)">
+            {/* 0. 3D Dynamic Ground Contact Shadow (Lowered with clear air space below ring) */}
+            <ellipse
+              cx="24"
+              cy="58"
+              rx="18"
+              ry="3.5"
+              fill="rgba(110, 75, 0, 0.22)"
+              className="auto-3d-ground-shadow"
+            />
+
+            <g className="logo-3d-group">
               {/* 1. Ambient Background Glow */}
               <circle
                 cx="24"
@@ -117,44 +129,44 @@ export default function StatementBridge() {
                 className="auto-part auto-glow"
               />
 
-              {/* 2. Outer Golden Coin Ring (Top at y=1.25, bottom at y=46.75 -> Matches viewBox height) */}
+              {/* 2. Outer Golden Coin Ring (3D Bevel & Vertical Bounce) */}
               <circle
                 cx="24"
                 cy="24"
                 r="22.75"
                 stroke={`url(#${uid}gold)`}
-                strokeWidth="2.5"
-                className="auto-part auto-ring"
+                strokeWidth="2.8"
+                className="auto-part auto-ring auto-ring-3d"
               />
 
-              {/* 3. Left Wing / Curved Laurel Leaf */}
+              {/* 3. Left Wing / Curved Laurel Leaf (3D Tilt Assembly) */}
               <path
                 d="M24 38C16 34 11 27 11 18C16 18 21 21 24 26C24 30 24 34 24 38Z"
                 fill={`url(#${uid}gold)`}
-                className="auto-part auto-wing-left"
+                className="auto-part auto-wing-left auto-wing-3d"
               />
 
-              {/* 4. Right Wing / Curved Laurel Leaf */}
+              {/* 4. Right Wing / Curved Laurel Leaf (3D Tilt Assembly) */}
               <path
                 d="M24 38C32 34 37 27 37 18C32 18 27 21 24 26C24 30 24 34 24 38Z"
                 fill={`url(#${uid}gold)`}
-                className="auto-part auto-wing-right"
+                className="auto-part auto-wing-right auto-wing-3d"
               />
 
-              {/* 5. Central Diamond Seed Core */}
+              {/* 5. Central Diamond Seed Core (3D Z-Depth Snap) */}
               <path
                 d="M24 10L28 19L24 28L20 19L24 10Z"
                 fill={`url(#${uid}goldLight)`}
-                className="auto-part auto-core"
+                className="auto-part auto-core auto-core-3d"
               />
 
-              {/* 6. Apex Crown Beacon Star */}
+              {/* 6. Apex Crown Beacon Star (3D Apex Specular Point) */}
               <circle
                 cx="24"
                 cy="10"
                 r="2.2"
-                fill="#FFF2B2"
-                className="auto-part auto-crown"
+                fill="#FFF8D6"
+                className="auto-part auto-crown auto-crown-3d"
               />
             </g>
           </svg>
