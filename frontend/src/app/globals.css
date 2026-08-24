@@ -10800,17 +10800,16 @@ h1.hero-h .grn {
   background: radial-gradient(circle, rgba(224, 168, 0, .18), transparent 66%)
 }
 
-/* Deposit pair (Savings + M-Pesa) — deep blue */
+/* Deposit pair (Savings + M-Pesa) — Clean 2-Color Solid Surface */
 .section-pair-shell--deposit {
-  background: linear-gradient(150deg, #030810 0%, #081520 50%, #050b14 100%)
+  background: #FFFFFF;
+  border-top: 1px solid rgba(7, 25, 17, 0.06);
+  border-bottom: 1px solid rgba(7, 25, 17, 0.06);
 }
 
-.section-pair-shell--deposit::before {
-  background: radial-gradient(circle, rgba(94, 225, 255, .22), transparent 64%)
-}
-
+.section-pair-shell--deposit::before,
 .section-pair-shell--deposit::after {
-  background: radial-gradient(circle, rgba(112, 255, 69, .14), transparent 66%)
+  display: none;
 }
 
 /* Inner grid — JS scroll handler drives the visual's translateY (CSS sticky has a mid-container bug) */
@@ -11707,15 +11706,12 @@ h1.hero-h .grn {
 }
 
 [data-theme="light"] .section-pair-shell--deposit {
-  background: linear-gradient(150deg, #EBF4F8 0%, #E4EEF6 50%, #E8F2F8 100%)
+  background: #FFFFFF;
 }
 
-[data-theme="light"] .section-pair-shell--deposit::before {
-  background: radial-gradient(circle, rgba(94, 169, 255, .1), transparent 64%)
-}
-
+[data-theme="light"] .section-pair-shell--deposit::before,
 [data-theme="light"] .section-pair-shell--deposit::after {
-  background: radial-gradient(circle, rgba(28, 100, 180, .07), transparent 66%)
+  display: none;
 }
 
 [data-theme="light"] .section-pair-panel+.section-pair-panel::before {

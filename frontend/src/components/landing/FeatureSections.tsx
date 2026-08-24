@@ -379,7 +379,6 @@ function SavingsMpesaPair({
                   <div className="mp-btn">Enter PIN to confirm</div>
                 </div>
                 <div className="mp-ok">
-                  <i className="ti ti-circle-check" />
                   <div>
                     <div className="t">Deposit confirmed</div>
                     <div className="s">Balance updated instantly</div>
@@ -393,73 +392,45 @@ function SavingsMpesaPair({
         {/* SCROLLING RIGHT */}
         <div className="section-pair-panels">
 
-          {/* Panel 1: Savings */}
+          {/* Panel 1: Savings / Yield */}
           <div className="section-pair-panel" id="save" ref={saveRef} data-panel="save">
             <div className="savings-copy reveal">
-              <h2 className="h2">Your money earns <span className="accent">while you sleep.</span></h2>
-              <div className="stat-row">
-                <div className="stat-item">
-                  <div className="s-num">5.2%</div>
-                  <div className="s-lbl">target APY real yield</div>
-                </div>
-                <div className="stat-item">
-                  <div className="s-num">Monthly</div>
-                  <div className="s-lbl">distributions</div>
-                </div>
-                <div className="stat-item">
-                  <div className="s-num">100%</div>
-                  <div className="s-lbl">principal back, early exit</div>
-                </div>
-              </div>
-              <p className="stat-pull">If the pool earns nothing, we earn nothing.</p>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <h2 className="h2" style={{ color: "#071911" }}>
+                Earn.<br />
+                <span style={{ color: "#8C6200" }}>Idle money loses value.</span>
+              </h2>
+              <p className="lead" style={{ color: "rgba(7, 25, 17, 0.78)" }}>
+                Put your savings to work with 5.2% real yield paid out every month directly into your wallet.
+              </p>
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 24 }}>
                 <Button variant="gold" onClick={onLockSavings}>
                   Lock
                 </Button>
-                <Button variant="ghost" onClick={() => router.push("/login?redirect=/savings")}>
+                <Button variant="primary" onClick={() => router.push("/login?redirect=/savings")}>
                   Vault
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* Panel 2: M-Pesa */}
+          {/* Panel 2: M-Pesa Deposit */}
           <div className="section-pair-panel" id="mpesa" ref={mpesaRef} data-panel="mpesa">
             <div className="reveal d1">
-              <h2 className="h2">Top up the way you <span className="grow">already pay.</span></h2>
-              <div className="step-flow">
-                <div className="step">
-                  <div className="step-n">01</div>
-                  <div>
-                    <div className="step-title">Open M-Pesa, pay to YeboBank</div>
-                    <div className="step-desc">Enter any shilling amount — paybill or till number.</div>
-                  </div>
-                </div>
-                <div className="step">
-                  <div className="step-n">02</div>
-                  <div>
-                    <div className="step-title">STK Push arrives on your phone</div>
-                    <div className="step-desc">Confirm with the M-Pesa PIN you already know.</div>
-                  </div>
-                </div>
-                <div className="step">
-                  <div className="step-n">03</div>
-                  <div>
-                    <div className="step-title">Sats land in your wallet</div>
-                    <div className="step-desc">Balance updates the moment your PIN confirms — no waiting.</div>
-                  </div>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Button variant="lime" onClick={onMpesaDeposit}>
+              <h2 className="h2" style={{ color: "#071911" }}>
+                Deposit.<br />
+                <span style={{ color: "#0B6B3D" }}>No brokers or complex exchanges.</span>
+              </h2>
+              <p className="lead" style={{ color: "rgba(7, 25, 17, 0.78)" }}>
+                Top up Sats directly from your M-Pesa with the PIN you already know in seconds.
+              </p>
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 24 }}>
+                <Button variant="primary" onClick={onMpesaDeposit}>
                   Deposit
                 </Button>
-                <Button variant="ghost" onClick={() => router.push("/login?redirect=/deposit")}>
+                <Button variant="gold" onClick={() => router.push("/login?redirect=/deposit")}>
                   Guide
                 </Button>
               </div>
-
-
             </div>
           </div>
 
