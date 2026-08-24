@@ -49,7 +49,7 @@ type MugSize = "lg" | "sm" | "xs";
 const MUG_D: Record<MugSize, { bw: number; bh: number; st: number; hw: number }> = {
   lg: { bw: 78, bh: 84, st: 30, hw: 22 },
   sm: { bw: 40, bh: 46, st: 16, hw: 12 },
-  xs: { bw: 26, bh: 30, st: 11, hw: 8  },
+  xs: { bw: 26, bh: 30, st: 11, hw: 8 },
 };
 
 function MugSVG({
@@ -61,9 +61,9 @@ function MugSVG({
   const { bw, bh, st, hw } = MUG_D[size];
   const vw = bw + hw + 3;
   const vh = st + bh + 2;
-  const rx  = size === "lg" ? 9 : size === "sm" ? 5 : 3;
+  const rx = size === "lg" ? 9 : size === "sm" ? 5 : 3;
   const lsw = size === "lg" ? 2 : 1.5;
-  const fs  = size === "lg" ? 11 : size === "sm" ? 7.5 : 5.5;
+  const fs = size === "lg" ? 11 : size === "sm" ? 7.5 : 5.5;
 
   const s = (xp: number, dy: number) => {
     const x = +(bw * xp).toFixed(1);
@@ -73,10 +73,10 @@ function MugSVG({
   return (
     <svg viewBox={`0 0 ${vw} ${vh}`} width={vw} height={vh}>
       {steam && (<>
-        <path className="mug-st"  d={s(0.28, 2)}    fill="none" stroke="rgba(255,255,255,.3)"  strokeWidth={lsw}      strokeLinecap="round" />
-        <path className="mug-st2" d={s(0.54, 1)}    fill="none" stroke="rgba(255,255,255,.22)" strokeWidth={lsw * .8} strokeLinecap="round" />
+        <path className="mug-st" d={s(0.28, 2)} fill="none" stroke="rgba(255,255,255,.3)" strokeWidth={lsw} strokeLinecap="round" />
+        <path className="mug-st2" d={s(0.54, 1)} fill="none" stroke="rgba(255,255,255,.22)" strokeWidth={lsw * .8} strokeLinecap="round" />
         {size === "lg" && (
-          <path className="mug-st3" d={s(0.76, 2)}  fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="1.3"      strokeLinecap="round" />
+          <path className="mug-st3" d={s(0.76, 2)} fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="1.3" strokeLinecap="round" />
         )}
       </>)}
       <rect x="1" y={st} width={bw - 2} height={bh} rx={rx} ry={rx}
@@ -100,39 +100,39 @@ function MugSVG({
 }
 
 const BTC_KES: Record<number, number> = {
-  2015: 30_000,  2016: 82_000,   2017: 1_550_000, 2018: 355_000,
+  2015: 30_000, 2016: 82_000, 2017: 1_550_000, 2018: 355_000,
   2019: 725_000, 2020: 3_190_000, 2021: 7_800_000, 2022: 1_980_000,
   2023: 5_670_000, 2024: 12_480_000, 2025: 13_200_000, 2026: 7_994_000,
 };
 
 const SAT_KES_2015 = BTC_KES[2015] / 100_000_000;
-const TOTAL_SATS   = Math.ceil(100 / SAT_KES_2015);
+const TOTAL_SATS = Math.ceil(100 / SAT_KES_2015);
 
 function fmtN(n: number): string {
   return n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M`
-       : n >= 1_000     ? n.toLocaleString()
-       : String(n);
+    : n >= 1_000 ? n.toLocaleString()
+      : String(n);
 }
 function fmtSats(n: number): string {
   return n >= 1_000 ? `${Math.round(n / 1_000)}k` : String(Math.round(n));
 }
 
-const YEARS = [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026] as const;
+const YEARS = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026] as const;
 
 const ORBIT_CUPS = [
-  { type: "kes" as const, delay: "0s",    vy: -38 },
-  { type: "sat" as const, delay: "-1.5s", vy:  32 },
-  { type: "kes" as const, delay: "-3s",   vy:  -8 },
+  { type: "kes" as const, delay: "0s", vy: -38 },
+  { type: "sat" as const, delay: "-1.5s", vy: 32 },
+  { type: "kes" as const, delay: "-3s", vy: -8 },
   { type: "sat" as const, delay: "-4.5s", vy: -28 },
-  { type: "kes" as const, delay: "-6s",   vy:  42 },
-  { type: "sat" as const, delay: "-7.5s", vy:  16 },
+  { type: "kes" as const, delay: "-6s", vy: 42 },
+  { type: "sat" as const, delay: "-7.5s", vy: 16 },
 ] as const;
 
 function Inflation({ onQuickAction }: { onQuickAction?: () => void }) {
-  const router   = useRouter();
-  const secRef   = useRef<HTMLElement>(null);
+  const router = useRouter();
+  const secRef = useRef<HTMLElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [year, setYear]     = useState(2015);
+  const [year, setYear] = useState(2015);
   const [active, setActive] = useState(false);
 
   useEffect(() => {
@@ -172,15 +172,15 @@ function Inflation({ onQuickAction }: { onQuickAction?: () => void }) {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [active]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const n          = year - 2015;
-  const chaiKES    = Math.round(10 + 10 * (n / 11));
-  const kesCups    = Math.floor(100 / chaiKES);
-  const satKes     = (BTC_KES[year] ?? BTC_KES[2026]) / 100_000_000;
-  const kesValue   = TOTAL_SATS * satKes;
-  const satCups    = Math.floor(kesValue / chaiKES);
+  const n = year - 2015;
+  const chaiKES = Math.round(10 + 10 * (n / 11));
+  const kesCups = Math.floor(100 / chaiKES);
+  const satKes = (BTC_KES[year] ?? BTC_KES[2026]) / 100_000_000;
+  const kesValue = TOTAL_SATS * satKes;
+  const satCups = Math.floor(kesValue / chaiKES);
   const satsPerCup = Math.round(chaiKES / satKes);
-  const kesAlpha   = Math.max(0.3, kesCups / 10);
-  const satAlpha   = Math.min(1, 0.35 + (Math.min(satCups, 1332) / 1332) * 0.65);
+  const kesAlpha = Math.max(0.3, kesCups / 10);
+  const satAlpha = Math.min(1, 0.35 + (Math.min(satCups, 1332) / 1332) * 0.65);
 
   return (
     <section className="sec" id="inflation" ref={secRef}>
@@ -283,31 +283,28 @@ function SavingsMpesaPair({
   onLockSavings?: () => void;
   onMpesaDeposit?: () => void;
 }) {
-  const router   = useRouter();
-  const rate     = useRate();
-  const sats     = Math.round(500 * rate.satsPerKes);
+  const router = useRouter();
+  const rate = useRate();
+  const sats = Math.round(500 * rate.satsPerKes);
   const shellRef = useRef<HTMLDivElement>(null);
-  const visRef   = useRef<HTMLDivElement>(null);
-  const saveRef  = useRef<HTMLDivElement>(null);
+  const visRef = useRef<HTMLDivElement>(null);
+  const pairRef = useRef<HTMLDivElement>(null);
+  const saveRef = useRef<HTMLDivElement>(null);
   const mpesaRef = useRef<HTMLDivElement>(null);
   const [activePanel, setActivePanel] = useState<"save" | "mpesa">("save");
 
-  /* JS sticky + scroll-driven phone interpolation */
+  /* JS sticky + scroll-driven state interpolation mirroring CommunityPair */
   useEffect(() => {
     const shell = shellRef.current;
-    const vis   = visRef.current;
+    const vis = visRef.current;
     if (!shell || !vis) return;
 
-    const mpCard  = vis.querySelector<HTMLElement>(".mp-card");
-    const mpOk    = vis.querySelector<HTMLElement>(".mp-ok");
-    const phone3d = vis.querySelector<HTMLElement>(".mpesa-phone-3d");
     let lastPanel: "save" | "mpesa" = "save";
     let rafId: number | null = null;
-    const lp = (a: number, b: number, t: number) => a + (b - a) * t;
 
     const apply = () => {
       rafId = null;
-      // JS sticky
+      // JS sticky anchoring
       if (!window.matchMedia("(max-width:1024px)").matches) {
         const { top, height } = shell.getBoundingClientRect();
         const tx = Math.max(0, Math.min(-top, height - vis.offsetHeight));
@@ -315,39 +312,41 @@ function SavingsMpesaPair({
       } else {
         vis.style.transform = "";
       }
+
       // Scroll progress 0 = save centred, 1 = mpesa centred
-      const save  = saveRef.current;
+      const save = saveRef.current;
       const mpesa = mpesaRef.current;
-      if (!save || !mpesa) return;
-      const vh2         = window.innerHeight / 2;
-      const sRect       = save.getBoundingClientRect();
-      const mRect       = mpesa.getBoundingClientRect();
-      const saveCenter  = sRect.top + sRect.height  / 2;
+      const pair = pairRef.current;
+      if (!save || !mpesa || !pair) return;
+      const vh2 = window.innerHeight / 2;
+      const sRect = save.getBoundingClientRect();
+      const mRect = mpesa.getBoundingClientRect();
+      const saveCenter = sRect.top + sRect.height / 2;
       const mpesaCenter = mRect.top + mRect.height / 2;
       const range = mpesaCenter - saveCenter;
-      const prog  = range > 0 ? Math.max(0, Math.min(1, (vh2 - saveCenter) / range)) : 0;
-      // Direct opacity interpolation
-      if (mpCard) mpCard.style.opacity = (0.32 + 0.68 * prog).toFixed(3);
-      if (mpOk)   mpOk.style.opacity   = (1    - 0.68 * prog).toFixed(3);
-      // Glow filter interpolation — save:teal(47,224,186) → mpesa:green(112,255,69)
-      if (phone3d) {
-        const ri = (a: number, b: number) => Math.round(lp(a, b, prog));
-        const g1 = `drop-shadow(0 0 ${ri(60,48)}px rgba(${ri(47,112)},${ri(224,255)},${ri(186,69)},${lp(.50,.30,prog).toFixed(3)}))`;
-        const g2 = `drop-shadow(0 0 ${ri(120,100)}px rgba(${ri(47,112)},${ri(224,255)},${ri(186,69)},${lp(.20,.12,prog).toFixed(3)}))`;
-        phone3d.style.filter = `${g1} ${g2}`;
+      const p = range > 0 ? Math.max(0, Math.min(1, (vh2 - saveCenter) / range)) : 0;
+
+      const next: "save" | "mpesa" = p >= 0.5 ? "mpesa" : "save";
+      if (next !== lastPanel) {
+        lastPanel = next;
+        setActivePanel(next);
       }
-      // Keep data-active for the selected-county colour rules
-      const next: "save" | "mpesa" = prog >= 0.5 ? "mpesa" : "save";
-      if (next !== lastPanel) { lastPanel = next; setActivePanel(next); }
     };
 
-    const onScroll = () => { if (rafId === null) rafId = requestAnimationFrame(apply); };
+    const onScroll = () => {
+      if (rafId === null) rafId = requestAnimationFrame(apply);
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     apply();
-    return () => { window.removeEventListener("scroll", onScroll); if (rafId !== null) cancelAnimationFrame(rafId); };
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, []);
 
-  /* 3D tilt */
+  /* Smooth 3D tilt */
   useEffect(() => {
     const el = visRef.current;
     if (!el) return;
@@ -356,34 +355,112 @@ function SavingsMpesaPair({
       el.style.setProperty("--mx", String((e.clientX - r.left) / r.width - 0.5));
       el.style.setProperty("--my", String((e.clientY - r.top) / r.height - 0.5));
     };
-    const onLeave = () => { el.style.setProperty("--mx", "0"); el.style.setProperty("--my", "0"); };
+    const onLeave = () => {
+      el.style.setProperty("--mx", "0");
+      el.style.setProperty("--my", "0");
+    };
     el.addEventListener("mousemove", onMove);
     el.addEventListener("mouseleave", onLeave);
-    return () => { el.removeEventListener("mousemove", onMove); el.removeEventListener("mouseleave", onLeave); };
+    return () => {
+      el.removeEventListener("mousemove", onMove);
+      el.removeEventListener("mouseleave", onLeave);
+    };
   }, []);
 
   return (
     <div className="section-pair-shell section-pair-shell--deposit" ref={shellRef}>
-      <div className="section-pair" data-active={activePanel}>
+      <div className="section-pair" data-active={activePanel} ref={pairRef}>
 
-        {/* STICKY LEFT — phone persists across both copy panels */}
+        {/* STICKY LEFT — Real Smartphone Frame with Dynamic Island, Hardware Buttons & Status Bar */}
         <div className="section-pair-visual mpesa-visual" ref={visRef}>
           <div className="mpesa-phone-3d">
-            <div className="phone">
-              <div className="scr">
-                <div className="ph-top">M-PESA <span>STK Push</span></div>
-                <div className="mp-card">
-                  <div className="mp-row"><span>Pay to</span><b>YeboBank</b></div>
-                  <div className="mp-row"><span>Amount</span><b>KES 500.00</b></div>
-                  <div className="mp-row"><span>You receive</span><b className="grn">≈ {num(sats)} sats</b></div>
-                  <div className="mp-btn">Enter PIN to confirm</div>
-                </div>
-                <div className="mp-ok">
-                  <div>
-                    <div className="t">Deposit confirmed</div>
-                    <div className="s">Balance updated instantly</div>
+            {/* Hardware Side Buttons */}
+            <div className="phone-btn phone-btn-action" aria-hidden="true" />
+            <div className="phone-btn phone-btn-vol-up" aria-hidden="true" />
+            <div className="phone-btn phone-btn-vol-down" aria-hidden="true" />
+            <div className="phone-btn phone-btn-power" aria-hidden="true" />
+
+            {/* Realistic Titanium Phone Chassis */}
+            <div className="phone-chassis">
+              {/* Screen Glass Display */}
+              <div className="phone-display">
+                {/* Top Status Bar & Dynamic Island */}
+                <div className="phone-status-bar" aria-hidden="true">
+                  <span className="phone-time">09:41</span>
+                  <div className="phone-dynamic-island">
+                    <span className="phone-camera-lens" />
+                    <span className="phone-speaker-slit" />
+                  </div>
+                  <div className="phone-status-icons">
+                    <span className="phone-signal-bars" />
+                    <span className="phone-wifi-icon" />
+                    <span className="phone-battery-icon" />
                   </div>
                 </div>
+
+                {/* Screen App Area — Dual States for Earn & Deposit */}
+                <div className="phone-app-content">
+                  {/* State A: Earn / Yield Vault (Active on Earn section) */}
+                  <div className={`phone-state-card phone-state-earn ${activePanel === "save" ? "active" : ""}`}>
+                    <div className="mp-app-header">
+                      <span className="mp-app-title">YeboBank Vault</span>
+                      <span className="mp-app-badge gold">5.2% APY</span>
+                    </div>
+                    <div className="mp-card">
+                      <div className="mp-row">
+                        <span>Active Vault</span>
+                        <b>Locked Sats</b>
+                      </div>
+                      <div className="mp-row">
+                        <span>Target APY</span>
+                        <b className="mp-sats-val">5.2% Real Yield</b>
+                      </div>
+                      <div className="mp-row">
+                        <span>Monthly Distribution</span>
+                        <b>Paid in Sats</b>
+                      </div>
+                      <div className="mp-btn gold">Grow Savings</div>
+                    </div>
+                    <div className="mp-ok gold">
+                      <div>
+                        <div className="t">Yield Active</div>
+                        <div className="s">Earns automatically while you sleep</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* State B: Deposit / M-Pesa STK (Active on Deposit section) */}
+                  <div className={`phone-state-card phone-state-deposit ${activePanel === "mpesa" ? "active" : ""}`}>
+                    <div className="mp-app-header">
+                      <span className="mp-app-title">M-PESA</span>
+                      <span className="mp-app-badge">STK Push</span>
+                    </div>
+                    <div className="mp-card">
+                      <div className="mp-row">
+                        <span>Pay to</span>
+                        <b>YeboBank</b>
+                      </div>
+                      <div className="mp-row">
+                        <span>Amount</span>
+                        <b>KES 500.00</b>
+                      </div>
+                      <div className="mp-row">
+                        <span>You receive</span>
+                        <b className="mp-sats-val">≈ {num(sats)} sats</b>
+                      </div>
+                      <div className="mp-btn">Enter PIN to confirm</div>
+                    </div>
+                    <div className="mp-ok">
+                      <div>
+                        <div className="t">Deposit confirmed</div>
+                        <div className="s">Balance updated instantly</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Home Indicator Bar */}
+                <div className="phone-home-indicator" aria-hidden="true" />
               </div>
             </div>
           </div>
@@ -465,22 +542,22 @@ function CommunityPair({
   onChamaAction?: () => void;
   onAgentAction?: () => void;
 }) {
-  const router    = useRouter();
-  const shellRef  = useRef<HTMLDivElement>(null);
-  const visRef    = useRef<HTMLDivElement>(null);
-  const pairRef   = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const shellRef = useRef<HTMLDivElement>(null);
+  const visRef = useRef<HTMLDivElement>(null);
+  const pairRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [nearest, setNearest] = useState<{ label: string; n: number; km: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
   const [activePanel, setActivePanel] = useState<"chama" | "agents">("chama");
-  const chamaRef  = useRef<HTMLDivElement>(null);
+  const chamaRef = useRef<HTMLDivElement>(null);
   const agentsRef = useRef<HTMLDivElement>(null);
 
   /* JS sticky + scroll-driven map colour interpolation */
   useEffect(() => {
     const shell = shellRef.current;
-    const vis   = visRef.current;
+    const vis = visRef.current;
     if (!shell || !vis) return;
 
     const kenyaSvg = vis.querySelector<HTMLElement>(".kenya-svg");
@@ -500,35 +577,35 @@ function CommunityPair({
         vis.style.transform = "";
       }
       // Scroll progress 0 = chama centred, 1 = agents centred
-      const chama  = chamaRef.current;
+      const chama = chamaRef.current;
       const agents = agentsRef.current;
-      const pair   = pairRef.current;
+      const pair = pairRef.current;
       if (!chama || !agents || !pair) return;
-      const vh2          = window.innerHeight / 2;
-      const cRect        = chama.getBoundingClientRect();
-      const aRect        = agents.getBoundingClientRect();
-      const chamaCenter  = cRect.top + cRect.height / 2;
+      const vh2 = window.innerHeight / 2;
+      const cRect = chama.getBoundingClientRect();
+      const aRect = agents.getBoundingClientRect();
+      const chamaCenter = cRect.top + cRect.height / 2;
       const agentsCenter = aRect.top + aRect.height / 2;
       const range = agentsCenter - chamaCenter;
-      const p     = range > 0 ? Math.max(0, Math.min(1, (vh2 - chamaCenter) / range)) : 0;
+      const p = range > 0 ? Math.max(0, Math.min(1, (vh2 - chamaCenter) / range)) : 0;
       // Theme-aware colour interpolation — dark: gold→teal, light: amber→forest
       const light = document.documentElement.dataset.theme === "light";
-      const [cFR,cFG,cFB,cFA] = light ? [168,116,0,0.07]  : [224,168,0,0.10]; // chama fill
-      const [aFR,aFG,aFB,aFA] = light ? [10,152,80,0.05]  : [47,224,186,0.07]; // agents fill
-      const [cSR,cSG,cSB,cSA] = light ? [168,116,0,0.38]  : [224,168,0,0.40]; // chama stroke
-      const [aSR,aSG,aSB,aSA] = light ? [10,152,80,0.42]  : [112,255,69,0.48]; // agents stroke
-      const [cHR,cHG,cHB,cHA] = light ? [168,116,0,0.20]  : [224,168,0,0.26]; // chama hover
-      const [aHR,aHG,aHB,aHA] = light ? [10,152,80,0.18]  : [150,194,68,0.22]; // agents hover
-      const [cRR,cRG,cRB,cRA] = light ? [168,116,0,0.52]  : [224,168,0,0.55]; // chama ring
-      const [aRR,aRG,aRB,aRA] = light ? [10,152,80,0.60]  : [47,224,186,0.72]; // agents ring
-      const [cCR,cCG,cCB,cCA] = light ? [168,116,0,0.72]  : [224,168,0,0.75]; // chama cap ring
-      const [aCR,aCG,aCB,aCA] = light ? [168,116,0,0.65]  : [196,144,32,0.65]; // agents cap ring
+      const [cFR, cFG, cFB, cFA] = light ? [168, 116, 0, 0.07] : [224, 168, 0, 0.10]; // chama fill
+      const [aFR, aFG, aFB, aFA] = light ? [10, 152, 80, 0.05] : [47, 224, 186, 0.07]; // agents fill
+      const [cSR, cSG, cSB, cSA] = light ? [168, 116, 0, 0.38] : [224, 168, 0, 0.40]; // chama stroke
+      const [aSR, aSG, aSB, aSA] = light ? [10, 152, 80, 0.42] : [112, 255, 69, 0.48]; // agents stroke
+      const [cHR, cHG, cHB, cHA] = light ? [168, 116, 0, 0.20] : [224, 168, 0, 0.26]; // chama hover
+      const [aHR, aHG, aHB, aHA] = light ? [10, 152, 80, 0.18] : [150, 194, 68, 0.22]; // agents hover
+      const [cRR, cRG, cRB, cRA] = light ? [168, 116, 0, 0.52] : [224, 168, 0, 0.55]; // chama ring
+      const [aRR, aRG, aRB, aRA] = light ? [10, 152, 80, 0.60] : [47, 224, 186, 0.72]; // agents ring
+      const [cCR, cCG, cCB, cCA] = light ? [168, 116, 0, 0.72] : [224, 168, 0, 0.75]; // chama cap ring
+      const [aCR, aCG, aCB, aCA] = light ? [168, 116, 0, 0.65] : [196, 144, 32, 0.65]; // agents cap ring
       const rc = (a: number, b: number) => Math.round(lp(a, b, p));
-      pair.style.setProperty("--county-fill",  `rgba(${rc(cFR,aFR)},${rc(cFG,aFG)},${rc(cFB,aFB)},${lp(cFA,aFA,p).toFixed(3)})`);
-      pair.style.setProperty("--county-stroke", `rgba(${rc(cSR,aSR)},${rc(cSG,aSG)},${rc(cSB,aSB)},${lp(cSA,aSA,p).toFixed(3)})`);
-      pair.style.setProperty("--county-hover",  `rgba(${rc(cHR,aHR)},${rc(cHG,aHG)},${rc(cHB,aHB)},${lp(cHA,aHA,p).toFixed(3)})`);
-      pair.style.setProperty("--ring-bg",       `rgba(${rc(cRR,aRR)},${rc(cRG,aRG)},${rc(cRB,aRB)},${lp(cRA,aRA,p).toFixed(3)})`);
-      pair.style.setProperty("--cap-ring-bg",   `rgba(${rc(cCR,aCR)},${rc(cCG,aCG)},${rc(cCB,aCB)},${lp(cCA,aCA,p).toFixed(3)})`);
+      pair.style.setProperty("--county-fill", `rgba(${rc(cFR, aFR)},${rc(cFG, aFG)},${rc(cFB, aFB)},${lp(cFA, aFA, p).toFixed(3)})`);
+      pair.style.setProperty("--county-stroke", `rgba(${rc(cSR, aSR)},${rc(cSG, aSG)},${rc(cSB, aSB)},${lp(cSA, aSA, p).toFixed(3)})`);
+      pair.style.setProperty("--county-hover", `rgba(${rc(cHR, aHR)},${rc(cHG, aHG)},${rc(cHB, aHB)},${lp(cHA, aHA, p).toFixed(3)})`);
+      pair.style.setProperty("--ring-bg", `rgba(${rc(cRR, aRR)},${rc(cRG, aRG)},${rc(cRB, aRB)},${lp(cRA, aRA, p).toFixed(3)})`);
+      pair.style.setProperty("--cap-ring-bg", `rgba(${rc(cCR, aCR)},${rc(cCG, aCG)},${rc(cCB, aCB)},${lp(cCA, aCA, p).toFixed(3)})`);
       // Only flip React state at midpoint (controls SVG glow filter)
       const next: "chama" | "agents" = p >= 0.5 ? "agents" : "chama";
       if (next !== lastPanel) { lastPanel = next; setActivePanel(next); }
@@ -568,134 +645,134 @@ function CommunityPair({
 
   return (
     <div className="section-pair-shell section-pair-shell--community" ref={shellRef}>
-    <div className="section-pair" data-active={activePanel} ref={pairRef}>
+      <div className="section-pair" data-active={activePanel} ref={pairRef}>
 
-      {/* LEFT — Kenya map pinned via JS scroll handler */}
-      <div className="section-pair-visual" ref={visRef}>
-        <div className="kenya-map-wrap reveal">
-          <svg className="kenya-svg" viewBox={`0 0 ${MAP_W} ${MAP_H}`} role="img"
-            aria-label="Map of Kenya's 47 counties showing YeboBank coverage">
-            {KENYA_COUNTIES.map((c) => (
-              <path key={c.name} d={c.d}
-                className={`kenya-county${selected === c.name ? " on" : ""}`}
-                onClick={() => setSelected(selected === c.name ? null : c.name)}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(selected === c.name ? null : c.name); } }}
-                role="button"
-                tabIndex={0}
-                aria-pressed={selected === c.name}
-                aria-label={`${c.name} — ${c.agents} agents`}
-              >
-                <title>{`${c.name} — ${c.agents} agents`}</title>
-              </path>
-            ))}
+        {/* LEFT — Kenya map pinned via JS scroll handler */}
+        <div className="section-pair-visual" ref={visRef}>
+          <div className="kenya-map-wrap reveal">
+            <svg className="kenya-svg" viewBox={`0 0 ${MAP_W} ${MAP_H}`} role="img"
+              aria-label="Map of Kenya's 47 counties showing YeboBank coverage">
+              {KENYA_COUNTIES.map((c) => (
+                <path key={c.name} d={c.d}
+                  className={`kenya-county${selected === c.name ? " on" : ""}`}
+                  onClick={() => setSelected(selected === c.name ? null : c.name)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(selected === c.name ? null : c.name); } }}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={selected === c.name}
+                  aria-label={`${c.name} — ${c.agents} agents`}
+                >
+                  <title>{`${c.name} — ${c.agents} agents`}</title>
+                </path>
+              ))}
+              {KENYA_CITIES.map((a, i) => (
+                <g key={i} pointerEvents="none">
+                  <circle cx={a.x} cy={a.y} r={a.capital ? 8 : 5.5}
+                    fill={a.capital ? "rgba(196,144,32,.9)" : "rgba(17,166,91,.88)"} />
+                  <circle cx={a.x} cy={a.y} r={a.capital ? 3.5 : 2}
+                    fill="rgba(255,255,255,.55)" />
+                </g>
+              ))}
+            </svg>
+
             {KENYA_CITIES.map((a, i) => (
-              <g key={i} pointerEvents="none">
-                <circle cx={a.x} cy={a.y} r={a.capital ? 8 : 5.5}
-                  fill={a.capital ? "rgba(196,144,32,.9)" : "rgba(17,166,91,.88)"} />
-                <circle cx={a.x} cy={a.y} r={a.capital ? 3.5 : 2}
-                  fill="rgba(255,255,255,.55)" />
-              </g>
+              <div
+                key={i}
+                className={`kenya-dot${a.capital ? " kenya-dot--capital" : ""}${nearest?.label === a.label ? " kenya-dot--nearest" : ""}`}
+                style={{ left: `${(a.x / MAP_W) * 100}%`, top: `${(a.y / MAP_H) * 100}%` }}
+              >
+                <div className="kenya-ring" style={{ animationDelay: a.delay }} />
+                <div className="kenya-tip">
+                  <b>{a.label}</b><br />{a.n} agents
+                </div>
+              </div>
             ))}
-          </svg>
 
-          {KENYA_CITIES.map((a, i) => (
-            <div
-              key={i}
-              className={`kenya-dot${a.capital ? " kenya-dot--capital" : ""}${nearest?.label === a.label ? " kenya-dot--nearest" : ""}`}
-              style={{ left: `${(a.x / MAP_W) * 100}%`, top: `${(a.y / MAP_H) * 100}%` }}
-            >
-              <div className="kenya-ring" style={{ animationDelay: a.delay }} />
-              <div className="kenya-tip">
-                <b>{a.label}</b><br />{a.n} agents
+            {(selectedCounty || nearest || geoError) && (
+              <div className="kenya-readout">
+                {geoError ? (
+                  <span>{geoError}</span>
+                ) : nearest ? (
+                  <span><b>{nearest.label}</b> is your nearest hub — {nearest.n} agents, ≈{Math.round(nearest.km)} km away</span>
+                ) : selectedCounty ? (
+                  <span><b>{selectedCounty.name}</b> county — {selectedCounty.agents} YeboBank agents</span>
+                ) : null}
               </div>
-            </div>
-          ))}
-
-          {(selectedCounty || nearest || geoError) && (
-            <div className="kenya-readout">
-              {geoError ? (
-                <span>{geoError}</span>
-              ) : nearest ? (
-                <span><b>{nearest.label}</b> is your nearest hub — {nearest.n} agents, ≈{Math.round(nearest.km)} km away</span>
-              ) : selectedCounty ? (
-                <span><b>{selectedCounty.name}</b> county — {selectedCounty.agents} YeboBank agents</span>
-              ) : null}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* SCROLLING RIGHT — two copy panels stacked vertically */}
-      <div className="section-pair-panels">
-
-        {/* Panel 1: Chama */}
-        <div className="section-pair-panel" id="chama" ref={chamaRef} data-panel="chama">
-          <div className="reveal d1">
-            <h2 className="h2">Save together.<br /><span className="grow">See everything.</span></h2>
-            <p className="lead">
-              The savings tradition you already trust — now it can&apos;t be raided
-              and it doesn&apos;t lose value to inflation.
-            </p>
-            <div className="feat-grid">
-              <div className="feat-card">
-                <i className="ti ti-eye" />
-                <div className="fc-title">Open books</div>
-                <div className="fc-desc">Every shilling in and out visible to every member.</div>
-              </div>
-              <div className="feat-card">
-                <i className="ti ti-checkbox" />
-                <div className="fc-title">Group vote</div>
-                <div className="fc-desc">Payouts only move when members vote to release them.</div>
-              </div>
-              <div className="feat-card">
-                <i className="ti ti-trending-up" />
-                <div className="fc-title">Holds value</div>
-                <div className="fc-desc">Sats, not KES — the pool grows instead of shrinking.</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="gold" onClick={onChamaAction}>
-                Join
-              </Button>
-              <Button variant="ghost" onClick={() => router.push("/login?redirect=/chama")}>
-                Explore
-              </Button>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Panel 2: Agents */}
-        <div className="section-pair-panel" id="agents" ref={agentsRef} data-panel="agents">
-          <div className="reveal d1">
-            <h2 className="h2">Cash in and out, <span className="accent">down the street.</span></h2>
-            <p className="lead">
-              No smartphone, no bundles needed. Walk to a neighbourhood agent
-              and turn cash into savings — and savings back into cash.
-            </p>
-            <div className="agent-stat">
-              <span className="as-big">47</span>
-              <span className="as-unit">counties covered</span>
-              <div className="agent-pills">
-                <span className="agent-pill"><i className="ti ti-walk" />Always nearby</span>
-                <span className="agent-pill"><i className="ti ti-wifi-off" />No internet needed</span>
-                <span className="agent-pill"><i className="ti ti-heart-handshake" />Community-run</span>
+        {/* SCROLLING RIGHT — two copy panels stacked vertically */}
+        <div className="section-pair-panels">
+
+          {/* Panel 1: Chama */}
+          <div className="section-pair-panel" id="chama" ref={chamaRef} data-panel="chama">
+            <div className="reveal d1">
+              <h2 className="h2">Save together.<br /><span className="grow">See everything.</span></h2>
+              <p className="lead">
+                The savings tradition you already trust — now it can&apos;t be raided
+                and it doesn&apos;t lose value to inflation.
+              </p>
+              <div className="feat-grid">
+                <div className="feat-card">
+                  <i className="ti ti-eye" />
+                  <div className="fc-title">Open books</div>
+                  <div className="fc-desc">Every shilling in and out visible to every member.</div>
+                </div>
+                <div className="feat-card">
+                  <i className="ti ti-checkbox" />
+                  <div className="fc-title">Group vote</div>
+                  <div className="fc-desc">Payouts only move when members vote to release them.</div>
+                </div>
+                <div className="feat-card">
+                  <i className="ti ti-trending-up" />
+                  <div className="fc-title">Holds value</div>
+                  <div className="fc-desc">Sats, not KES — the pool grows instead of shrinking.</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <Button variant="gold" onClick={onChamaAction}>
+                  Join
+                </Button>
+                <Button variant="ghost" onClick={() => router.push("/login?redirect=/chama")}>
+                  Explore
+                </Button>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="lime" onClick={onAgentAction}>
-                Locate
-              </Button>
-              <Button variant="ghost" onClick={() => router.push("/login?redirect=/agent")}>
-                Manage
-              </Button>
-            </div>
-
-
           </div>
-        </div>
 
+          {/* Panel 2: Agents */}
+          <div className="section-pair-panel" id="agents" ref={agentsRef} data-panel="agents">
+            <div className="reveal d1">
+              <h2 className="h2">Cash in and out, <span className="accent">down the street.</span></h2>
+              <p className="lead">
+                No smartphone, no bundles needed. Walk to a neighbourhood agent
+                and turn cash into savings — and savings back into cash.
+              </p>
+              <div className="agent-stat">
+                <span className="as-big">47</span>
+                <span className="as-unit">counties covered</span>
+                <div className="agent-pills">
+                  <span className="agent-pill"><i className="ti ti-walk" />Always nearby</span>
+                  <span className="agent-pill"><i className="ti ti-wifi-off" />No internet needed</span>
+                  <span className="agent-pill"><i className="ti ti-heart-handshake" />Community-run</span>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <Button variant="lime" onClick={onAgentAction}>
+                  Locate
+                </Button>
+                <Button variant="ghost" onClick={() => router.push("/login?redirect=/agent")}>
+                  Manage
+                </Button>
+              </div>
+
+
+            </div>
+          </div>
+
+        </div>
       </div>
-    </div>
     </div>
   );
 }

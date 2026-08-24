@@ -1495,7 +1495,7 @@ a {
   flex-direction: column;
   min-height: 100dvh;
   padding-top: 0;
-  background: 
+  background:
     linear-gradient(180deg, rgba(7, 25, 17, 0.82) 0%, rgba(7, 25, 17, 0.94) 100%),
     url('/images/hero-story-bg.jpg') center center / cover no-repeat;
   overflow: hidden;
@@ -1908,9 +1908,12 @@ h1.hero-h .grn {
 }
 
 @keyframes yebo-logo-float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0) scale(1);
   }
+
   50% {
     transform: translateY(-8px) scale(1.03);
   }
@@ -1920,16 +1923,20 @@ h1.hero-h .grn {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
 @keyframes yebo-core-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.85;
     transform: scale(1);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.08);
@@ -1969,7 +1976,7 @@ h1.hero-h .grn {
   background-repeat: no-repeat;
   opacity: 0;
   transform: scale(1) translate3d(0, 0, 0);
-  transition: 
+  transition:
     opacity 2.2s cubic-bezier(0.4, 0, 0.2, 1),
     transform 7s cubic-bezier(0.25, 1, 0.5, 1);
   will-change: opacity, transform;
@@ -1987,7 +1994,7 @@ h1.hero-h .grn {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: 
+  background:
     radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255, 255, 255, 0.70) 0%, rgba(250, 252, 250, 0.50) 60%, rgba(7, 25, 17, 0.40) 100%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.45) 45%, rgba(248, 250, 248, 0.85) 90%, #FFFFFF 100%);
 }
@@ -2045,6 +2052,7 @@ h1.hero-h .grn {
     opacity: 0;
     transform: translateY(18px) scale(0.96);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -2068,6 +2076,7 @@ h1.hero-h .grn {
     opacity: 0;
     transform: translateY(10px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -2163,7 +2172,7 @@ h1.hero-h .grn {
   overflow: hidden;
   border: 1px solid rgba(7, 25, 17, 0.12);
   border-top: 1px solid rgba(255, 255, 255, 1);
-  box-shadow: 
+  box-shadow:
     0 32px 70px -12px rgba(7, 25, 17, 0.16),
     0 12px 28px -4px rgba(7, 25, 17, 0.08),
     0 0 0 1px rgba(198, 146, 20, 0.2);
@@ -2173,7 +2182,7 @@ h1.hero-h .grn {
 
 .hero-story-frame:hover {
   transform: translateY(-4px);
-  box-shadow: 
+  box-shadow:
     0 40px 90px -12px rgba(7, 25, 17, 0.22),
     0 16px 36px -4px rgba(7, 25, 17, 0.12),
     0 0 0 1.5px rgba(198, 146, 20, 0.35);
@@ -2237,9 +2246,18 @@ h1.hero-h .grn {
   border-radius: 50%;
   margin-bottom: 3px;
 }
-.hsb-dot.k { background: #0B6B3D; }
-.hsb-dot.s { background: #D4A018; }
-.hsb-dot.e { background: #071911; }
+
+.hsb-dot.k {
+  background: #0B6B3D;
+}
+
+.hsb-dot.s {
+  background: #D4A018;
+}
+
+.hsb-dot.e {
+  background: #071911;
+}
 
 .hsb-title {
   font-family: var(--font-display);
@@ -2261,9 +2279,11 @@ h1.hero-h .grn {
     left: 8px;
     top: -10px;
   }
+
   .hero-story-badge--mid {
     display: none;
   }
+
   .hero-story-badge--bottom {
     right: 8px;
     bottom: -10px;
@@ -2312,12 +2332,14 @@ h1.hero-h .grn {
   position: relative;
   z-index: 5;
 }
+
 .r-status-time {
   font-family: var(--font-mono);
   font-weight: 800;
   letter-spacing: -0.02em;
   font-size: 13px;
 }
+
 .r-dynamic-island {
   width: 96px;
   height: 25px;
@@ -2330,6 +2352,7 @@ h1.hero-h .grn {
   gap: 5px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
+
 .r-camera-lens {
   width: 9px;
   height: 9px;
@@ -2338,39 +2361,56 @@ h1.hero-h .grn {
   border: 1px solid #1e3044;
   box-shadow: inset 0 0 2px #0088cc;
 }
+
 .r-sensor-lens {
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background: #09121a;
 }
+
 .r-status-icons {
   display: flex;
   align-items: center;
   gap: 5px;
 }
+
 .r-signal-bars {
   display: flex;
   align-items: flex-end;
   gap: 1.5px;
   height: 10px;
 }
+
 .r-signal-bars i {
   display: block;
   width: 2px;
   background: #071911;
   border-radius: 1px;
 }
-.r-signal-bars i:nth-child(1) { height: 3px; }
-.r-signal-bars i:nth-child(2) { height: 5px; }
-.r-signal-bars i:nth-child(3) { height: 7.5px; }
-.r-signal-bars i:nth-child(4) { height: 10px; }
+
+.r-signal-bars i:nth-child(1) {
+  height: 3px;
+}
+
+.r-signal-bars i:nth-child(2) {
+  height: 5px;
+}
+
+.r-signal-bars i:nth-child(3) {
+  height: 7.5px;
+}
+
+.r-signal-bars i:nth-child(4) {
+  height: 10px;
+}
 
 .r-5g-text {
   font-family: var(--font-mono);
   font-size: 9.5px;
   font-weight: 800;
 }
+
 .r-battery-pill {
   width: 20px;
   height: 10px;
@@ -2381,6 +2421,7 @@ h1.hero-h .grn {
   display: flex;
   align-items: center;
 }
+
 .r-battery-pill::after {
   content: "";
   position: absolute;
@@ -2391,6 +2432,7 @@ h1.hero-h .grn {
   background: #071911;
   border-radius: 0 1px 1px 0;
 }
+
 .r-battery-level {
   width: 80%;
   height: 100%;
@@ -2415,15 +2457,18 @@ h1.hero-h .grn {
   border-bottom: 1px solid rgba(7, 25, 17, 0.08);
   padding-bottom: 8px;
 }
+
 .lps-brand {
   display: flex;
   align-items: center;
   gap: 7px;
 }
+
 .lps-brand-text {
   display: flex;
   flex-direction: column;
 }
+
 .lps-name {
   font-family: var(--font-display);
   font-weight: 800;
@@ -2431,11 +2476,13 @@ h1.hero-h .grn {
   color: #071911;
   line-height: 1.1;
 }
+
 .lps-subline {
   font-size: 9.5px;
   color: #8C6200;
   font-weight: 600;
 }
+
 .lps-secure-pill {
   font-family: var(--font-mono);
   font-size: 9.5px;
@@ -2453,11 +2500,13 @@ h1.hero-h .grn {
   display: flex;
   flex-direction: column;
 }
+
 .lps-title-label {
   font-size: 10px;
   color: #638072;
   font-weight: 600;
 }
+
 .lps-title-name {
   font-family: var(--font-display);
   font-weight: 800;
@@ -2474,11 +2523,13 @@ h1.hero-h .grn {
   flex-direction: column;
   gap: 6px;
 }
+
 .lps-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .lps-meta-label {
   font-family: var(--font-mono);
   font-size: 9.5px;
@@ -2486,17 +2537,20 @@ h1.hero-h .grn {
   color: #638072;
   letter-spacing: 0.04em;
 }
+
 .lps-amount-val {
   font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 800;
   color: #071911;
 }
+
 .lps-sender-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .lps-network-icon {
   width: 28px;
   height: 28px;
@@ -2507,16 +2561,19 @@ h1.hero-h .grn {
   place-items: center;
   font-size: 14px;
 }
+
 .lps-network-details {
   display: flex;
   flex-direction: column;
 }
+
 .lps-net-name {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 12px;
   color: #071911;
 }
+
 .lps-net-sub {
   font-size: 9.5px;
   color: #638072;
@@ -2527,6 +2584,7 @@ h1.hero-h .grn {
   gap: 5px;
   flex-wrap: wrap;
 }
+
 .lps-pill {
   background: #FFFFFF;
   border: 1px solid rgba(7, 25, 17, 0.12);
@@ -2539,6 +2597,7 @@ h1.hero-h .grn {
   cursor: pointer;
   transition: all 0.15s;
 }
+
 .lps-pill.active {
   background: #071911;
   color: #FFFFFF;
@@ -2554,21 +2613,25 @@ h1.hero-h .grn {
   flex-direction: column;
   gap: 2px;
 }
+
 .lps-conv-label {
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
   color: #8C6200;
 }
+
 .lps-conv-val {
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
   font-size: 10.5px;
 }
+
 .lps-conv-val b {
   color: #071911;
 }
+
 .lps-conv-val span {
   color: #8C6200;
   font-weight: 700;
@@ -2579,6 +2642,7 @@ h1.hero-h .grn {
   flex-direction: column;
   gap: 5px;
 }
+
 .lps-payout-item {
   display: flex;
   justify-content: space-between;
@@ -2588,38 +2652,46 @@ h1.hero-h .grn {
   border-radius: 8px;
   padding: 5px 8px;
 }
+
 .lps-payout-net {
   display: flex;
   align-items: center;
   gap: 5px;
 }
+
 .lps-payout-num {
   font-size: 10px;
   font-weight: 700;
   color: #638072;
 }
+
 .lps-flag {
   font-size: 14px;
 }
+
 .lps-net-col {
   display: flex;
   flex-direction: column;
 }
+
 .lps-net-col b {
   font-size: 11px;
   color: #071911;
   line-height: 1.1;
 }
+
 .lps-net-col small {
   font-size: 9px;
   color: #638072;
 }
+
 .lps-payout-val {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 800;
   color: #0B6B3D;
 }
+
 .lps-total-row {
   display: flex;
   justify-content: space-between;
@@ -2629,6 +2701,7 @@ h1.hero-h .grn {
   padding-top: 4px;
   color: #638072;
 }
+
 .lps-total-row b {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -2649,6 +2722,7 @@ h1.hero-h .grn {
   box-shadow: 0 4px 14px rgba(212, 160, 24, 0.4);
   transition: transform 0.15s, box-shadow 0.15s;
 }
+
 .lps-confirm-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(212, 160, 24, 0.5);
@@ -2667,6 +2741,7 @@ h1.hero-h .grn {
   font-weight: 700;
   color: #8C6200;
 }
+
 .lps-spinner {
   width: 12px;
   height: 12px;
@@ -2689,6 +2764,7 @@ h1.hero-h .grn {
   font-weight: 700;
   color: #0B6B3D;
 }
+
 .lps-success-state i {
   font-size: 14px;
 }
@@ -2704,6 +2780,7 @@ h1.hero-h .grn {
   position: relative;
   z-index: 5;
 }
+
 .r-tab-item {
   display: flex;
   flex-direction: column;
@@ -2713,9 +2790,11 @@ h1.hero-h .grn {
   font-weight: 600;
   color: #638072;
 }
+
 .r-tab-item i {
   font-size: 15px;
 }
+
 .r-tab-item.active {
   color: #8C6200;
   font-weight: 800;
@@ -2748,6 +2827,7 @@ h1.hero-h .grn {
   gap: 6px;
   z-index: 20;
 }
+
 .lp-dot {
   width: 6px;
   height: 6px;
@@ -2761,9 +2841,11 @@ h1.hero-h .grn {
     max-width: 380px;
     margin: 20px auto 0;
   }
+
   .realistic-phone-stage {
     max-width: 370px;
   }
+
   .r-phone-chassis {
     transform: rotateY(-3deg) rotateX(2deg);
   }
@@ -2773,69 +2855,88 @@ h1.hero-h .grn {
   .hero-live-phone-wrapper {
     max-width: 345px;
   }
+
   .realistic-phone-stage {
     max-width: 340px;
   }
+
   .r-phone-chassis {
     transform: none !important;
     border-radius: 46px;
     padding: 8px;
   }
+
   .r-phone-rim {
     border-radius: 40px;
     padding: 2.5px;
   }
+
   .r-phone-screen {
     border-radius: 36px;
   }
+
   .r-status-bar {
     padding: 8px 14px 2px;
   }
+
   .r-dynamic-island {
     width: 82px;
     height: 22px;
   }
+
   .r-screen-body {
     padding: 6px 12px 8px;
     gap: 7px;
   }
+
   .lps-card {
     padding: 8px 10px;
     border-radius: 12px;
     gap: 5px;
   }
+
   .lps-amount-val {
     font-size: 13px;
   }
+
   .lps-pill {
     padding: 1px 6px;
     font-size: 9px;
   }
+
   .lps-conversion-strip {
     padding: 5px 8px;
   }
+
   .lps-conv-val {
     font-size: 9.5px;
   }
+
   .lps-payout-item {
     padding: 4px 6px;
   }
+
   .lps-payout-val {
     font-size: 10px;
   }
+
   .lps-confirm-btn {
     padding: 8px 12px;
     font-size: 11.5px;
   }
+
   .r-bottom-tabs {
     padding: 6px 8px 2px;
   }
+
   .r-tab-item span {
     font-size: 8px;
   }
+
   .r-tab-item i {
     font-size: 13px;
   }
+
   .live-phone-float-pill {
 
     bottom: -10px;
@@ -3314,7 +3415,7 @@ h1.hero-h .grn {
 
 .hero-photo-wrap:hover {
   transform: translateY(-4px) rotate(0.5deg);
-  box-shadow: 
+  box-shadow:
     0 40px 90px -12px rgba(7, 25, 17, 0.20),
     0 16px 36px -4px rgba(7, 25, 17, 0.10),
     0 0 0 1.5px rgba(198, 146, 20, 0.25);
@@ -3348,12 +3449,13 @@ h1.hero-h .grn {
   border: 1px solid rgba(7, 25, 17, 0.12);
   border-radius: 16px;
   padding: 10px 14px;
-  box-shadow: 
+  box-shadow:
     0 14px 32px rgba(7, 25, 17, 0.10),
     0 2px 6px rgba(7, 25, 17, 0.04);
   z-index: 2;
   transition: transform 0.2s ease;
 }
+
 .hero-float-badge:hover {
   transform: scale(1.03);
 }
@@ -3372,16 +3474,19 @@ h1.hero-h .grn {
   font-size: 24px;
   line-height: 1;
 }
+
 .hfb-flags {
   display: flex;
   gap: 2px;
   font-size: 20px;
   line-height: 1;
 }
+
 .hfb-content {
   display: flex;
   flex-direction: column;
 }
+
 .hfb-title {
   font-family: var(--font-display);
   font-weight: 700;
@@ -3389,6 +3494,7 @@ h1.hero-h .grn {
   color: #071911;
   line-height: 1.2;
 }
+
 .hfb-val {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -3402,6 +3508,7 @@ h1.hero-h .grn {
     left: 8px;
     top: -12px;
   }
+
   .hero-float-badge--bottom {
     right: 8px;
     bottom: -12px;
@@ -4017,6 +4124,7 @@ h1.hero-h .grn {
     opacity: 0;
     transform: translateY(8px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -4065,39 +4173,50 @@ h1.hero-h .grn {
     transform: scale(0.35, 0.35);
     opacity: 0.08;
   }
+
   6% {
     transform: scale(1.15, 1.15);
     opacity: 0.65;
   }
+
   12% {
     transform: scale(0.45, 0.45);
     opacity: 0.15;
   }
+
   18% {
     transform: scale(1.1, 1.1);
     opacity: 0.6;
   }
+
   24% {
     transform: scale(0.65, 0.65);
     opacity: 0.22;
   }
+
   30% {
     transform: scale(1.05, 1.05);
     opacity: 0.55;
   }
+
   36% {
     transform: scale(0.8, 0.8);
     opacity: 0.28;
   }
+
   42% {
     transform: scale(1.0, 1.0);
     opacity: 0.5;
   }
-  48%, 78% {
+
+  48%,
+  78% {
     transform: scale(0.95, 0.95);
     opacity: 0.35;
   }
-  90%, 100% {
+
+  90%,
+  100% {
     transform: scale(0.5, 0.5);
     opacity: 0;
   }
@@ -4109,15 +4228,21 @@ h1.hero-h .grn {
 }
 
 @keyframes auto-glow-anim {
-  0%, 42% {
+
+  0%,
+  42% {
     opacity: 0;
     transform: scale(0.6);
   }
-  48%, 78% {
+
+  48%,
+  78% {
     opacity: 0.95;
     transform: scale(1.15);
   }
-  92%, 100% {
+
+  92%,
+  100% {
     opacity: 0;
     transform: scale(0.8);
   }
@@ -4129,62 +4254,76 @@ h1.hero-h .grn {
 }
 
 @keyframes auto-vertical-3d-bounce {
+
   /* Initial drop from high 3D space */
   0% {
     transform: translateY(-56px) rotateX(62deg) rotateY(15deg) scale(0.32);
     opacity: 0;
     animation-timing-function: ease-in;
   }
+
   2% {
     opacity: 1;
     animation-timing-function: ease-in;
   }
+
   /* Bounce 1: Contact (Stops cleanly above the lowered shadow) */
   6% {
     transform: translateY(4px) rotateX(16deg) rotateY(0deg) scale(0.48, 0.28);
     animation-timing-function: ease-out;
   }
+
   /* Bounce 1: Apex */
   12% {
     transform: translateY(-44px) rotateX(54deg) rotateY(-12deg) scale(0.50, 0.50);
     animation-timing-function: ease-in;
   }
+
   /* Bounce 2: Contact */
   18% {
     transform: translateY(4px) rotateX(12deg) rotateY(0deg) scale(0.70, 0.50);
     animation-timing-function: ease-out;
   }
+
   /* Bounce 2: Apex */
   24% {
     transform: translateY(-30px) rotateX(38deg) rotateY(8deg) scale(0.70, 0.70);
     animation-timing-function: ease-in;
   }
+
   /* Bounce 3: Contact */
   30% {
     transform: translateY(4px) rotateX(8deg) rotateY(0deg) scale(0.88, 0.74);
     animation-timing-function: ease-out;
   }
+
   /* Bounce 3: Apex */
   36% {
     transform: translateY(-16px) rotateX(22deg) rotateY(-4deg) scale(0.88, 0.88);
     animation-timing-function: ease-in;
   }
+
   /* Bounce 4: Contact */
   42% {
     transform: translateY(4px) rotateX(4deg) rotateY(0deg) scale(0.96, 0.90);
     animation-timing-function: ease-out;
   }
+
   /* Settle into 3D Face-Forward Coin */
   46% {
     transform: translateY(0) rotateX(0deg) rotateY(0deg) scale(1.04, 1.04);
     opacity: 1;
   }
-  48%, 78% {
+
+  48%,
+  78% {
     transform: translateY(0) rotateX(0deg) rotateY(0deg) scale(1, 1);
     opacity: 1;
     animation-timing-function: ease-in-out;
   }
-  90%, 100% {
+
+  90%,
+  100% {
     transform: translateY(0) rotateX(20deg) scale(0.9, 0.9);
     opacity: 0;
   }
@@ -4197,18 +4336,25 @@ h1.hero-h .grn {
 }
 
 @keyframes auto-wing-l-3d-anim {
-  0%, 40% {
+
+  0%,
+  40% {
     transform: translate3d(-18px, 0, 30px) rotateY(-35deg) scale(0.4);
     opacity: 0;
   }
+
   46% {
     opacity: 0.9;
   }
-  48%, 78% {
+
+  48%,
+  78% {
     transform: translate3d(0, 0, 8px) rotateY(0deg) scale(1);
     opacity: 1;
   }
-  92%, 100% {
+
+  92%,
+  100% {
     transform: translate3d(-6px, 0, 0) scale(0.9);
     opacity: 0;
   }
@@ -4220,18 +4366,25 @@ h1.hero-h .grn {
 }
 
 @keyframes auto-wing-r-3d-anim {
-  0%, 40% {
+
+  0%,
+  40% {
     transform: translate3d(18px, 0, 30px) rotateY(35deg) scale(0.4);
     opacity: 0;
   }
+
   46% {
     opacity: 0.9;
   }
-  48%, 78% {
+
+  48%,
+  78% {
     transform: translate3d(0, 0, 8px) rotateY(0deg) scale(1);
     opacity: 1;
   }
-  92%, 100% {
+
+  92%,
+  100% {
     transform: translate3d(6px, 0, 0) scale(0.9);
     opacity: 0;
   }
@@ -4244,18 +4397,25 @@ h1.hero-h .grn {
 }
 
 @keyframes auto-core-3d-anim {
-  0%, 40% {
+
+  0%,
+  40% {
     transform: translate3d(0, 0, 50px) scale(0.5);
     opacity: 0;
   }
+
   46% {
     opacity: 0.95;
   }
-  48%, 78% {
+
+  48%,
+  78% {
     transform: translate3d(0, 0, 12px) scale(1);
     opacity: 1;
   }
-  92%, 100% {
+
+  92%,
+  100% {
     transform: translate3d(0, 0, 0) scale(0.85);
     opacity: 0;
   }
@@ -4267,19 +4427,26 @@ h1.hero-h .grn {
 }
 
 @keyframes auto-crown-3d-anim {
-  0%, 40% {
+
+  0%,
+  40% {
     transform: translate3d(0, -12px, 60px) scale(0.3);
     opacity: 0;
   }
+
   46% {
     opacity: 0.95;
   }
-  48%, 78% {
+
+  48%,
+  78% {
     transform: translate3d(0, 0, 16px) scale(1.15);
     filter: drop-shadow(0 0 6px #FFF8D6);
     opacity: 1;
   }
-  92%, 100% {
+
+  92%,
+  100% {
     transform: translate3d(0, -4px, 0) scale(1.3);
     opacity: 0;
   }
@@ -4295,6 +4462,7 @@ h1.hero-h .grn {
     gap: 36px;
     text-align: center;
   }
+
   .statement-copy-col {
     align-items: center;
     text-align: center;
@@ -4310,9 +4478,11 @@ h1.hero-h .grn {
     gap: 30px;
     text-align: center;
   }
+
   .statement-h2 {
     justify-content: center;
   }
+
   .sh-line {
     justify-content: center;
   }
@@ -10153,101 +10323,347 @@ h1.hero-h .grn {
   width: 100%
 }
 
-/* 3D-tilting phone wrap — CSS custom props set by JS mousemove */
 .mpesa-visual {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
   perspective: 1200px;
-  cursor: none
+  cursor: default !important;
 }
 
 .mpesa-phone-3d {
+  position: relative;
+  width: 292px;
   transform-style: preserve-3d;
-  transform: perspective(1200px) rotateY(calc(var(--mx, 0)*14deg)) rotateX(calc(var(--my, 0)*-9deg));
-  transition: transform .12s ease;
-  will-change: transform
+  transform: perspective(1200px) rotateY(calc(var(--mx, 0)*10deg)) rotateX(calc(var(--my, 0)*-7deg));
+  transition: transform .18s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+  filter: drop-shadow(0 20px 48px rgba(7, 25, 17, 0.16));
 }
 
-/* Custom cursor for M-Pesa section */
-.mpesa-cursor {
-  position: fixed;
+/* Hardware Side Buttons */
+.phone-btn {
+  position: absolute;
+  background: #24322B;
+  border-radius: 2px;
+  z-index: 0;
+}
+
+.phone-btn-action {
+  left: -4px;
+  top: 86px;
+  width: 4px;
+  height: 22px;
+}
+
+.phone-btn-vol-up {
+  left: -4px;
+  top: 120px;
+  width: 4px;
+  height: 38px;
+}
+
+.phone-btn-vol-down {
+  left: -4px;
+  top: 168px;
+  width: 4px;
+  height: 38px;
+}
+
+.phone-btn-power {
+  right: -4px;
+  top: 130px;
+  width: 4px;
+  height: 52px;
+}
+
+/* Realistic Titanium Phone Chassis */
+.phone-chassis {
+  position: relative;
+  z-index: 1;
+  background: #0E1612;
+  border-radius: 46px;
+  padding: 10px;
+  border: 3px solid #28362F;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 20px 45px -10px rgba(0, 0, 0, 0.28);
+}
+
+/* Phone Screen Display */
+.phone-display {
+  background: #FFFFFF;
+  border-radius: 38px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+/* Glass Sheen Overlay */
+.phone-display::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 160px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 60%);
   pointer-events: none;
-  z-index: 9999;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid var(--lime);
-  transform: translate(-50%, -50%);
-  transition: opacity .2s;
-  mix-blend-mode: screen;
-  display: none
+  z-index: 10;
 }
 
-.mpesa-visual:hover .mpesa-cursor {
-  display: block
-}
-
-/* Animated connection line between phone and flow target */
-.mpesa-flow-svg {
-  width: 100%;
-  height: 60px;
-  overflow: visible
-}
-
-.mpesa-flow-path {
-  fill: none;
-  stroke: rgba(17, 166, 91, .4);
-  stroke-width: 2;
-  stroke-dasharray: 8 6;
-  animation: flow-dash 1.2s linear infinite
-}
-
-.mpesa-flow-path.fast {
-  animation-duration: .5s;
-  stroke: rgba(124, 199, 242, .7)
-}
-
-@keyframes flow-dash {
-  to {
-    stroke-dashoffset: -28
-  }
-}
-
-/* Flow destination: mini wallet card below phone */
-.mpesa-wallet-card {
-  background: rgba(17, 166, 91, .08);
-  border: 1px solid rgba(17, 166, 91, .25);
-  border-radius: 16px;
-  padding: 14px 20px;
+/* Status Bar & Dynamic Island */
+.phone-status-bar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  transition: border-color .3s, background .3s
+  justify-content: space-between;
+  padding: 12px 18px 6px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: #071911;
+  position: relative;
+  z-index: 12;
 }
 
-.mpesa-wallet-card:hover {
-  border-color: rgba(17, 166, 91, .5);
-  background: rgba(17, 166, 91, .14)
+.phone-time {
+  letter-spacing: -0.02em;
+  font-weight: 700;
 }
 
-.mpesa-wallet-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: rgba(17, 166, 91, .2);
-  display: grid;
-  place-items: center;
-  font-size: 20px;
-  color: var(--lime);
-  flex: none
+.phone-dynamic-island {
+  position: absolute;
+  left: 50%;
+  top: 9px;
+  transform: translateX(-50%);
+  width: 82px;
+  height: 22px;
+  background: #000000;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
 }
 
-.mpesa-wallet-text {
+.phone-speaker-slit {
+  width: 32px;
+  height: 3px;
+  background: #1C1C1E;
+  border-radius: 2px;
+}
+
+.phone-camera-lens {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #2C3E50 0%, #0A0E12 80%);
+  box-shadow: inset 0 0 2px rgba(94, 225, 255, 0.4);
+}
+
+.phone-status-icons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.phone-signal-bars {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  background: currentColor;
+  clip-path: polygon(0 80%, 25% 80%, 25% 60%, 50% 60%, 50% 40%, 75% 40%, 75% 10%, 100% 10%, 100% 100%, 0 100%);
+}
+
+.phone-wifi-icon {
+  display: inline-block;
+  width: 13px;
+  height: 10px;
+  border-top: 2px solid currentColor;
+  border-radius: 50% 50% 0 0;
+  position: relative;
+}
+
+.phone-battery-icon {
+  display: inline-block;
+  width: 20px;
+  height: 10px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  position: relative;
+  padding: 1px;
+}
+
+.phone-battery-icon::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #0B6B3D;
+  border-radius: 1px;
+}
+
+.phone-battery-icon::after {
+  content: "";
+  position: absolute;
+  right: -3px;
+  top: 2.5px;
+  width: 2px;
+  height: 3px;
+  background: currentColor;
+  border-radius: 0 1px 1px 0;
+}
+
+/* App Area */
+.phone-app-content {
+  padding: 14px 16px 18px;
+  position: relative;
+  min-height: 380px;
+  z-index: 5;
+}
+
+/* Dual State Switching inside Smartphone Screen */
+.phone-state-card {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.phone-state-card.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.mp-app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(7, 25, 17, 0.08);
+  padding-bottom: 10px;
+}
+
+.mp-app-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  color: #071911;
+}
+
+.mp-app-badge {
   font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: #0B6B3D;
+  background: rgba(11, 107, 61, 0.1);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.mp-app-badge.gold {
+  color: #8C6200;
+  background: rgba(212, 160, 24, 0.14);
+}
+
+/* STK Payment Card */
+.mp-card {
+  background: #F8FAF8;
+  border: 1px solid rgba(7, 25, 17, 0.1);
+  border-radius: 18px;
+  padding: 16px;
+  transition: opacity 0.25s ease;
+}
+
+.mp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 7px 0;
+  color: rgba(7, 25, 17, 0.7);
+}
+
+.mp-row b {
+  font-family: var(--font-mono);
+  color: #071911;
+  font-size: 14px;
+}
+
+.mp-row b.mp-sats-val {
+  color: #8C6200;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.mp-btn {
+  background: #0B6B3D;
+  color: #FFFFFF;
+  text-align: center;
+  border-radius: 12px;
+  padding: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  margin-top: 12px;
+  box-shadow: 0 4px 12px rgba(11, 107, 61, 0.25);
+}
+
+.mp-btn.gold {
+  background: #D4A018;
+  color: #071911;
+  box-shadow: 0 4px 12px rgba(212, 160, 24, 0.3);
+}
+
+/* Confirmation Toast */
+.mp-ok {
+  background: #F5FAF6;
+  border: 1px solid rgba(11, 107, 61, 0.2);
+  border-radius: 16px;
+  padding: 14px 16px;
+  transition: opacity 0.25s ease;
+}
+
+.mp-ok .t {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  color: #0B6B3D;
+}
+
+.mp-ok .s {
   font-size: 12px;
-  color: rgba(255, 255, 255, .5)
+  color: rgba(7, 25, 17, 0.7);
+  margin-top: 2px;
+}
+
+.mp-ok.gold {
+  background: #FFFDF5;
+  border-color: rgba(212, 160, 24, 0.28);
+}
+
+.mp-ok.gold .t {
+  color: #8C6200;
+}
+
+/* Home Bar */
+.phone-home-indicator {
+  width: 100px;
+  height: 4px;
+  background: #071911;
+  border-radius: 4px;
+  margin: 10px auto 8px;
+  opacity: 0.25;
 }
 
 .mpesa-wallet-val {
@@ -10755,11 +11171,10 @@ h1.hero-h .grn {
 
 /* ── section-pair: sticky shared visual ────────────────────────────────────
    Shell handles overflow:hidden + ambient glows.
-   Inner grid has NO overflow so position:sticky reaches the viewport. ── */
+/* ── Sticky Pair Layout (Savings + Mpesa & Chama + Agent) ── */
 .section-pair-shell {
   position: relative;
-  clip-path: inset(0);
-  color: #fff
+  color: #fff;
 }
 
 .section-pair-shell::before,
@@ -10812,23 +11227,27 @@ h1.hero-h .grn {
   display: none;
 }
 
-/* Inner grid — JS scroll handler drives the visual's translateY (CSS sticky has a mid-container bug) */
+/* Inner grid — Sticky left visual with scrolling right panels */
 .section-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: start;
-  position: relative
+  align-items: stretch;
+  position: relative;
 }
 
 .section-pair-visual {
-  position: relative;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  height: 100vh;
   height: 100dvh;
+  align-self: start;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 24px 0 48px;
-  z-index: 1;
-  will-change: transform
+  z-index: 10;
+  cursor: default !important;
 }
 
 .section-pair-panels {
@@ -10869,6 +11288,7 @@ h1.hero-h .grn {
 
   .section-pair-visual {
     position: relative;
+    top: auto;
     height: auto;
     padding: 56px 24px 24px;
     min-height: 340px
@@ -10922,7 +11342,7 @@ h1.hero-h .grn {
 
 /* Phone palette — JS sets inline opacity and filter each rAF frame */
 .section-pair .mpesa-phone-3d {
-  filter: drop-shadow(0 0 60px rgba(94, 225, 255, .50)) drop-shadow(0 0 120px rgba(94, 225, 255, .20))
+  filter: drop-shadow(0 25px 50px rgba(7, 25, 17, 0.16));
 }
 
 .section-pair .mp-card {
@@ -11403,16 +11823,15 @@ h1.hero-h .grn {
 /* ── Hero section in Light Mode with Full-Cover Story Background Image ─────────────────────────────────────── */
 [data-theme="light"] .landing-above-fold {
   position: relative;
-  background: 
+  background:
     /* 1. Precision Liquidity Matrix Grid */
     radial-gradient(rgba(198, 146, 20, 0.12) 1.2px, transparent 1.2px) 0 0 / 32px 32px,
     /* 2. Soft Ambient Luminous Overlay for Perfect Contrast & Typography Legibility */
-    linear-gradient(180deg, 
-      rgba(255, 255, 255, 0.88) 0%, 
-      rgba(250, 252, 250, 0.82) 40%, 
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0.88) 0%,
+      rgba(250, 252, 250, 0.82) 40%,
       rgba(244, 248, 245, 0.94) 85%,
-      #FFFFFF 100%
-    ),
+      #FFFFFF 100%),
     /* 3. Full-Cover Minimalist Background Image */
     url('/images/hero-story-bg.jpg') center center / cover no-repeat;
   background-attachment: scroll;
@@ -11451,15 +11870,31 @@ h1.hero-h .grn {
 }
 
 @keyframes sim-orb-drift {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(-40px, 30px, 0) scale(1.08); }
-  100% { transform: translate3d(30px, -20px, 0) scale(0.95); }
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(-40px, 30px, 0) scale(1.08);
+  }
+
+  100% {
+    transform: translate3d(30px, -20px, 0) scale(0.95);
+  }
 }
 
 @keyframes sim-orb-drift-r {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(35px, -25px, 0) scale(1.06); }
-  100% { transform: translate3d(-25px, 35px, 0) scale(0.96); }
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(35px, -25px, 0) scale(1.06);
+  }
+
+  100% {
+    transform: translate3d(-25px, 35px, 0) scale(0.96);
+  }
 }
 
 
