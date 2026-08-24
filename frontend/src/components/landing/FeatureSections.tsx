@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import { KENYA_COUNTIES, KENYA_CITIES } from "@/lib/kenya-counties";
 
 import QuickProductModal, { type ProductType } from "./QuickProductModal";
+import StatementBridge from "./StatementBridge";
 
 export default function FeatureSections() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -39,30 +40,6 @@ export default function FeatureSections() {
   );
 }
 
-
-/* ══════════════════════════════════════════════════════════════════════════
-   STATEMENT BRIDGE — full-width animated text between Inflation and Savings.
-   No image; the typography IS the content. Alethia-style breathing space.
-   ══════════════════════════════════════════════════════════════════════════ */
-
-function StatementBridge() {
-  return (
-    <div className="statement-sec">
-      <div className="wrap" style={{ position: "relative", zIndex: 1 }}>
-        <div className="sw-stack">
-          <div className="sw-row">
-            <span className="sw-word reveal" style={{ transitionDelay: "0s" }}>Save in</span>
-            <span className="sw-word sw-electric reveal" style={{ transitionDelay: "0.1s" }}>sats.</span>
-          </div>
-          <div className="sw-row">
-            <span className="sw-word reveal" style={{ transitionDelay: "0.22s" }}>Spend in</span>
-            <span className="sw-word sw-gold reveal" style={{ transitionDelay: "0.32s" }}>shillings.</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ══════════════════════════════════════════════════════════════════════════
    INFLATION — The Problem (unchanged — reference design)
