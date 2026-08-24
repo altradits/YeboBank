@@ -11559,48 +11559,67 @@ h1.hero-h .grn {
   color: rgba(6, 18, 16, .25)
 }
 
+[data-theme="light"] #inflation {
+  background: #F8FAF8;
+}
+
+[data-theme="light"] .io-yr-tab {
+  background: #FFFFFF;
+  border: 1px solid rgba(7, 25, 17, 0.10);
+  color: #3D5A4A;
+  font-weight: 700;
+}
+
 [data-theme="light"] .io-yr-tab.active {
-  color: var(--gold-text)
+  background: #071911;
+  color: #F3D268;
+  border-color: #071911;
 }
 
 [data-theme="light"] .io-yr-tab:hover:not(.active) {
-  color: var(--forest-mid)
+  color: #071911;
+  background: #EFF5F1;
 }
 
 [data-theme="light"] .infl-side .lead {
-  color: var(--muted)
+  color: rgba(7, 25, 17, 0.78);
 }
 
 [data-theme="light"] .io-center-body {
-  background: linear-gradient(165deg, #fff, #f5faf7);
-  border-color: rgba(10, 48, 32, .15);
-  box-shadow: 0 0 60px rgba(168, 116, 0, .12), 0 0 0 1px rgba(168, 116, 0, .06), 0 24px 60px rgba(6, 18, 16, .1);
+  background: #FFFFFF;
+  border: 1.5px solid rgba(7, 25, 17, 0.12);
+  box-shadow: 0 24px 64px -12px rgba(7, 25, 17, 0.14), 0 0 0 1px rgba(198, 146, 20, 0.30);
 }
 
 [data-theme="light"] .io-c-year {
-  color: var(--text);
-  text-shadow: none
+  color: #071911;
+  text-shadow: none;
+  font-weight: 800;
 }
 
 [data-theme="light"] .io-c-hr {
-  background: linear-gradient(90deg, transparent, var(--border), transparent)
+  background: rgba(7, 25, 17, 0.10);
 }
 
 [data-theme="light"] .io-c-row {
-  border-color: var(--border-soft)
+  border-color: rgba(7, 25, 17, 0.08);
 }
 
 [data-theme="light"] .io-c-rate {
-  color: var(--soft)
+  color: #8C6200;
+  font-weight: 700;
 }
 
 [data-theme="light"] .io-c-kes {
-  color: rgba(160, 50, 34, .7)
+  color: #8C4040;
+  font-weight: 700;
 }
 
 [data-theme="light"] .io-c-sat {
-  color: rgba(140, 90, 10, .7)
+  color: #0B6B3D;
+  font-weight: 800;
 }
+
 
 /* ── Savings section (earnings card) ─────────────────────────────────── */
 [data-theme="light"] .save-card {

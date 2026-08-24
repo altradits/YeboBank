@@ -266,14 +266,13 @@ function Inflation({ onQuickAction }: { onQuickAction?: () => void }) {
 
           <div className="infl-side reveal d2">
             <div>
-              <h2 className="h2">
-                KES loses buying power.<br />
-                <span className="gold">Sats hold it.</span>
+              <h2 className="h2" style={{ color: "#071911" }}>
+                Preserve.<br />
+                <span style={{ color: "#8C6200" }}>Sats protect your money.</span>
               </h2>
-              <p className="lead">
-                KES 100 saved in sats in 2015 is worth{" "}
-                <strong className="gold">KES 26,645</strong> today —{" "}
-                <strong className="gold">1,332 cups</strong> instead of 5.
+              <p className="lead" style={{ color: "rgba(7, 25, 17, 0.78)" }}>
+                Shillings lose buying power every year. KES 100 saved in Sats in 2015 buys{" "}
+                <strong style={{ color: "#8C6200" }}>1,332 cups of chai</strong> today instead of just 5.
               </p>
             </div>
 
