@@ -11215,7 +11215,7 @@ h1.hero-h .grn {
   background: radial-gradient(circle, rgba(224, 168, 0, .18), transparent 66%)
 }
 
-/* Deposit pair (Savings + M-Pesa) — Clean 2-Color Solid Surface */
+/* Deposit pair (Savings + M-Pesa) — Clean Solid Surface */
 .section-pair-shell--deposit {
   background: #FFFFFF;
   border-top: 1px solid rgba(7, 25, 17, 0.06);
@@ -11225,6 +11225,61 @@ h1.hero-h .grn {
 .section-pair-shell--deposit::before,
 .section-pair-shell--deposit::after {
   display: none;
+}
+
+/* High Contrast Typography for Deposit Section Pair */
+.section-pair-shell--deposit .h2 {
+  color: #071911 !important;
+}
+
+.section-pair-shell--deposit .lead {
+  color: rgba(7, 25, 17, 0.82) !important;
+}
+
+.section-pair-shell--deposit .gold-accent {
+  color: #8C6200 !important;
+  font-weight: 700;
+}
+
+.section-pair-shell--deposit .green-accent {
+  color: #0B6B3D !important;
+  font-weight: 700;
+}
+
+/* High Contrast Typography for Community Section Pair */
+.section-pair-shell--community .h2 {
+  color: #F0F4F1 !important;
+}
+
+.section-pair-shell--community .lead {
+  color: rgba(240, 244, 241, 0.84) !important;
+}
+
+.section-pair-shell--community .gold-accent {
+  color: #E6B34A !important;
+  font-weight: 700;
+}
+
+.section-pair-shell--community .green-accent {
+  color: #3CD07A !important;
+  font-weight: 700;
+}
+
+/* Light Theme Overrides for Community Section Pair */
+[data-theme="light"] .section-pair-shell--community .h2 {
+  color: #071911 !important;
+}
+
+[data-theme="light"] .section-pair-shell--community .lead {
+  color: rgba(7, 25, 17, 0.82) !important;
+}
+
+[data-theme="light"] .section-pair-shell--community .gold-accent {
+  color: #8C6200 !important;
+}
+
+[data-theme="light"] .section-pair-shell--community .green-accent {
+  color: #0B6B3D !important;
 }
 
 /* Inner grid — Sticky left visual with scrolling right panels */

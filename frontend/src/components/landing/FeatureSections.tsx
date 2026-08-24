@@ -472,11 +472,11 @@ function SavingsMpesaPair({
           {/* Panel 1: Savings / Yield */}
           <div className="section-pair-panel" id="save" ref={saveRef} data-panel="save">
             <div className="savings-copy reveal">
-              <h2 className="h2" style={{ color: "#071911" }}>
+              <h2 className="h2">
                 Earn.<br />
-                <span style={{ color: "#8C6200" }}>Idle money loses value.</span>
+                <span className="gold-accent">Idle money loses value.</span>
               </h2>
-              <p className="lead" style={{ color: "rgba(7, 25, 17, 0.78)" }}>
+              <p className="lead">
                 Put your savings to work with 5.2% real yield paid out every month directly into your wallet.
               </p>
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 24 }}>
@@ -493,11 +493,11 @@ function SavingsMpesaPair({
           {/* Panel 2: M-Pesa Deposit */}
           <div className="section-pair-panel" id="mpesa" ref={mpesaRef} data-panel="mpesa">
             <div className="reveal d1">
-              <h2 className="h2" style={{ color: "#071911" }}>
+              <h2 className="h2">
                 Deposit.<br />
-                <span style={{ color: "#0B6B3D" }}>No brokers or exchanges.</span>
+                <span className="green-accent">No brokers or exchanges.</span>
               </h2>
-              <p className="lead" style={{ color: "rgba(7, 25, 17, 0.78)" }}>
+              <p className="lead">
                 Top up Sats from M-Pesa with your PIN in seconds.
               </p>
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 24 }}>
@@ -588,18 +588,18 @@ function CommunityPair({
       const agentsCenter = aRect.top + aRect.height / 2;
       const range = agentsCenter - chamaCenter;
       const p = range > 0 ? Math.max(0, Math.min(1, (vh2 - chamaCenter) / range)) : 0;
-      // Theme-aware colour interpolation — dark: gold→teal, light: amber→forest
+      // Theme-aware colour interpolation — dark: gold→emerald, light: amber→forest
       const light = document.documentElement.dataset.theme === "light";
-      const [cFR, cFG, cFB, cFA] = light ? [168, 116, 0, 0.07] : [224, 168, 0, 0.10]; // chama fill
-      const [aFR, aFG, aFB, aFA] = light ? [10, 152, 80, 0.05] : [47, 224, 186, 0.07]; // agents fill
-      const [cSR, cSG, cSB, cSA] = light ? [168, 116, 0, 0.38] : [224, 168, 0, 0.40]; // chama stroke
-      const [aSR, aSG, aSB, aSA] = light ? [10, 152, 80, 0.42] : [112, 255, 69, 0.48]; // agents stroke
-      const [cHR, cHG, cHB, cHA] = light ? [168, 116, 0, 0.20] : [224, 168, 0, 0.26]; // chama hover
-      const [aHR, aHG, aHB, aHA] = light ? [10, 152, 80, 0.18] : [150, 194, 68, 0.22]; // agents hover
-      const [cRR, cRG, cRB, cRA] = light ? [168, 116, 0, 0.52] : [224, 168, 0, 0.55]; // chama ring
-      const [aRR, aRG, aRB, aRA] = light ? [10, 152, 80, 0.60] : [47, 224, 186, 0.72]; // agents ring
-      const [cCR, cCG, cCB, cCA] = light ? [168, 116, 0, 0.72] : [224, 168, 0, 0.75]; // chama cap ring
-      const [aCR, aCG, aCB, aCA] = light ? [168, 116, 0, 0.65] : [196, 144, 32, 0.65]; // agents cap ring
+      const [cFR, cFG, cFB, cFA] = light ? [168, 116, 0, 0.07] : [212, 160, 24, 0.08]; // chama fill
+      const [aFR, aFG, aFB, aFA] = light ? [10, 152, 80, 0.05] : [60, 208, 122, 0.08]; // agents fill
+      const [cSR, cSG, cSB, cSA] = light ? [168, 116, 0, 0.38] : [212, 160, 24, 0.45]; // chama stroke
+      const [aSR, aSG, aSB, aSA] = light ? [10, 152, 80, 0.42] : [60, 208, 122, 0.45]; // agents stroke
+      const [cHR, cHG, cHB, cHA] = light ? [168, 116, 0, 0.20] : [212, 160, 24, 0.25]; // chama hover
+      const [aHR, aHG, aHB, aHA] = light ? [10, 152, 80, 0.18] : [60, 208, 122, 0.25]; // agents hover
+      const [cRR, cRG, cRB, cRA] = light ? [168, 116, 0, 0.52] : [212, 160, 24, 0.55]; // chama ring
+      const [aRR, aRG, aRB, aRA] = light ? [10, 152, 80, 0.60] : [60, 208, 122, 0.60]; // agents ring
+      const [cCR, cCG, cCB, cCA] = light ? [168, 116, 0, 0.72] : [212, 160, 24, 0.75]; // chama cap ring
+      const [aCR, aCG, aCB, aCA] = light ? [168, 116, 0, 0.65] : [60, 208, 122, 0.65]; // agents cap ring
       const rc = (a: number, b: number) => Math.round(lp(a, b, p));
       pair.style.setProperty("--county-fill", `rgba(${rc(cFR, aFR)},${rc(cFG, aFG)},${rc(cFB, aFB)},${lp(cFA, aFA, p).toFixed(3)})`);
       pair.style.setProperty("--county-stroke", `rgba(${rc(cSR, aSR)},${rc(cSG, aSG)},${rc(cSB, aSB)},${lp(cSA, aSA, p).toFixed(3)})`);
@@ -708,29 +708,14 @@ function CommunityPair({
           {/* Panel 1: Chama */}
           <div className="section-pair-panel" id="chama" ref={chamaRef} data-panel="chama">
             <div className="reveal d1">
-              <h2 className="h2">Save together.<br /><span className="grow">See everything.</span></h2>
+              <h2 className="h2">
+                Pool.<br />
+                <span className="gold-accent">Savings that cannot be raided.</span>
+              </h2>
               <p className="lead">
-                The savings tradition you already trust — now it can&apos;t be raided
-                and it doesn&apos;t lose value to inflation.
+                Every transaction is visible to all members and payouts only release when the group votes.
               </p>
-              <div className="feat-grid">
-                <div className="feat-card">
-                  <i className="ti ti-eye" />
-                  <div className="fc-title">Open books</div>
-                  <div className="fc-desc">Every shilling in and out visible to every member.</div>
-                </div>
-                <div className="feat-card">
-                  <i className="ti ti-checkbox" />
-                  <div className="fc-title">Group vote</div>
-                  <div className="fc-desc">Payouts only move when members vote to release them.</div>
-                </div>
-                <div className="feat-card">
-                  <i className="ti ti-trending-up" />
-                  <div className="fc-title">Holds value</div>
-                  <div className="fc-desc">Sats, not KES — the pool grows instead of shrinking.</div>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 24 }}>
                 <Button variant="gold" onClick={onChamaAction}>
                   Join
                 </Button>
@@ -744,21 +729,14 @@ function CommunityPair({
           {/* Panel 2: Agents */}
           <div className="section-pair-panel" id="agents" ref={agentsRef} data-panel="agents">
             <div className="reveal d1">
-              <h2 className="h2">Cash in and out, <span className="accent">down the street.</span></h2>
+              <h2 className="h2">
+                Cash.<br />
+                <span className="green-accent">No smartphone or internet needed.</span>
+              </h2>
               <p className="lead">
-                No smartphone, no bundles needed. Walk to a neighbourhood agent
-                and turn cash into savings — and savings back into cash.
+                Turn physical cash into savings and back with neighbourhood agents across 47 counties.
               </p>
-              <div className="agent-stat">
-                <span className="as-big">47</span>
-                <span className="as-unit">counties covered</span>
-                <div className="agent-pills">
-                  <span className="agent-pill"><i className="ti ti-walk" />Always nearby</span>
-                  <span className="agent-pill"><i className="ti ti-wifi-off" />No internet needed</span>
-                  <span className="agent-pill"><i className="ti ti-heart-handshake" />Community-run</span>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 24 }}>
                 <Button variant="lime" onClick={onAgentAction}>
                   Locate
                 </Button>
@@ -766,8 +744,6 @@ function CommunityPair({
                   Manage
                 </Button>
               </div>
-
-
             </div>
           </div>
 
