@@ -36,13 +36,13 @@ export default function Converter() {
   return (
     <section className="sec" id="convert">
       <div className="wrap conv-wrap">
-        <div className="reveal">
-          <div className="hero-corridor-tag" style={{ display: "inline-block", marginBottom: 12 }}>
-            Free Live Rate Engine · Zero Transactional Cost
-          </div>
-          <h2 className="h2">See what your money <span className="grow">actually buys.</span></h2>
-          <p className="lead">
-            Compare live purchasing power across Kenya, Ethiopia, and Somalia in real time before initiating a transfer. See exactly how much you protect compared to informal border forex brokers who charge predatory 1:1 or 20% markups.
+        <div className="reveal" style={{ textAlign: "center" }}>
+          <h2 className="h2">
+            Convert.<br />
+            <span className="gold-accent">Zero spread. Zero broker markups.</span>
+          </h2>
+          <p className="lead" style={{ margin: "16px auto 0", maxWidth: 640 }}>
+            Live fair-market purchasing power across East African corridors — see exactly what arrives before you send.
           </p>
         </div>
 

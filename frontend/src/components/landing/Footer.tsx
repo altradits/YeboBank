@@ -36,18 +36,16 @@ export function ClosingCTA() {
           <LogoMark size={68} animated />
         </div>
 
-        <h2 className="reveal d1">
-          Your money should work as hard<br />as <span className="gold">you do.</span>
+        <h2 className="h2 reveal d1">
+          Start.<br />
+          <span className="gold-accent">Your money should work as hard as you do.</span>
         </h2>
 
-
-        <p className="cta-lead reveal d2">
-          Inflation has quietly taxed Kenyan savings at 6–9% a year for decades.
-          We built YeboBank on Bitcoin and open code — the only two things we trust
-          to stay honest over time.
+        <p className="lead reveal d2" style={{ maxWidth: 640, margin: "16px auto 0" }}>
+          Inflation has quietly taxed African savings for decades. Open a free Bitcoin treasury today in under 30 seconds.
         </p>
 
-        <div className="cta-actions reveal d2" style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+        <div className="cta-actions reveal d2" style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap", marginTop: 28 }}>
           <Button variant="gold" onClick={() => setQuickOpen(true)}>
             Save
           </Button>
@@ -118,7 +116,6 @@ export function SiteFooter() {
               <a href="#chama">Chamas</a>
               <a href="#agents">Agents</a>
               <a href="#lightning">Send</a>
-              <a href="#trust">Trust</a>
               <a href="#convert">Rates</a>
             </div>
             <div className="col">

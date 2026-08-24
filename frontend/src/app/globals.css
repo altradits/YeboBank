@@ -2950,12 +2950,12 @@ h1.hero-h .grn {
    REAL-TIME REGIONAL PURCHASING POWER & BORDER RATE COMPARISON
    ========================================================================= */
 .corridor-power-box {
-
-  background: #F8FAF8;
-  border: 1px solid rgba(7, 25, 17, 0.12);
-  border-radius: 18px;
-  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px 22px;
   text-align: left;
+  box-shadow: var(--shadow-2);
 }
 
 .cpb-header {
@@ -2963,73 +2963,78 @@ h1.hero-h .grn {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(7, 25, 17, 0.08);
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
 }
 
 .cpb-tag {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 13px;
-  color: #071911;
+  font-size: 13.5px;
+  color: var(--fg);
 }
 
 .cpb-vs {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
-  color: #8C6200;
-  background: rgba(198, 146, 20, 0.12);
-  padding: 3px 8px;
+  color: var(--gold-soft);
+  background: rgba(217, 160, 38, 0.12);
+  border: 1px solid rgba(217, 160, 38, 0.25);
+  padding: 3px 10px;
   border-radius: 999px;
 }
 
 .cpb-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 14px;
 }
 
 .cpb-item {
-  background: #FFFFFF;
-  border: 1px solid rgba(7, 25, 17, 0.09);
-  border-radius: 14px;
-  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+}
+
+[data-theme="light"] .cpb-item {
+  background: #FFFFFF;
 }
 
 .cpb-dest {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .cpb-flag {
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
 }
 
 .cpb-dest b {
   font-family: var(--font-display);
-  font-size: 12.5px;
-  color: #071911;
+  font-size: 13px;
+  color: var(--fg);
   display: block;
 }
 
 .cpb-dest small {
-  font-size: 10px;
-  color: #638072;
+  font-size: 11px;
+  color: var(--soft);
   display: block;
 }
 
 .cpb-rates {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .cpb-live-val {
@@ -3041,14 +3046,14 @@ h1.hero-h .grn {
 }
 
 .cpb-live-val span {
-  color: #638072;
-  font-size: 10.5px;
+  color: var(--soft);
+  font-size: 11px;
 }
 
 .cpb-live-val strong {
-  color: #0B6B3D;
+  color: #10B981;
   font-weight: 800;
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 .cpb-broker-val {
@@ -3060,25 +3065,26 @@ h1.hero-h .grn {
 }
 
 .cpb-broker-val span {
-  color: #8C4040;
-  font-size: 10px;
+  color: #EF4444;
+  font-size: 10.5px;
 }
 
 .cpb-broker-val s {
-  color: #8C4040;
+  color: #EF4444;
   font-weight: 600;
 }
 
 .cpb-gain-val {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
-  color: #0B6B3D;
-  background: rgba(11, 107, 61, 0.08);
-  border-radius: 6px;
-  padding: 4px 6px;
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 8px;
+  padding: 5px 8px;
   text-align: center;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 @media (max-width: 640px) {
@@ -11678,165 +11684,6 @@ h1.hero-h .grn {
 }
 
 /* =========================================================================
-   TRUST SECTION — "The Ledger"
-   ========================================================================= */
-#trust {
-  background: linear-gradient(150deg, #030c07 0%, #071a0e 50%, #04070F 100%);
-  min-height: 100dvh;
-  padding: 80px 0
-}
-
-#trust::before {
-  background: radial-gradient(circle, rgba(17, 166, 91, .18), transparent 64%)
-}
-
-#trust::after {
-  background: radial-gradient(circle, rgba(224, 168, 0, .12), transparent 66%)
-}
-
-#convert {
-  min-height: 100dvh;
-  padding: 80px 0
-}
-
-.trust-chain {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin-top: 56px;
-  max-width: 860px;
-  margin-left: auto;
-  margin-right: auto
-}
-
-.ledger-block {
-  background: rgba(255, 255, 255, .03);
-  border: 1px solid rgba(17, 166, 91, .15);
-  border-radius: 0;
-  padding: 24px 28px;
-  display: grid;
-  grid-template-columns: 52px 1fr auto;
-  align-items: center;
-  gap: 20px;
-  transition: background .25s, border-color .25s, transform .25s;
-  position: relative;
-  overflow: hidden;
-  cursor: default
-}
-
-.ledger-block:first-child {
-  border-radius: 20px 20px 0 0
-}
-
-.ledger-block:last-child {
-  border-radius: 0 0 20px 20px
-}
-
-.ledger-block+.ledger-block {
-  border-top: none
-}
-
-.ledger-block::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(to bottom, transparent, rgba(17, 166, 91, .6), transparent);
-  opacity: 0;
-  transition: opacity .3s
-}
-
-.ledger-block:hover::before {
-  opacity: 1
-}
-
-.ledger-block:hover {
-  background: rgba(17, 166, 91, .06);
-  border-color: rgba(17, 166, 91, .35);
-  transform: translateX(4px)
-}
-
-.ledger-block-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 15px;
-  background: rgba(17, 166, 91, .1);
-  border: 1px solid rgba(17, 166, 91, .2);
-  display: grid;
-  place-items: center;
-  font-size: 22px;
-  color: var(--lime);
-  flex: none;
-  transition: all .3s
-}
-
-.ledger-block:hover .ledger-block-icon {
-  background: rgba(17, 166, 91, .18);
-  box-shadow: 0 0 20px rgba(17, 166, 91, .2)
-}
-
-.ledger-block-body h3 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 17px;
-  color: #fff;
-  margin-bottom: 4px
-}
-
-.ledger-block-body p {
-  font-size: 14px;
-  color: rgba(255, 255, 255, .6);
-  line-height: 1.5;
-  margin: 0
-}
-
-.ledger-block-hash {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: rgba(17, 166, 91, .3);
-  letter-spacing: .08em;
-  transition: color .3s;
-  text-align: right
-}
-
-.ledger-block:hover .ledger-block-hash {
-  color: rgba(17, 166, 91, .7)
-}
-
-.ledger-connector {
-  width: 3px;
-  height: 16px;
-  background: linear-gradient(to bottom, rgba(17, 166, 91, .4), rgba(17, 166, 91, .15));
-  margin: 0 auto
-}
-
-/* Trust hover: block "confirming" effect */
-.ledger-confirm {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--lime);
-  letter-spacing: .06em;
-  opacity: 0;
-  transition: opacity .3s;
-  display: flex;
-  align-items: center;
-  gap: 5px
-}
-
-.ledger-block:hover .ledger-confirm {
-  opacity: 1
-}
-
-.ledger-confirm i {
-  font-size: 12px
-}
-
-/* =========================================================================
    CONVERTER SECTION — enhanced hover
    ========================================================================= */
 #convert .ocard {
@@ -11880,10 +11727,6 @@ h1.hero-h .grn {
 
 #lightning .kicker {
   color: var(--gold-soft)
-}
-
-#trust .kicker {
-  color: var(--lime)
 }
 
 /* =========================================================================
@@ -12284,10 +12127,6 @@ h1.hero-h .grn {
 
 [data-theme="light"] #lightning::after {
   background: radial-gradient(circle, rgba(80, 60, 200, .07), transparent 66%)
-}
-
-[data-theme="light"] #trust {
-  background: linear-gradient(150deg, #EEF2F9 0%, #E4EAF5 50%, #EAF0F8 100%)
 }
 
 [data-theme="light"] #convert {
@@ -13019,10 +12858,6 @@ h1.hero-h .grn {
 
 [data-theme="light"] #lightning .kicker {
   color: var(--gold-text)
-}
-
-[data-theme="light"] #trust .kicker {
-  color: var(--emerald-deep)
 }
 
 /* ── Inflation — year tab underline and orbit cup text in light ── */
