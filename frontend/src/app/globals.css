@@ -11409,213 +11409,271 @@ h1.hero-h .grn {
 }
 
 /* =========================================================================
-   LIGHTNING SECTION — "The Spark"
+   LIGHTNING SECTION — Multi-Layered Travertine Parallax Scrolling Section
    ========================================================================= */
-#lightning {
-  background: linear-gradient(150deg, #020208 0%, #08081e 50%, #060418 100%);
-  min-height: 100dvh;
-  padding: 80px 0
-}
-
-#lightning::before {
-  background: radial-gradient(circle, rgba(224, 168, 0, .18), transparent 64%);
-  top: -100px;
-  right: calc(50% - 280px)
-}
-
-#lightning::after {
-  background: radial-gradient(circle, rgba(90, 60, 200, .15), transparent 66%);
-  bottom: -160px;
-  left: -60px
-}
-
-.lightning-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
-  align-items: center;
-  width: 100%
-}
-
-/* Ghost Kenya map that echoes from CommunityPair above */
-.ghost-echo-wrap--kenya {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-left: 2%
-}
-
-.ghost-kenya {
-  width: min(46%, 300px);
-  --ghost-op: .072;
-  filter: saturate(1.4)
-}
-
-/* Ghost bolt that echoes from Lightning above */
-.ghost-echo-wrap--bolt {
-  display: flex;
-  align-items: center;
-  justify-content: center
-}
-
-.ghost-bolt {
-  width: min(28%, 220px);
-  --ghost-op: .055
-}
-
-/* Big bolt visual — clean vertical stack, no absolute positioning */
-.bolt-visual {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
+.travertine-parallax-sec {
+  background: linear-gradient(160deg, #06100B 0%, #0A1712 50%, #050E09 100%);
+  min-height: 120vh;
   position: relative;
-  padding: 32px 24px
-}
-
-.bolt-stats-row {
+  overflow: hidden;
   display: flex;
-  width: 100%;
-  justify-content: space-between;
-  align-items: flex-start
+  align-items: center;
+  padding: 120px 0;
 }
 
-.bolt-svg-wrap {
-  position: relative
+/* Background Layer (Depth: -100px, Speed: 0.2x) */
+.parallax-bg-layer {
+  position: absolute;
+  inset: -20% -10% -20% -10%;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
 }
 
-.bolt-svg {
-  filter: drop-shadow(0 0 24px rgba(224, 168, 0, .65)) drop-shadow(0 0 60px rgba(224, 168, 0, .25));
-  animation: bolt-breathe 2.4s ease-in-out infinite
-}
-
-@keyframes bolt-breathe {
-
-  0%,
-  100% {
-    filter: drop-shadow(0 0 20px rgba(224, 168, 0, .55)) drop-shadow(0 0 50px rgba(224, 168, 0, .2))
-  }
-
-  50% {
-    filter: drop-shadow(0 0 40px rgba(224, 168, 0, .9)) drop-shadow(0 0 90px rgba(224, 168, 0, .4))
-  }
-}
-
-/* Electric arc particles that follow mouse */
-.arc-canvas {
+.travertine-texture-grid {
   position: absolute;
   inset: 0;
-  pointer-events: none
+  background-image:
+    linear-gradient(to right, rgba(217, 160, 38, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(217, 160, 38, 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
 }
 
-/* Speed stats — in flow, no absolute positioning */
-.bolt-stat {
-  font-family: var(--font-mono);
+.travertine-ambient-glow {
+  position: absolute;
+  top: 25%;
+  right: 15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(217, 160, 38, 0.12) 0%, rgba(11, 107, 61, 0.08) 45%, transparent 70%);
+  filter: blur(60px);
+}
+
+.travertine-parallax-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+/* Parallax Grid Stage — Spacious 2-column layout */
+.travertine-stage-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 64px;
+  align-items: center;
+  position: relative;
+}
+
+/* Foreground Layer (Depth: 120px, Speed: 1.4x): Zen Stones Botanical Inset */
+.parallax-fg-layer {
+  z-index: 10;
+  will-change: transform;
+}
+
+.travertine-fg-frame {
+  align-self: center;
+}
+
+.zen-botanical-card {
+  position: relative;
+  border-radius: 36px;
+  overflow: hidden;
+  background: rgba(20, 30, 24, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 32px 80px -16px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(20px);
+}
+
+.zen-image-wrap {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  position: relative;
+}
+
+.zen-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.zen-botanical-card:hover .zen-img {
+  transform: scale(1.04);
+}
+
+/* Midground Layer (Depth: 0px, Speed: 0.8x): Clean, Uncrowded Frosted Marble Card */
+.parallax-mid-layer {
+  z-index: 5;
+  will-change: transform;
+}
+
+.frosted-marble-card {
+  background: rgba(18, 28, 22, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 38px;
+  padding: 48px 44px;
+  backdrop-filter: blur(28px);
+  box-shadow:
+    0 28px 70px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
   display: flex;
   flex-direction: column;
-  gap: 4px
+  gap: 28px;
 }
 
-.bolt-stat-n {
-  font-size: 28px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: -.03em;
-  line-height: 1
-}
-
-.bolt-stat-l {
-  font-size: 9px;
-  color: rgba(255, 255, 255, .35);
-  letter-spacing: .1em;
-  text-transform: uppercase
-}
-
-/* Transmission address — chars appear one by one on hover */
-.transmit-wrap {
+.marble-card-header {
   display: flex;
-  justify-content: center
+  flex-direction: column;
+  gap: 12px;
 }
 
-.transmit-chip {
-  display: inline-flex;
+.travertine-parallax-sec .h2 {
+  color: #F4F1EA !important;
+}
+
+.travertine-parallax-sec .lead {
+  color: rgba(244, 241, 234, 0.82) !important;
+}
+
+.travertine-parallax-sec .gold-accent {
+  color: #D9A026 !important;
+  font-weight: 700;
+}
+
+/* Clean Minimalist Address Plate */
+.travertine-addr-plate {
+  background: rgba(10, 20, 15, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.addr-meta-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #D9A026;
+}
+
+.addr-flex-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.addr-code {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 700;
+  color: #F4F1EA;
+  letter-spacing: -0.01em;
+}
+
+.addr-copy-pill {
+  background: rgba(217, 160, 38, 0.12);
+  border: 1px solid rgba(217, 160, 38, 0.35);
+  color: #D9A026;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addr-copy-pill:hover {
+  background: #D9A026;
+  color: #0E1A14;
+}
+
+.marble-actions-row {
+  display: flex;
   align-items: center;
   gap: 14px;
-  background: rgba(255, 255, 255, .06);
-  border: 1px solid rgba(255, 255, 255, .12);
-  border-radius: 999px;
-  padding: 10px 12px 10px 18px;
-  transition: border-color .3s
+  flex-wrap: wrap;
 }
 
-.transmit-chip:hover {
-  border-color: rgba(224, 168, 0, .45)
+/* Light Theme Overrides (Warm Travertine / Limestone Stone) */
+[data-theme="light"] .travertine-parallax-sec {
+  background: linear-gradient(160deg, #F6F3EC 0%, #EFECE4 50%, #E8E4DA 100%);
 }
 
-.transmit-addr {
-  font-family: var(--font-mono);
-  font-size: 16px;
-  color: #fff;
-  letter-spacing: .01em
+[data-theme="light"] .travertine-texture-grid {
+  background-image:
+    linear-gradient(to right, rgba(14, 26, 20, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14, 26, 20, 0.04) 1px, transparent 1px);
 }
 
-.transmit-char {
-  display: inline-block;
-  opacity: 0;
-  animation: char-appear .05s forwards
+[data-theme="light"] .travertine-ambient-glow {
+  background: radial-gradient(circle, rgba(201, 139, 27, 0.12) 0%, rgba(11, 107, 61, 0.06) 45%, transparent 70%);
 }
 
-@keyframes char-appear {
-  to {
-    opacity: 1
-  }
+[data-theme="light"] .travertine-parallax-sec .h2 {
+  color: #0E1A14 !important;
 }
 
-.transmit-cpy {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: var(--gold);
-  color: #3a2c00;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  border: none;
-  transition: background .2s, transform .2s;
-  font-size: 17px
+[data-theme="light"] .travertine-parallax-sec .lead {
+  color: rgba(14, 26, 20, 0.8) !important;
 }
 
-.transmit-cpy:hover {
-  background: var(--gold-soft);
-  transform: scale(1.1)
+[data-theme="light"] .travertine-parallax-sec .gold-accent {
+  color: #C98B1B !important;
 }
 
-/* Hover: links glide right with gold arrow */
-#lightning .split-li {
-  border-color: rgba(224, 168, 0, .12);
-  transition: background .25s, transform .25s
+[data-theme="light"] .zen-botanical-card {
+  background: #FFFFFF;
+  border-color: rgba(14, 26, 20, 0.08);
+  box-shadow: 0 24px 60px rgba(14, 26, 20, 0.12);
 }
 
-#lightning .split-li:hover {
-  background: rgba(224, 168, 0, .05);
-  transform: translateX(6px);
-  border-radius: 12px;
-  border-color: rgba(224, 168, 0, .28)
+[data-theme="light"] .frosted-marble-card {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(14, 26, 20, 0.09);
+  box-shadow: 0 20px 60px rgba(14, 26, 20, 0.08);
 }
 
-#lightning .split-li i {
-  background: rgba(224, 168, 0, .12);
-  color: var(--gold-soft)
+[data-theme="light"] .travertine-addr-plate {
+  background: #F4F1EA;
+  border-color: rgba(14, 26, 20, 0.08);
 }
 
-@media(max-width:1024px) {
-  .lightning-layout {
+[data-theme="light"] .addr-meta-label {
+  color: #C98B1B;
+}
+
+[data-theme="light"] .addr-code {
+  color: #0E1A14;
+}
+
+[data-theme="light"] .addr-copy-pill {
+  background: rgba(201, 139, 27, 0.1);
+  border-color: rgba(201, 139, 27, 0.3);
+  color: #C98B1B;
+}
+
+[data-theme="light"] .addr-copy-pill:hover {
+  background: #C98B1B;
+  color: #FFFFFF;
+}
+
+@media (max-width: 1024px) {
+  .travertine-stage-grid {
     grid-template-columns: 1fr;
-    gap: 48px
+    gap: 40px;
   }
 
-  .bolt-visual {
-    padding: 24px 16px
+  .travertine-fg-frame {
+    max-width: 320px;
+    margin: 0 auto;
   }
 }
 

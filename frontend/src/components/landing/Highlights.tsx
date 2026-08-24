@@ -12,120 +12,79 @@ import QuickProductModal from "./QuickProductModal";
    LIGHTNING — "The Spark": animated bolt + transmitting address
    ══════════════════════════════════════════════════════════════════════════ */
 
+import Image from "next/image";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
 const ADDR = "wanjiku@yebobank.com";
 
 export function Lightning() {
-  const router        = useRouter();
-  const sectionRef    = useRef<HTMLElement>(null);
-  const canvasRef     = useRef<HTMLCanvasElement>(null);
-  const ghostKenyaRef = useReveal<HTMLDivElement>(0.08);
-  const [copied, setCopied]           = useState(false);
-  const [transmitting, setTransmit]   = useState(false);
-  const [visibleChars, setVisible]    = useState(0);
-  const [quickOpen, setQuickOpen]     = useState(false);
-  const rafRef   = useRef<number>(0);
-  const mouseRef = useRef({ x: 0, y: 0, active: false });
+  const router = useRouter();
+  const sectionRef = useRef<HTMLElement>(null);
+  const [copied, setCopied] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
 
-
-  /* ── Transmit address animation on hover ── */
-  function startTransmit() {
-    if (transmitting) return;
-    setTransmit(true);
-    setVisible(0);
-    let i = 0;
-    const interval = setInterval(() => {
-      i++;
-      setVisible(i);
-      if (i >= ADDR.length) clearInterval(interval);
-    }, 45);
-  }
-
-  /* ── Canvas arc particles ── */
+  /* ── GSAP ScrollTrigger Multi-Layer Parallax ── */
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (typeof window === "undefined") return;
+    gsap.registerPlugin(ScrollTrigger);
 
-    const resize = () => {
-      canvas.width  = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    type Arc = { x1: number; y1: number; x2: number; y2: number; life: number; maxLife: number; color: string };
-    const arcs: Arc[] = [];
-
-    const spawnArc = (mx: number, my: number) => {
-      const angle  = Math.random() * Math.PI * 2;
-      const dist   = 20 + Math.random() * 60;
-      arcs.push({
-        x1: mx, y1: my,
-        x2: mx + Math.cos(angle) * dist,
-        y2: my + Math.sin(angle) * dist,
-        life: 0,
-        maxLife: 10 + Math.random() * 12,
-        color: Math.random() > 0.5 ? "rgba(224,168,0," : "rgba(124,199,242,",
+    const ctx = gsap.context(() => {
+      // 1. Background Layer Parallax (Depth: -100px, Speed: 0.2x)
+      gsap.to(".parallax-bg-layer", {
+        yPercent: -15,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1,
+        },
       });
-    };
 
-    let frame = 0;
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // 2. Midground Layer Parallax (Depth: 0px, Speed: 0.8x)
+      gsap.to(".parallax-mid-layer", {
+        yPercent: -8,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1,
+        },
+      });
 
-      if (mouseRef.current.active && frame % 3 === 0) {
-        spawnArc(mouseRef.current.x, mouseRef.current.y);
-      }
+      // 3. Foreground Botanical Layer Parallax (Depth: 120px, Speed: 1.4x)
+      gsap.to(".parallax-fg-layer", {
+        yPercent: -24,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1,
+        },
+      });
 
-      for (let i = arcs.length - 1; i >= 0; i--) {
-        const a = arcs[i];
-        a.life++;
-        const progress = a.life / a.maxLife;
-        const opacity  = Math.sin(progress * Math.PI) * 0.7;
-        ctx.beginPath();
-        ctx.moveTo(a.x1, a.y1);
-        // Jagged midpoint for electric look
-        const mx = (a.x1 + a.x2) / 2 + (Math.random() - 0.5) * 20;
-        const my = (a.y1 + a.y2) / 2 + (Math.random() - 0.5) * 20;
-        ctx.quadraticCurveTo(mx, my, a.x2, a.y2);
-        ctx.strokeStyle = `${a.color}${opacity.toFixed(2)})`;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        if (a.life >= a.maxLife) arcs.splice(i, 1);
-      }
+      // 4. Subtle Card Entrance
+      gsap.fromTo(
+        ".parallax-main-card",
+        { opacity: 0.9, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: ".parallax-main-card",
+            start: "top 78%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+    }, sectionRef);
 
-      frame++;
-      rafRef.current = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    const sec = sectionRef.current;
-    if (sec) {
-      const onMove = (e: MouseEvent) => {
-        const rect = canvas.getBoundingClientRect();
-        mouseRef.current = {
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top,
-          active: true,
-        };
-      };
-      const onLeave = () => { mouseRef.current.active = false; };
-      sec.addEventListener("mousemove", onMove);
-      sec.addEventListener("mouseleave", onLeave);
-      return () => {
-        window.removeEventListener("resize", resize);
-        cancelAnimationFrame(rafRef.current);
-        sec.removeEventListener("mousemove", onMove);
-        sec.removeEventListener("mouseleave", onLeave);
-      };
-    }
-
-    return () => {
-      window.removeEventListener("resize", resize);
-      cancelAnimationFrame(rafRef.current);
-    };
+    return () => ctx.revert();
   }, []);
 
   function copy() {
@@ -135,115 +94,75 @@ export function Lightning() {
   }
 
   return (
-    <section className="sec" id="lightning" ref={sectionRef} style={{ position: "relative" }}>
-      {/* Ghost Kenya map — echoes CommunityPair's map as this section enters from below */}
-      <div className="ghost-echo-wrap ghost-echo-wrap--kenya" aria-hidden="true">
-        <div className="ghost-kenya ghost-reveal" ref={ghostKenyaRef}>
-          <svg viewBox={KENYA_VIEWBOX} role="presentation" aria-hidden="true">
-            {KENYA_COUNTIES.map((c, i) => (
-              <path
-                key={i}
-                d={c.d}
-                fill="rgba(94,225,255,.06)"
-                stroke="rgba(94,225,255,.28)"
-                strokeWidth=".8"
-              />
-            ))}
-          </svg>
-        </div>
+    <section
+      className="sec travertine-parallax-sec"
+      id="lightning"
+      ref={sectionRef}
+    >
+      {/* Background Layer (Depth: -100px, Speed: 0.2x): Travertine Texture & Ambient Warmth */}
+      <div className="parallax-bg-layer" aria-hidden="true">
+        <div className="travertine-texture-grid" />
+        <div className="travertine-ambient-glow" />
       </div>
 
-      {/* Canvas for mouse arc particles */}
-      <canvas
-        ref={canvasRef}
-        className="arc-canvas"
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1 }}
-        aria-hidden="true"
-      />
-
-      <div className="wrap" style={{ position: "relative", zIndex: 2 }}>
-        <div className="lightning-layout">
-
-          {/* LEFT — animated bolt + stats + address chip */}
-          <div className="bolt-visual reveal">
-            <div className="bolt-svg-wrap">
-              <svg className="bolt-svg" width="120" height="200" viewBox="0 0 120 200" fill="none">
-                <path
-                  d="M72 8L20 108H62L48 192L100 84H58L72 8Z"
-                  fill="url(#bolt-grad)"
-                  stroke="rgba(255,255,255,.2)"
-                  strokeWidth="1"
+      <div className="wrap travertine-parallax-wrap">
+        <div className="travertine-stage-grid">
+          {/* Foreground Inset (Depth: 120px, Speed: 1.4x): Zen Stones & Botanical Branch */}
+          <div className="parallax-fg-layer travertine-fg-frame">
+            <div className="zen-botanical-card">
+              <div className="zen-image-wrap">
+                <Image
+                  src="/images/zen_stones_botanical.jpg"
+                  alt="Stacked zen stones with botanical branch on travertine limestone"
+                  width={340}
+                  height={450}
+                  className="zen-img"
+                  priority={false}
                 />
-                <defs>
-                  <linearGradient id="bolt-grad" x1="60" y1="8" x2="60" y2="192" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#D8B754" />
-                    <stop offset="0.5" style={{ stopColor: "var(--gold)" }} />
-                    <stop offset="1" stopColor="#7A5800" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-            <div className="bolt-stats-row">
-              <div className="bolt-stat">
-                <span className="bolt-stat-n">&lt;1s</span>
-                <span className="bolt-stat-l">settlement</span>
-              </div>
-              <div className="bolt-stat">
-                <span className="bolt-stat-n">0</span>
-                <span className="bolt-stat-l">internal fees</span>
-              </div>
-              <div className="bolt-stat">
-                <span className="bolt-stat-n">∞</span>
-                <span className="bolt-stat-l">destinations</span>
-              </div>
-            </div>
-
-            <div className="transmit-wrap">
-              <div className="transmit-chip" onMouseEnter={startTransmit}>
-                <span className="transmit-addr">
-                  {transmitting ? ADDR.slice(0, visibleChars) : ADDR}
-                </span>
-                <button className="transmit-cpy" onClick={copy} aria-label="Copy Lightning address">
-                  <i className={`ti ${copied ? "ti-check" : "ti-copy"}`} />
-                </button>
               </div>
             </div>
           </div>
 
-          {/* RIGHT — copy */}
-          <div className="reveal d1">
-            <h2 className="h2">Send money anywhere, <span className="accent">in seconds.</span></h2>
-            <p className="lead">
-              Your Lightning address works like an email for money — anyone, anywhere
-              in the world can pay you instantly.
-            </p>
-            <div className="metric-trio">
-              <div className="metric">
-                <div className="m-val">&lt;&nbsp;1s</div>
-                <div className="m-key">confirmation time</div>
+          {/* Midground Layer (Depth: 0px, Speed: 0.8x): Clean, Uncrowded Frosted Marble Panel */}
+          <div className="parallax-mid-layer travertine-mid-frame">
+            <div className="parallax-main-card frosted-marble-card">
+              <div className="marble-card-header">
+                <h2 className="h2">
+                  Send.<br />
+                  <span className="gold-accent">No border delays or fees.</span>
+                </h2>
+                <p className="lead">
+                  Pay anyone worldwide in seconds with an email-like Lightning address.
+                </p>
               </div>
-              <div className="metric">
-                <div className="m-val">Global</div>
-                <div className="m-key">any Lightning wallet</div>
+
+              {/* Clean Minimalist Address Plate */}
+              <div className="travertine-addr-plate">
+                <div className="addr-meta-label">Lightning Address</div>
+                <div className="addr-flex-row">
+                  <span className="addr-code">{ADDR}</span>
+                  <button
+                    type="button"
+                    className="addr-copy-pill"
+                    onClick={copy}
+                    aria-label="Copy Lightning address"
+                  >
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
               </div>
-              <div className="metric">
-                <div className="m-val">Zero</div>
-                <div className="m-key">fees inside YeboBank</div>
+
+              {/* Action Buttons: Golden Amber Send + Ghost Receive */}
+              <div className="marble-actions-row">
+                <Button variant="gold" onClick={() => setQuickOpen(true)}>
+                  Send
+                </Button>
+                <Button variant="ghost" onClick={() => router.push("/login?redirect=/send")}>
+                  Receive
+                </Button>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button variant="gold" onClick={() => setQuickOpen(true)}>
-                Send
-              </Button>
-              <Button variant="ghost" onClick={() => router.push("/login?redirect=/send")}>
-                Receive
-              </Button>
-            </div>
-
-
           </div>
-
         </div>
       </div>
 
