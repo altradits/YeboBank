@@ -67,8 +67,6 @@ export default function Converter() {
           <div className="out">
             <div className="ocard gold"><div className="ok">In sats</div><div className="ov">{num(Math.round(sats))} sats</div></div>
             <div className="ocard grn"><div className="ok">In shillings</div><div className="ov">KES {num(sats * rate.kesPerSat, 2)}</div></div>
-            <div className="ocard"><div className="ok">In Bitcoin</div><div className="ov">{btc.toFixed(8)} BTC</div></div>
-            <div className="ocard"><div className="ok">In US dollars</div><div className="ov">${num(btc * rate.btcUsd, 2)}</div></div>
           </div>
 
           {/* ── Real-Time Pre-Conversion Regional Purchasing Power Comparison ── */}
