@@ -36,13 +36,29 @@ export function ClosingCTA() {
           <LogoMark size={68} animated />
         </div>
 
-        <h2 className="h2 reveal d1">
-          Start.<br />
-          <span className="gold-accent">Your money should work as hard as you do.</span>
-        </h2>
+        <div className="statement-copy-col reveal d1" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <h2 className="statement-h2" style={{ color: "var(--fg)" }}>
+            <div className="sh-line" style={{ justifyContent: "center", paddingBottom: "12px" }}>
+              <span className="sh-highlight gold" style={{ fontSize: "1.1em" }}>Start.</span>
+            </div>
+            <div className="sh-line" style={{ justifyContent: "center", flexWrap: "wrap" }}>
+              <span className="sh-verb" style={{ 
+                color: "var(--fg)", 
+                fontSize: "clamp(26px, 4vw, 52px)", 
+                whiteSpace: "normal", 
+                textAlign: "center", 
+                lineHeight: 1.15,
+                letterSpacing: "-0.02em"
+              }}>
+                Your money should work <span style={{ color: "var(--gold-soft)" }}>as hard as you do.</span>
+              </span>
+            </div>
+          </h2>
+        </div>
 
-        <p className="lead reveal d2" style={{ maxWidth: 640, margin: "16px auto 0" }}>
-          Inflation has quietly taxed African savings for decades. Open a free Bitcoin treasury today in under 30 seconds.
+        <p className="lead reveal d2" style={{ maxWidth: 640, margin: "24px auto 0", lineHeight: 1.6, padding: "0 20px" }}>
+          <span style={{ color: "var(--fg)", fontWeight: 500, fontSize: "1.05em" }}>Inflation has quietly taxed African savings for decades.</span><br/>
+          <span style={{ color: "var(--soft)" }}>Open a free Bitcoin treasury today in under 30 seconds.</span>
         </p>
 
         <div className="cta-actions reveal d2" style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap", marginTop: 28 }}>
