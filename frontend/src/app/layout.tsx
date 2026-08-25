@@ -13,18 +13,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-theme="light">
       <head>
-        {/* Resolve theme before first paint — prevents flash of wrong theme */}
-        <script dangerouslySetInnerHTML={{
-          __html:
-            `(function(){try{var t=localStorage.getItem('yebo-theme');` +
-            `if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}` +
-            `document.documentElement.dataset.theme=t;}catch(e){}})();`
-        }} />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#050D08" />
+        <meta name="theme-color" content="#F8FAF8" />
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css"

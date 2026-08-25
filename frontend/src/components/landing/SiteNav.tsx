@@ -83,7 +83,6 @@ const NAV_PRODUCTS: NavProductItem[] = [
 export default function SiteNav() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
-  const [dark, setDark] = useState(true);
   const [productsOpen, setProductsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [quickModalOpen, setQuickModalOpen] = useState(false);
@@ -91,9 +90,6 @@ export default function SiteNav() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const isLight = document.documentElement.dataset.theme === "light";
-    setDark(!isLight);
-
     function onScroll() {
       setScrolled(window.scrollY > 30);
     }
@@ -112,13 +108,6 @@ export default function SiteNav() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  function toggleTheme() {
-    const next = dark ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("yebo-theme", next); } catch { }
-    setDark(!dark);
-  }
 
   const launchProductModal = (product: ProductType) => {
     setSelectedProduct(product);
@@ -237,16 +226,6 @@ export default function SiteNav() {
 
           {/* Action CTAs */}
           <div className="navactions">
-            {/* Theme switch */}
-            <button
-              className="nav-theme-toggle"
-              onClick={toggleTheme}
-              aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-              title={dark ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              <i className={`ti ${dark ? "ti-sun" : "ti-moon"}`} />
-            </button>
-
             {/* Quick Save CTA */}
             <button
               type="button"
