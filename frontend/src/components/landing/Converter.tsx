@@ -38,15 +38,18 @@ export default function Converter() {
   else sats = value * 1e8;
   const btc = sats / 1e8;
 
-  // Real-time pre-conversion cross-border buying power calculation
+  // Google Finance Benchmark and Fee Calculation (1% Fee)
   const kesEquivalent = unit === "kes" ? value : sats * rate.kesPerSat;
-  const etbReal = Math.round(kesEquivalent * rate.kesEtb);
-  const benchmarkKesEtb = googleRates?.kesEtb || 1.26174;
-  const etbBenchmark = Math.round(kesEquivalent * benchmarkKesEtb); // Google Finance benchmark rate
   
-  const zaadUsdReal = (kesEquivalent * rate.kesUsd).toFixed(2);
+  const benchmarkKesEtb = googleRates?.kesEtb || 1.26174;
+  const etbBenchmark = Math.round(kesEquivalent * benchmarkKesEtb); 
+  const etbFee = Math.round(etbBenchmark * 0.01);
+  const etbPayout = etbBenchmark - etbFee;
+  
   const benchmarkKesUsd = googleRates?.kesUsd || (1 / 129.5);
-  const zaadUsdBenchmark = (kesEquivalent * benchmarkKesUsd).toFixed(2); // Google Finance benchmark
+  const zaadUsdBenchmark = parseFloat((kesEquivalent * benchmarkKesUsd).toFixed(2));
+  const zaadUsdFee = parseFloat((zaadUsdBenchmark * 0.01).toFixed(2));
+  const zaadUsdPayout = (zaadUsdBenchmark - zaadUsdFee).toFixed(2);
 
   return (
     <section className="sec" id="convert">
@@ -101,13 +104,17 @@ export default function Converter() {
                   </div>
                 </div>
                 <div className="cpb-rates">
-                  <div className="cpb-live-val">
-                    <span>You Receive:</span>
-                    <strong>ETB {num(etbReal)}</strong>
-                  </div>
-                  <div className="cpb-broker-val">
+                  <div className="cpb-broker-val" style={{ opacity: 0.8 }}>
                     <span>Google Finance Benchmark:</span>
                     <span>ETB {num(etbBenchmark)}</span>
+                  </div>
+                  <div className="cpb-broker-val" style={{ color: "var(--gold)", opacity: 0.9 }}>
+                    <span>YeboBank Fee (1%):</span>
+                    <span>-ETB {num(etbFee)}</span>
+                  </div>
+                  <div className="cpb-live-val" style={{ marginTop: 4, paddingTop: 4, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                    <span>You Receive:</span>
+                    <strong>ETB {num(etbPayout)}</strong>
                   </div>
                 </div>
               </div>
@@ -122,13 +129,17 @@ export default function Converter() {
                   </div>
                 </div>
                 <div className="cpb-rates">
-                  <div className="cpb-live-val">
-                    <span>You Receive:</span>
-                    <strong>${zaadUsdReal} USD</strong>
-                  </div>
-                  <div className="cpb-broker-val">
+                  <div className="cpb-broker-val" style={{ opacity: 0.8 }}>
                     <span>Google Finance Benchmark:</span>
-                    <span>${zaadUsdBenchmark} USD</span>
+                    <span>${zaadUsdBenchmark.toFixed(2)} USD</span>
+                  </div>
+                  <div className="cpb-broker-val" style={{ color: "var(--gold)", opacity: 0.9 }}>
+                    <span>YeboBank Fee (1%):</span>
+                    <span>-${zaadUsdFee.toFixed(2)} USD</span>
+                  </div>
+                  <div className="cpb-live-val" style={{ marginTop: 4, paddingTop: 4, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                    <span>You Receive:</span>
+                    <strong>${zaadUsdPayout} USD</strong>
                   </div>
                 </div>
               </div>
