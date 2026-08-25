@@ -40,12 +40,11 @@ export default function InvestSection() {
 
         {/* RIGHT — Hero Authority Copy */}
         <div className="reveal d1">
-          <h2 className="h2">
-            Invest.<br />
-            <span className="gold-accent">Fees only on profit.</span>
+          <h2 className="hero-verb-h" style={{ marginBottom: "1rem" }}>
+            <span className="hero-verb-word gold">Invest.</span>
           </h2>
-          <p className="lead">
-            Capital stewarded personally in verified real-world assets with monthly compounded returns.
+          <p className="hero-verb-sub">
+            Capital stewarded personally in verified real-world assets with monthly compounded returns. Fees only on profit.
           </p>
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 24 }}>
             <Button variant="gold" onClick={() => setQuickOpen(true)}>
