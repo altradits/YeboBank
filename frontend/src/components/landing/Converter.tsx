@@ -55,12 +55,11 @@ export default function Converter() {
     <section className="sec" id="convert">
       <div className="wrap conv-wrap">
         <div className="reveal" style={{ textAlign: "center" }}>
-          <h2 className="h2">
-            Convert.<br />
-            <span className="gold-accent">Zero spread. Zero broker markups.</span>
+          <h2 className="hero-verb-h" style={{ marginBottom: "1rem" }}>
+            <span className="hero-verb-word gold">Convert.</span>
           </h2>
-          <p className="lead" style={{ margin: "16px auto 0", maxWidth: 640 }}>
-            Live fair-market purchasing power across East African corridors — see exactly what arrives before you send.
+          <p className="hero-verb-sub" style={{ margin: "0 auto", maxWidth: 640 }}>
+            Live fair-market purchasing power across East African corridors — see exactly what arrives before you send, backed by a transparent 1% routing fee.
           </p>
         </div>
 
