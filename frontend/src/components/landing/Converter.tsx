@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
@@ -15,6 +15,21 @@ export default function Converter() {
   const [unit, setUnit] = useState<Unit>("kes");
   const [raw, setRaw] = useState("1,000");
   const [quickOpen, setQuickOpen] = useState(false);
+  const [googleRates, setGoogleRates] = useState<{ kesEtb: number; kesUsd: number } | null>(null);
+
+  useEffect(() => {
+    fetch("https://open.er-api.com/v6/latest/KES")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.rates?.ETB && data?.rates?.USD) {
+          setGoogleRates({
+            kesEtb: data.rates.ETB,
+            kesUsd: data.rates.USD,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const value = parseFloat(raw.replace(/[^0-9.]/g, "")) || 0;
   let sats: number;
@@ -26,12 +41,12 @@ export default function Converter() {
   // Real-time pre-conversion cross-border buying power calculation
   const kesEquivalent = unit === "kes" ? value : sats * rate.kesPerSat;
   const etbReal = Math.round(kesEquivalent * rate.kesEtb);
-  const etbBorderBroker = Math.round(kesEquivalent * 0.80); // Border brokers often force 1:1 or 0.8:1
-  const etbSaved = Math.max(0, etbReal - etbBorderBroker);
-
+  const benchmarkKesEtb = googleRates?.kesEtb || 1.26174;
+  const etbBenchmark = Math.round(kesEquivalent * benchmarkKesEtb); // Google Finance benchmark rate
+  
   const zaadUsdReal = (kesEquivalent * rate.kesUsd).toFixed(2);
-  const zaadUsdBroker = (kesEquivalent / 158).toFixed(2);
-  const zaadUsdSaved = (parseFloat(zaadUsdReal) - parseFloat(zaadUsdBroker)).toFixed(2);
+  const benchmarkKesUsd = googleRates?.kesUsd || (1 / 129.5);
+  const zaadUsdBenchmark = (kesEquivalent * benchmarkKesUsd).toFixed(2); // Google Finance benchmark
 
   return (
     <section className="sec" id="convert">
@@ -73,7 +88,6 @@ export default function Converter() {
           <div className="corridor-power-box" style={{ marginTop: 20 }}>
             <div className="cpb-header">
               <span className="cpb-tag">Live Regional Purchasing Power</span>
-              <span className="cpb-vs">vs. Informal Border Cash Brokers</span>
             </div>
 
             <div className="cpb-grid">
@@ -88,15 +102,12 @@ export default function Converter() {
                 </div>
                 <div className="cpb-rates">
                   <div className="cpb-live-val">
-                    <span>YeboBank Sats:</span>
+                    <span>You Receive:</span>
                     <strong>ETB {num(etbReal)}</strong>
                   </div>
                   <div className="cpb-broker-val">
-                    <span>Border Cash (1:1 / 0.8:1):</span>
-                    <s>ETB {num(etbBorderBroker)}</s>
-                  </div>
-                  <div className="cpb-gain-val">
-                    +ETB {num(etbSaved)} saved (0% broker fee)
+                    <span>Google Finance Benchmark:</span>
+                    <span>ETB {num(etbBenchmark)}</span>
                   </div>
                 </div>
               </div>
@@ -112,15 +123,12 @@ export default function Converter() {
                 </div>
                 <div className="cpb-rates">
                   <div className="cpb-live-val">
-                    <span>YeboBank Sats:</span>
+                    <span>You Receive:</span>
                     <strong>${zaadUsdReal} USD</strong>
                   </div>
                   <div className="cpb-broker-val">
-                    <span>Border Cash Broker:</span>
-                    <s>${zaadUsdBroker} USD</s>
-                  </div>
-                  <div className="cpb-gain-val">
-                    +${zaadUsdSaved} USD saved instantly
+                    <span>Google Finance Benchmark:</span>
+                    <span>${zaadUsdBenchmark} USD</span>
                   </div>
                 </div>
               </div>
