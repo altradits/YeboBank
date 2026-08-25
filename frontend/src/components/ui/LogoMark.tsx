@@ -63,29 +63,28 @@ export default function LogoMark({ size = 36, className = "", animated = false }
         className="yebo-logo-ring"
       />
 
-      {/* Left Wing / Curved Leaf */}
-      <path
-        d="M24 38C16 34 11 27 11 18C16 18 21 21 24 26C24 30 24 34 24 38Z"
-        fill={`url(#${uid}gold)`}
-        className="yebo-logo-left-wing"
-      />
+      <g className="yebo-logo-core" style={{ transformOrigin: "center" }}>
+        {/* Left Wing / Curved Leaf */}
+        <path
+          d="M24 38C16 34 11 27 11 18C16 18 21 21 24 26C24 30 24 34 24 38Z"
+          fill={`url(#${uid}gold)`}
+        />
 
-      {/* Right Wing / Curved Leaf */}
-      <path
-        d="M24 38C32 34 37 27 37 18C32 18 27 21 24 26C24 30 24 34 24 38Z"
-        fill={`url(#${uid}gold)`}
-        className="yebo-logo-right-wing"
-      />
+        {/* Right Wing / Curved Leaf */}
+        <path
+          d="M24 38C32 34 37 27 37 18C32 18 27 21 24 26C24 30 24 34 24 38Z"
+          fill={`url(#${uid}gold)`}
+        />
 
-      {/* Central Ascending Seed / Diamond Pillar */}
-      <path
-        d="M24 10L28 19L24 28L20 19L24 10Z"
-        fill={`url(#${uid}goldLight)`}
-        className="yebo-logo-core"
-      />
+        {/* Central Ascending Seed / Diamond Pillar */}
+        <path
+          d="M24 10L28 19L24 28L20 19L24 10Z"
+          fill={`url(#${uid}goldLight)`}
+        />
 
-      {/* Apex Crown Seed Beacon */}
-      <circle cx="24" cy="10" r="2.2" fill="#FFF2B2" />
+        {/* Apex Crown Seed Beacon */}
+        <circle cx="24" cy="10" r="2.2" fill="#FFF2B2" />
+      </g>
     </svg>
   );
 }

@@ -1904,7 +1904,7 @@ h1.hero-h .grn {
 }
 
 .yebo-logo-animated .yebo-logo-core {
-  animation: yebo-core-pulse 3s ease-in-out infinite;
+  animation: yebo-core-spin-3d 12s linear infinite;
 }
 
 @keyframes yebo-logo-float {
@@ -14152,5 +14152,13 @@ h1.hero-h .grn {
 
   html {
     font-family: var(--font-body);
+  }
+}
+@keyframes yebo-core-spin-3d {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
   }
 }
