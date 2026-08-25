@@ -452,32 +452,7 @@ export default function CandleChart({
             </div>
           </div>
 
-          {/* Minimalist Timeframe Switcher */}
-          <div className="flex items-center gap-1">
-            {TIMEFRAMES.map((tf) => {
-              const on = tf === timeframe;
-              return (
-                <button
-                  key={tf}
-                  type="button"
-                  aria-pressed={on}
-                  onClick={() => {
-                    setTimeframe(tf);
-                    setVisible(TF_COUNT[tf]);
-                    setHover(null);
-                  }}
-                  className="relative px-1.5 py-0.25 text-[9px] font-medium tracking-wide transition-colors rounded"
-                  style={{
-                    fontFamily: SANS,
-                    color: on ? "var(--fg)" : "var(--soft)",
-                    background: on ? "rgba(217, 160, 38, 0.08)" : "transparent",
-                  }}
-                >
-                  <span className="relative" style={{ color: on ? "var(--gold-soft)" : "inherit" }}>{tf}</span>
-                </button>
-              );
-            })}
-          </div>
+
         </div>
       )}
 
