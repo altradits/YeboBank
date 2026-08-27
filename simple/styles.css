@@ -1,0 +1,28 @@
+/* Deposit Section Customization */
+.deposit-section h2, .convert-section h2 {
+  color: #4caf50; /* Green color for deposit and convert sections */
+}
+
+.deposit-section label, .convert-section label {
+  font-weight: bold;
+  color: #3a3a3a; /* Dark gray color for labels */
+}
+
+.deposit-section input[type="number"] {
+  background-color: #f8f9fa; /* Light grey background for deposit amount input */
+  border: 1px solid #ced4da; /* Light gray border for deposit amount input */
+}
+
+.convert-section input[type="number"] {
+  background-color: #f8f9fa; /* Light grey background for convert amount input */
+  border: 1px solid #ced4da; /* Light gray border for convert amount input */
+}
+
+.send-section label {
+  color: #ff7a05; /* Red color for send section label */
+}
+
+.send-section button {
+  background-color: #ff7a05; /* Red color for send button */
+  color: white;
+}
