@@ -16,6 +16,7 @@ interface NavLink {
 }
 
 const NAV_LINKS: NavLink[] = [
+  { id: "send", label: "Send", action: "modal", icon: "ti-send", product: "send" },
   { id: "save", label: "Save", action: "modal", icon: "ti-lock", product: "savings" },
   { id: "deposit", label: "Deposit", action: "modal", icon: "ti-device-mobile", product: "mpesa" },
   { id: "pool", label: "Pool", action: "modal", icon: "ti-users", product: "chama" },

@@ -13177,6 +13177,88 @@ h1.hero-h .grn {
   color: var(--muted);
 }
 
+/* ── Anti-Scam / Security Advisory Box ── */
+.qa-advisory {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(184, 139, 20, 0.08) 0%, rgba(184, 139, 20, 0.02) 100%);
+  border: 1px solid rgba(184, 139, 20, 0.25);
+  box-shadow: 0 2px 8px -2px rgba(184, 139, 20, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.qa-advisory-hd {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--gold-text);
+}
+
+.qa-advisory-hd i {
+  font-size: 15px;
+  color: var(--gold);
+}
+
+.qa-advisory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.qa-advisory-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.qa-advisory-item strong {
+  color: var(--text);
+}
+
+.qa-advisory-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+/* ── Agreement Checkbox ── */
+.qa-agreement-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  margin-top: 2px;
+}
+
+.qa-agreement-checkbox {
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+  accent-color: var(--gold);
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .qa-error {
   padding: 9px 12px;
   border-radius: 8px;
@@ -13355,6 +13437,28 @@ h1.hero-h .grn {
 
 [data-theme="dark"] .qa-hint-sub {
   color: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme="dark"] .qa-advisory {
+  background: linear-gradient(135deg, rgba(245, 215, 112, 0.12) 0%, rgba(245, 215, 112, 0.03) 100%);
+  border-color: rgba(245, 215, 112, 0.28);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .qa-advisory-hd {
+  color: var(--gold-soft);
+}
+
+[data-theme="dark"] .qa-advisory-item {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+[data-theme="dark"] .qa-advisory-item strong {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .qa-agreement-label {
+  color: rgba(255, 255, 255, 0.75);
 }
 
 [data-theme="dark"] .qa-error {

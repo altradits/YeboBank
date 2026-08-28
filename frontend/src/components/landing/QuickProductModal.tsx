@@ -8,7 +8,7 @@ import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
 import LogoMark from "@/components/ui/LogoMark";
 
-export type ProductType = "savings" | "mpesa" | "chama" | "lightning" | "agent" | "invest";
+export type ProductType = "send" | "savings" | "mpesa" | "chama" | "lightning" | "agent" | "invest";
 
 interface QuickProductModalProps {
   isOpen: boolean;
@@ -18,6 +18,12 @@ interface QuickProductModalProps {
 }
 
 const META: Record<ProductType, { title: string; icon: string; buttonLabel: string; hint: string }> = {
+  send: {
+    title: "Direct Cross-Border Send",
+    icon: "ti-send",
+    buttonLabel: "Send Money Instantly",
+    hint: "Direct transfer across Kenya, Ethiopia & Somalia — no account needed.",
+  },
   savings: {
     title: "Lock Savings in Sats",
     icon: "ti-lock",
@@ -69,6 +75,9 @@ export default function QuickProductModal({
   const [activeTab, setActiveTab] = useState<ProductType>(initialProduct);
   const [kesAmount, setKesAmount] = useState("1000");
   const [phone, setPhone] = useState("0712 345 678");
+  const [sendCountry, setSendCountry] = useState<"KE" | "ET" | "SO">("KE");
+  const [sendRecipient, setSendRecipient] = useState("0712 345 678");
+  const [sendAgreed, setSendAgreed] = useState(false);
   const [lockYears, setLockYears] = useState(1);
   const [chamaName, setChamaName] = useState("Umoja Savings Circle");
   const [lightningDest, setLightningDest] = useState("wanjiku@yebobank.com");
@@ -87,6 +96,7 @@ export default function QuickProductModal({
       if (initialAmount) setKesAmount(initialAmount);
       setPhase("input");
       setStatusMessage("");
+      setSendAgreed(false);
     }
   }, [isOpen, initialProduct, initialAmount]);
 
@@ -110,7 +120,17 @@ export default function QuickProductModal({
 
     setTimeout(() => {
       setPhase("success");
-      if (activeTab === "savings") {
+      if (activeTab === "send") {
+        const destStr =
+          sendCountry === "ET"
+            ? `${num(Math.round(numKes * rate.kesEtb))} ETB`
+            : sendCountry === "SO"
+            ? `${num(Math.round(numKes * rate.kesSos))} SOS`
+            : `KES ${num(numKes)}`;
+        setStatusMessage(
+          `Cross-border transfer of KES ${num(numKes)} (${destStr} · ${num(sats)} sats) dispatched to ${sendRecipient}. Zero fees charged.`
+        );
+      } else if (activeTab === "savings") {
         setStatusMessage(`Successfully locked ${num(sats)} sats at 5.2% APY.`);
       } else if (activeTab === "mpesa") {
         setStatusMessage(`STK Push of KES ${num(numKes)} sent to ${phone}. Enter your M-Pesa PIN.`);
@@ -202,6 +222,147 @@ export default function QuickProductModal({
         <div style={{ padding: "20px 22px" }}>
           {phase === "input" && (
             <form onSubmit={handleInstantAction} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* SEND (CROSS-BORDER DIRECT) */}
+              {activeTab === "send" && (
+                <>
+                  <div className="qa-field">
+                    <label className="qa-lbl">Destination Corridor</label>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, 1fr)",
+                        gap: 8,
+                        background: "var(--cream)",
+                        padding: 4,
+                        borderRadius: 12,
+                        border: "1px solid var(--border-soft)",
+                      }}
+                    >
+                      {[
+                        { id: "KE" as const, flag: "🇰🇪", name: "Kenya", curr: "KES" },
+                        { id: "ET" as const, flag: "🇪🇹", name: "Ethiopia", curr: "ETB" },
+                        { id: "SO" as const, flag: "🇸🇴", name: "Somalia", curr: "SOS" },
+                      ].map((c) => {
+                        const isSelected = sendCountry === c.id;
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => setSendCountry(c.id)}
+                            style={{
+                              padding: "8px 4px",
+                              fontSize: 12.5,
+                              fontWeight: isSelected ? 700 : 500,
+                              borderRadius: 8,
+                              border: "none",
+                              cursor: "pointer",
+                              transition: "all 0.15s ease",
+                              background: isSelected
+                                ? "linear-gradient(180deg, #F5D770 0%, #D8A928 100%)"
+                                : "transparent",
+                              color: isSelected ? "#07160F" : "var(--muted)",
+                              boxShadow: isSelected
+                                ? "0 2px 8px rgba(240, 204, 88, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
+                                : "none",
+                              transform: isSelected ? "translateY(-1px)" : "none",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 5,
+                            }}
+                          >
+                            <span>{c.flag}</span>
+                            <span>{c.curr}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="qa-field">
+                    <label className="qa-lbl">
+                      Recipient {sendCountry === "KE" ? "M-Pesa / Phone" : sendCountry === "ET" ? "Telebirr / Phone" : "EVC Plus / Phone"}
+                    </label>
+                    <input
+                      type="tel"
+                      className="input"
+                      value={sendRecipient}
+                      onChange={(e) => setSendRecipient(e.target.value)}
+                      placeholder={sendCountry === "KE" ? "0712 345 678" : sendCountry === "ET" ? "0911 234 567" : "0615 123 456"}
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="qa-field">
+                    <label className="qa-lbl">Sending Amount (KES)</label>
+                    <div className="qa-amount-wrap">
+                      <span className="qa-amount-pfx">KES</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        className="qa-amount-input qa-amount-input--kes"
+                        value={kesAmount}
+                        onChange={(e) => setKesAmount(e.target.value)}
+                        placeholder="1,000"
+                        required
+                      />
+                    </div>
+                    {numKes > 0 && (
+                      <div className="qa-hint">
+                        <span className="qa-hint-icon">
+                          <i className="ti ti-arrows-exchange" />
+                        </span>
+                        <div className="qa-hint-content">
+                          <span className="qa-hint-value">
+                            ≈ {sendCountry === "ET" ? `${num(Math.round(numKes * rate.kesEtb))} ETB` : sendCountry === "SO" ? `${num(Math.round(numKes * rate.kesSos))} SOS` : `${num(sats)} sats`}
+                          </span>
+                          <span className="qa-hint-sub">
+                            · {num(sats)} sats direct cross-border settlement (0% fee)
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Anti-Scam Security Notice */}
+                  <div className="qa-advisory">
+                    <div className="qa-advisory-hd">
+                      <i className="ti ti-shield-alert" />
+                      <span>Direct Transfer &amp; Anti-Scam Advisory</span>
+                    </div>
+                    <ul className="qa-advisory-list">
+                      <li className="qa-advisory-item">
+                        <span className="qa-advisory-dot" />
+                        <span><strong>No account required:</strong> You can send money directly across Kenya, Ethiopia &amp; Somalia without opening an account.</span>
+                      </li>
+                      <li className="qa-advisory-item">
+                        <span className="qa-advisory-dot" />
+                        <span><strong>Only transact for yourself:</strong> If another person is guiding or directing you on what to do, <strong>STOP</strong>. They may be attempting to scam you of this money.</span>
+                      </li>
+                      <li className="qa-advisory-item">
+                        <span className="qa-advisory-dot" />
+                        <span><strong>Unsure of the caller?</strong> Seek advice from YeboBank before proceeding. You are solely responsible for this transaction.</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Mandatory Agreement Checkbox */}
+                  <label className="qa-agreement-label">
+                    <input
+                      type="checkbox"
+                      className="qa-agreement-checkbox"
+                      checked={sendAgreed}
+                      onChange={(e) => setSendAgreed(e.target.checked)}
+                      required
+                    />
+                    <span>
+                      I am performing this transaction myself, I am not being directed by a third party, and I understand and accept full responsibility for this transfer.
+                    </span>
+                  </label>
+                </>
+              )}
+
               {/* SAVINGS */}
               {activeTab === "savings" && (
                 <>
@@ -490,22 +651,33 @@ export default function QuickProductModal({
               )}
 
               {/* 3D Action Button */}
-              <button
-                type="submit"
-                className="btn btn-gold"
-                style={{
-                  width: "100%",
-                  padding: "14px",
-                  fontWeight: 700,
-                  fontSize: 15,
-                  marginTop: 6,
-                  borderRadius: 12,
-                  boxShadow: "0 4px 16px rgba(240, 204, 88, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
-                  cursor: "pointer",
-                }}
-              >
-                {currentMeta.buttonLabel}
-              </button>
+              {(() => {
+                const isSendDisabled =
+                  activeTab === "send" && (!sendAgreed || numKes <= 0 || !sendRecipient.trim());
+                return (
+                  <button
+                    type="submit"
+                    className="btn btn-gold"
+                    disabled={isSendDisabled}
+                    style={{
+                      width: "100%",
+                      padding: "14px",
+                      fontWeight: 700,
+                      fontSize: 15,
+                      marginTop: 6,
+                      borderRadius: 12,
+                      boxShadow: !isSendDisabled
+                        ? "0 4px 16px rgba(240, 204, 88, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
+                        : "none",
+                      opacity: isSendDisabled ? 0.45 : 1,
+                      cursor: isSendDisabled ? "not-allowed" : "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {currentMeta.buttonLabel}
+                  </button>
+                );
+              })()}
             </form>
           )}
 
