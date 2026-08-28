@@ -17,12 +17,39 @@ interface QuickProductModalProps {
   initialAmount?: string;
 }
 
+const PROVIDERS_BY_COUNTRY: Record<
+  "KE" | "ET" | "SO",
+  { name: string; currency: string; flag: string; providers: string[]; defaultPhone: string }
+> = {
+  KE: {
+    name: "Kenya",
+    currency: "KES",
+    flag: "🇰🇪",
+    providers: ["M-Pesa", "Airtel Money"],
+    defaultPhone: "0712 345 678",
+  },
+  ET: {
+    name: "Ethiopia",
+    currency: "ETB",
+    flag: "🇪🇹",
+    providers: ["Telebirr", "CBE Birr"],
+    defaultPhone: "0911 234 567",
+  },
+  SO: {
+    name: "Somalia",
+    currency: "SOS",
+    flag: "🇸🇴",
+    providers: ["EVC Plus", "ZAAD", "Sahal"],
+    defaultPhone: "0615 123 456",
+  },
+};
+
 const META: Record<ProductType, { title: string; icon: string; buttonLabel: string; hint: string }> = {
   send: {
     title: "Direct Cross-Border Send",
     icon: "ti-send",
     buttonLabel: "Send Money Instantly",
-    hint: "Direct transfer across Kenya, Ethiopia & Somalia — no account needed.",
+    hint: "Instant zero-cost exchange medium across Kenya, Ethiopia & Somalia.",
   },
   savings: {
     title: "Lock Savings in Sats",
@@ -75,8 +102,10 @@ export default function QuickProductModal({
   const [activeTab, setActiveTab] = useState<ProductType>(initialProduct);
   const [kesAmount, setKesAmount] = useState("1000");
   const [phone, setPhone] = useState("0712 345 678");
-  const [sendCountry, setSendCountry] = useState<"KE" | "ET" | "SO">("KE");
-  const [sendRecipient, setSendRecipient] = useState("0712 345 678");
+  const [senderPhone, setSenderPhone] = useState("0712 345 678");
+  const [sendCountry, setSendCountry] = useState<"KE" | "ET" | "SO">("ET");
+  const [recipientProvider, setRecipientProvider] = useState("Telebirr");
+  const [sendRecipient, setSendRecipient] = useState("0911 234 567");
   const [sendAgreed, setSendAgreed] = useState(false);
   const [lockYears, setLockYears] = useState(1);
   const [chamaName, setChamaName] = useState("Umoja Savings Circle");
@@ -85,6 +114,13 @@ export default function QuickProductModal({
 
   const [phase, setPhase] = useState<"input" | "processing" | "success">("input");
   const [statusMessage, setStatusMessage] = useState("");
+
+  const handleSelectSendCountry = (country: "KE" | "ET" | "SO") => {
+    setSendCountry(country);
+    const countryData = PROVIDERS_BY_COUNTRY[country];
+    setRecipientProvider(countryData.providers[0]);
+    setSendRecipient(countryData.defaultPhone);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -128,7 +164,7 @@ export default function QuickProductModal({
             ? `${num(Math.round(numKes * rate.kesSos))} SOS`
             : `KES ${num(numKes)}`;
         setStatusMessage(
-          `Cross-border transfer of KES ${num(numKes)} (${destStr} · ${num(sats)} sats) dispatched to ${sendRecipient}. Zero fees charged.`
+          `STK Push sent to your M-Pesa line (${senderPhone}). Upon PIN entry, ${destStr} will be instantly credited to ${sendRecipient} via ${recipientProvider}. Zero exchange fee charged via YeboBank.`
         );
       } else if (activeTab === "savings") {
         setStatusMessage(`Successfully locked ${num(sats)} sats at 5.2% APY.`);
@@ -222,11 +258,68 @@ export default function QuickProductModal({
         <div style={{ padding: "20px 22px" }}>
           {phase === "input" && (
             <form onSubmit={handleInstantAction} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* SEND (CROSS-BORDER DIRECT) */}
+              {/* SEND (CROSS-BORDER DIRECT ZERO-FEE) */}
               {activeTab === "send" && (
                 <>
+                  {/* Sender Section - M-Pesa Debit Source */}
                   <div className="qa-field">
-                    <label className="qa-lbl">Destination Corridor</label>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                      <label className="qa-lbl" style={{ margin: 0 }}>Sender M-Pesa Number (Debit Source)</label>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "var(--emerald-deep)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                        <i className="ti ti-bolt" /> STK Push
+                      </span>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "115px 1fr", gap: 8 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 6,
+                          background: "var(--cream)",
+                          borderRadius: 10,
+                          border: "1px solid var(--border-soft)",
+                          padding: "0 8px",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: "var(--text)",
+                        }}
+                      >
+                        <span>🇰🇪</span>
+                        <span>M-Pesa</span>
+                      </div>
+                      <input
+                        type="tel"
+                        className="input"
+                        value={senderPhone}
+                        onChange={(e) => setSenderPhone(e.target.value)}
+                        placeholder="Your M-Pesa (0712 345 678)"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sending Amount (KES) */}
+                  <div className="qa-field">
+                    <label className="qa-lbl">Sending Amount (KES)</label>
+                    <div className="qa-amount-wrap">
+                      <span className="qa-amount-pfx">KES</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        className="qa-amount-input qa-amount-input--kes"
+                        value={kesAmount}
+                        onChange={(e) => setKesAmount(e.target.value)}
+                        placeholder="1,000"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Recipient Section - Country & Mobile Money */}
+                  <div className="qa-field">
+                    <label className="qa-lbl">Recipient Destination &amp; Mobile Money</label>
                     <div
                       style={{
                         display: "grid",
@@ -236,19 +329,17 @@ export default function QuickProductModal({
                         padding: 4,
                         borderRadius: 12,
                         border: "1px solid var(--border-soft)",
+                        marginBottom: 10,
                       }}
                     >
-                      {[
-                        { id: "KE" as const, flag: "🇰🇪", name: "Kenya", curr: "KES" },
-                        { id: "ET" as const, flag: "🇪🇹", name: "Ethiopia", curr: "ETB" },
-                        { id: "SO" as const, flag: "🇸🇴", name: "Somalia", curr: "SOS" },
-                      ].map((c) => {
-                        const isSelected = sendCountry === c.id;
+                      {(["KE", "ET", "SO"] as const).map((code) => {
+                        const c = PROVIDERS_BY_COUNTRY[code];
+                        const isSelected = sendCountry === code;
                         return (
                           <button
-                            key={c.id}
+                            key={code}
                             type="button"
-                            onClick={() => setSendCountry(c.id)}
+                            onClick={() => handleSelectSendCountry(code)}
                             style={{
                               padding: "8px 4px",
                               fontSize: 12.5,
@@ -272,53 +363,61 @@ export default function QuickProductModal({
                             }}
                           >
                             <span>{c.flag}</span>
-                            <span>{c.curr}</span>
+                            <span>{c.name}</span>
                           </button>
                         );
                       })}
                     </div>
-                  </div>
 
-                  <div className="qa-field">
-                    <label className="qa-lbl">
-                      Recipient {sendCountry === "KE" ? "M-Pesa / Phone" : sendCountry === "ET" ? "Telebirr / Phone" : "EVC Plus / Phone"}
-                    </label>
+                    {/* Mobile Money Provider Pills */}
+                    <div style={{ display: "flex", gap: 6, marginBottom: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Credit via:</span>
+                      {PROVIDERS_BY_COUNTRY[sendCountry].providers.map((prov) => {
+                        const isProvSelected = recipientProvider === prov;
+                        return (
+                          <button
+                            key={prov}
+                            type="button"
+                            onClick={() => setRecipientProvider(prov)}
+                            style={{
+                              padding: "5px 12px",
+                              borderRadius: 20,
+                              border: isProvSelected ? "1.5px solid var(--emerald-deep)" : "1px solid var(--border-soft)",
+                              background: isProvSelected ? "rgba(16, 138, 79, 0.12)" : "var(--cream)",
+                              color: isProvSelected ? "var(--emerald-deep)" : "var(--muted)",
+                              fontSize: 11.5,
+                              fontWeight: isProvSelected ? 700 : 500,
+                              cursor: "pointer",
+                              transition: "all 0.15s ease",
+                            }}
+                          >
+                            {prov}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Recipient Phone Input */}
                     <input
                       type="tel"
                       className="input"
                       value={sendRecipient}
                       onChange={(e) => setSendRecipient(e.target.value)}
-                      placeholder={sendCountry === "KE" ? "0712 345 678" : sendCountry === "ET" ? "0911 234 567" : "0615 123 456"}
+                      placeholder={`Recipient ${recipientProvider} Number (${PROVIDERS_BY_COUNTRY[sendCountry].defaultPhone})`}
                       required
-                      autoFocus
                     />
-                  </div>
 
-                  <div className="qa-field">
-                    <label className="qa-lbl">Sending Amount (KES)</label>
-                    <div className="qa-amount-wrap">
-                      <span className="qa-amount-pfx">KES</span>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        className="qa-amount-input qa-amount-input--kes"
-                        value={kesAmount}
-                        onChange={(e) => setKesAmount(e.target.value)}
-                        placeholder="1,000"
-                        required
-                      />
-                    </div>
                     {numKes > 0 && (
-                      <div className="qa-hint">
+                      <div className="qa-hint" style={{ marginTop: 8 }}>
                         <span className="qa-hint-icon">
                           <i className="ti ti-arrows-exchange" />
                         </span>
                         <div className="qa-hint-content">
                           <span className="qa-hint-value">
-                            ≈ {sendCountry === "ET" ? `${num(Math.round(numKes * rate.kesEtb))} ETB` : sendCountry === "SO" ? `${num(Math.round(numKes * rate.kesSos))} SOS` : `${num(sats)} sats`}
+                            Recipient gets ≈ {sendCountry === "ET" ? `${num(Math.round(numKes * rate.kesEtb))} ETB` : sendCountry === "SO" ? `${num(Math.round(numKes * rate.kesSos))} SOS` : `KES ${num(numKes)}`} ({recipientProvider})
                           </span>
                           <span className="qa-hint-sub">
-                            · {num(sats)} sats direct cross-border settlement (0% fee)
+                            · YeboBank zero-cost exchange medium (≈ {num(sats)} sats)
                           </span>
                         </div>
                       </div>
@@ -334,11 +433,11 @@ export default function QuickProductModal({
                     <ul className="qa-advisory-list">
                       <li className="qa-advisory-item">
                         <span className="qa-advisory-dot" />
-                        <span><strong>No account required:</strong> You can send money directly across Kenya, Ethiopia &amp; Somalia without opening an account.</span>
+                        <span><strong>No account required:</strong> Send money directly between Kenya, Ethiopia &amp; Somalia at 0% fee with YeboBank as medium.</span>
                       </li>
                       <li className="qa-advisory-item">
                         <span className="qa-advisory-dot" />
-                        <span><strong>Only transact for yourself:</strong> If another person is guiding or directing you on what to do, <strong>STOP</strong>. They may be attempting to scam you of this money.</span>
+                        <span><strong>Only transact for yourself:</strong> If another person is guiding or directing you on what to do, <strong>STOP</strong>. They may be attempting to scam you of your money.</span>
                       </li>
                       <li className="qa-advisory-item">
                         <span className="qa-advisory-dot" />
@@ -653,7 +752,8 @@ export default function QuickProductModal({
               {/* 3D Action Button */}
               {(() => {
                 const isSendDisabled =
-                  activeTab === "send" && (!sendAgreed || numKes <= 0 || !sendRecipient.trim());
+                  activeTab === "send" &&
+                  (!sendAgreed || numKes <= 0 || !senderPhone.trim() || !sendRecipient.trim());
                 return (
                   <button
                     type="submit"
@@ -674,7 +774,9 @@ export default function QuickProductModal({
                       transition: "all 0.2s ease",
                     }}
                   >
-                    {currentMeta.buttonLabel}
+                    {activeTab === "send"
+                      ? `Debit M-Pesa & Send ${numKes > 0 ? `KES ${num(numKes)}` : ""}`
+                      : currentMeta.buttonLabel}
                   </button>
                 );
               })()}
@@ -695,10 +797,14 @@ export default function QuickProductModal({
                 }}
               />
               <h4 style={{ fontFamily: "var(--font-display)", fontSize: 17, margin: "0 0 6px" }}>
-                Processing {currentMeta.title}…
+                {activeTab === "send"
+                  ? `Debiting M-Pesa (${senderPhone})…`
+                  : `Processing ${currentMeta.title}…`}
               </h4>
               <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
-                Securing transaction on Bitcoin settlement rails
+                {activeTab === "send"
+                  ? `Routing zero-cost conversion to ${sendRecipient} (${recipientProvider}) over YeboBank rails`
+                  : "Securing transaction on Bitcoin settlement rails"}
               </p>
             </div>
           )}
