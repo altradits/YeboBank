@@ -258,51 +258,26 @@ export default function QuickProductModal({
         <div style={{ padding: "20px 22px" }}>
           {phase === "input" && (
             <form onSubmit={handleInstantAction} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* SEND (CROSS-BORDER DIRECT ZERO-FEE) */}
+              {/* SEND (MINIMAL & RESPONSIVE DIRECT CROSS-BORDER) */}
               {activeTab === "send" && (
                 <>
-                  {/* Sender Section - M-Pesa Debit Source */}
+                  {/* Sender Section */}
                   <div className="qa-field">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-                      <label className="qa-lbl" style={{ margin: 0 }}>Sender M-Pesa Number (Debit Source)</label>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "var(--emerald-deep)", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <i className="ti ti-bolt" /> STK Push
-                      </span>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "115px 1fr", gap: 8 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 6,
-                          background: "var(--cream)",
-                          borderRadius: 10,
-                          border: "1px solid var(--border-soft)",
-                          padding: "0 8px",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: "var(--text)",
-                        }}
-                      >
-                        <span>🇰🇪</span>
-                        <span>M-Pesa</span>
-                      </div>
-                      <input
-                        type="tel"
-                        className="input"
-                        value={senderPhone}
-                        onChange={(e) => setSenderPhone(e.target.value)}
-                        placeholder="Your M-Pesa (0712 345 678)"
-                        required
-                        autoFocus
-                      />
-                    </div>
+                    <label className="qa-lbl">Your M-Pesa Number (Debit Source)</label>
+                    <input
+                      type="tel"
+                      className="input"
+                      value={senderPhone}
+                      onChange={(e) => setSenderPhone(e.target.value)}
+                      placeholder="0712 345 678"
+                      required
+                      autoFocus
+                    />
                   </div>
 
                   {/* Sending Amount (KES) */}
                   <div className="qa-field">
-                    <label className="qa-lbl">Sending Amount (KES)</label>
+                    <label className="qa-lbl">Amount to Send (KES)</label>
                     <div className="qa-amount-wrap">
                       <span className="qa-amount-pfx">KES</span>
                       <input
@@ -317,34 +292,41 @@ export default function QuickProductModal({
                     </div>
                   </div>
 
-                  {/* Recipient Section - Country & Mobile Money */}
+                  {/* Recipient Destination & Mobile Money */}
                   <div className="qa-field">
-                    <label className="qa-lbl">Recipient Destination &amp; Mobile Money</label>
+                    <label className="qa-lbl">Recipient Mobile Money</label>
                     <div
                       style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(3, 1fr)",
-                        gap: 8,
+                        gap: 6,
                         background: "var(--cream)",
-                        padding: 4,
-                        borderRadius: 12,
+                        padding: 3,
+                        borderRadius: 10,
                         border: "1px solid var(--border-soft)",
-                        marginBottom: 10,
+                        marginBottom: 8,
                       }}
                     >
-                      {(["KE", "ET", "SO"] as const).map((code) => {
-                        const c = PROVIDERS_BY_COUNTRY[code];
-                        const isSelected = sendCountry === code;
+                      {[
+                        { id: "ET" as const, prov: "Telebirr", flag: "🇪🇹", curr: "ETB", defaultPhone: "0911 234 567" },
+                        { id: "SO" as const, prov: "EVC Plus", flag: "🇸🇴", curr: "SOS", defaultPhone: "0615 123 456" },
+                        { id: "KE" as const, prov: "M-Pesa", flag: "🇰🇪", curr: "KES", defaultPhone: "0712 345 678" },
+                      ].map((c) => {
+                        const isSelected = sendCountry === c.id;
                         return (
                           <button
-                            key={code}
+                            key={c.id}
                             type="button"
-                            onClick={() => handleSelectSendCountry(code)}
+                            onClick={() => {
+                              setSendCountry(c.id);
+                              setRecipientProvider(c.prov);
+                              setSendRecipient(c.defaultPhone);
+                            }}
                             style={{
-                              padding: "8px 4px",
-                              fontSize: 12.5,
+                              padding: "6px 2px",
+                              fontSize: 11.5,
                               fontWeight: isSelected ? 700 : 500,
-                              borderRadius: 8,
+                              borderRadius: 7,
                               border: "none",
                               cursor: "pointer",
                               transition: "all 0.15s ease",
@@ -353,112 +335,62 @@ export default function QuickProductModal({
                                 : "transparent",
                               color: isSelected ? "#07160F" : "var(--muted)",
                               boxShadow: isSelected
-                                ? "0 2px 8px rgba(240, 204, 88, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
+                                ? "0 2px 6px rgba(240, 204, 88, 0.35)"
                                 : "none",
-                              transform: isSelected ? "translateY(-1px)" : "none",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              gap: 5,
+                              gap: 4,
                             }}
                           >
                             <span>{c.flag}</span>
-                            <span>{c.name}</span>
+                            <span>{c.prov}</span>
                           </button>
                         );
                       })}
                     </div>
 
-                    {/* Mobile Money Provider Pills */}
-                    <div style={{ display: "flex", gap: 6, marginBottom: 8, alignItems: "center", flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Credit via:</span>
-                      {PROVIDERS_BY_COUNTRY[sendCountry].providers.map((prov) => {
-                        const isProvSelected = recipientProvider === prov;
-                        return (
-                          <button
-                            key={prov}
-                            type="button"
-                            onClick={() => setRecipientProvider(prov)}
-                            style={{
-                              padding: "5px 12px",
-                              borderRadius: 20,
-                              border: isProvSelected ? "1.5px solid var(--emerald-deep)" : "1px solid var(--border-soft)",
-                              background: isProvSelected ? "rgba(16, 138, 79, 0.12)" : "var(--cream)",
-                              color: isProvSelected ? "var(--emerald-deep)" : "var(--muted)",
-                              fontSize: 11.5,
-                              fontWeight: isProvSelected ? 700 : 500,
-                              cursor: "pointer",
-                              transition: "all 0.15s ease",
-                            }}
-                          >
-                            {prov}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Recipient Phone Input */}
                     <input
                       type="tel"
                       className="input"
                       value={sendRecipient}
                       onChange={(e) => setSendRecipient(e.target.value)}
-                      placeholder={`Recipient ${recipientProvider} Number (${PROVIDERS_BY_COUNTRY[sendCountry].defaultPhone})`}
+                      placeholder={`Recipient ${recipientProvider} Number`}
                       required
                     />
 
                     {numKes > 0 && (
-                      <div className="qa-hint" style={{ marginTop: 8 }}>
-                        <span className="qa-hint-icon">
+                      <div className="qa-hint" style={{ marginTop: 6, padding: "8px 10px" }}>
+                        <span className="qa-hint-icon" style={{ width: 22, height: 22, fontSize: 11 }}>
                           <i className="ti ti-arrows-exchange" />
                         </span>
                         <div className="qa-hint-content">
-                          <span className="qa-hint-value">
-                            Recipient gets ≈ {sendCountry === "ET" ? `${num(Math.round(numKes * rate.kesEtb))} ETB` : sendCountry === "SO" ? `${num(Math.round(numKes * rate.kesSos))} SOS` : `KES ${num(numKes)}`} ({recipientProvider})
+                          <span className="qa-hint-value" style={{ fontSize: 12.5 }}>
+                            ≈ {sendCountry === "ET" ? `${num(Math.round(numKes * rate.kesEtb))} ETB` : sendCountry === "SO" ? `${num(Math.round(numKes * rate.kesSos))} SOS` : `KES ${num(numKes)}`} ({recipientProvider})
                           </span>
-                          <span className="qa-hint-sub">
-                            · YeboBank zero-cost exchange medium (≈ {num(sats)} sats)
-                          </span>
+                          <span className="qa-hint-sub" style={{ fontSize: 11 }}>· 0% fee via YeboBank</span>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Anti-Scam Security Notice */}
-                  <div className="qa-advisory">
-                    <div className="qa-advisory-hd">
+                  {/* Compact Anti-Scam Advisory & Agreement */}
+                  <div className="qa-advisory-compact">
+                    <div className="qa-advisory-note">
                       <i className="ti ti-shield-alert" />
-                      <span>Direct Transfer &amp; Anti-Scam Advisory</span>
+                      <span><strong>Self-service only:</strong> Stop if directed by a caller. You are solely responsible.</span>
                     </div>
-                    <ul className="qa-advisory-list">
-                      <li className="qa-advisory-item">
-                        <span className="qa-advisory-dot" />
-                        <span><strong>No account required:</strong> Send money directly between Kenya, Ethiopia &amp; Somalia at 0% fee with YeboBank as medium.</span>
-                      </li>
-                      <li className="qa-advisory-item">
-                        <span className="qa-advisory-dot" />
-                        <span><strong>Only transact for yourself:</strong> If another person is guiding or directing you on what to do, <strong>STOP</strong>. They may be attempting to scam you of your money.</span>
-                      </li>
-                      <li className="qa-advisory-item">
-                        <span className="qa-advisory-dot" />
-                        <span><strong>Unsure of the caller?</strong> Seek advice from YeboBank before proceeding. You are solely responsible for this transaction.</span>
-                      </li>
-                    </ul>
+                    <label className="qa-agreement-label">
+                      <input
+                        type="checkbox"
+                        className="qa-agreement-checkbox"
+                        checked={sendAgreed}
+                        onChange={(e) => setSendAgreed(e.target.checked)}
+                        required
+                      />
+                      <span>I am transacting for myself and accept full responsibility</span>
+                    </label>
                   </div>
-
-                  {/* Mandatory Agreement Checkbox */}
-                  <label className="qa-agreement-label">
-                    <input
-                      type="checkbox"
-                      className="qa-agreement-checkbox"
-                      checked={sendAgreed}
-                      onChange={(e) => setSendAgreed(e.target.checked)}
-                      required
-                    />
-                    <span>
-                      I am performing this transaction myself, I am not being directed by a third party, and I understand and accept full responsibility for this transfer.
-                    </span>
-                  </label>
                 </>
               )}
 

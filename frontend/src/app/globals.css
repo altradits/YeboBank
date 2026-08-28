@@ -13177,7 +13177,7 @@ h1.hero-h .grn {
   color: var(--muted);
 }
 
-/* ── Anti-Scam / Security Advisory Box ── */
+/* ── Anti-Scam / Security Advisory Box & Compact Variant ── */
 .qa-advisory {
   display: flex;
   flex-direction: column;
@@ -13190,6 +13190,36 @@ h1.hero-h .grn {
   font-size: 12px;
   color: var(--text);
   line-height: 1.45;
+}
+
+.qa-advisory-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px 11px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(184, 139, 20, 0.08) 0%, rgba(184, 139, 20, 0.02) 100%);
+  border: 1px solid rgba(184, 139, 20, 0.22);
+  box-shadow: 0 1px 4px rgba(184, 139, 20, 0.05);
+}
+
+.qa-advisory-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--gold-text);
+}
+
+.qa-advisory-note i {
+  font-size: 14px;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.qa-advisory-note strong {
+  color: var(--text);
 }
 
 .qa-advisory-hd {
@@ -13239,20 +13269,18 @@ h1.hero-h .grn {
 /* ── Agreement Checkbox ── */
 .qa-agreement-label {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   font-size: 11.5px;
-  line-height: 1.4;
+  line-height: 1.35;
   color: var(--muted);
   cursor: pointer;
   user-select: none;
-  margin-top: 2px;
 }
 
 .qa-agreement-checkbox {
-  width: 17px;
-  height: 17px;
-  margin-top: 1px;
+  width: 16px;
+  height: 16px;
   accent-color: var(--gold);
   border-radius: 4px;
   cursor: pointer;
@@ -13445,6 +13473,20 @@ h1.hero-h .grn {
   box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+[data-theme="dark"] .qa-advisory-compact {
+  background: linear-gradient(135deg, rgba(245, 215, 112, 0.12) 0%, rgba(245, 215, 112, 0.03) 100%);
+  border-color: rgba(245, 215, 112, 0.28);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .qa-advisory-note {
+  color: var(--gold-soft);
+}
+
+[data-theme="dark"] .qa-advisory-note strong {
+  color: #FFFFFF;
+}
+
 [data-theme="dark"] .qa-advisory-hd {
   color: var(--gold-soft);
 }
@@ -13458,7 +13500,7 @@ h1.hero-h .grn {
 }
 
 [data-theme="dark"] .qa-agreement-label {
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 [data-theme="dark"] .qa-error {
