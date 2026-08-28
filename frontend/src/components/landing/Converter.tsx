@@ -1,171 +1,175 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
-import Button from "@/components/ui/Button";
 import QuickProductModal from "./QuickProductModal";
 
-type Unit = "kes" | "sats" | "btc";
+type SourceUnit = "kes" | "etb" | "sos" | "sats" | "btc";
+
+const UNITS: { id: SourceUnit; label: string; flag: string; symbol: string }[] = [
+  { id: "kes", label: "KES", flag: "🇰🇪", symbol: "KES" },
+  { id: "etb", label: "ETB", flag: "🇪🇹", symbol: "ETB" },
+  { id: "sos", label: "SOS", flag: "🇸🇴", symbol: "SOS" },
+  { id: "sats", label: "SATS", flag: "⚡", symbol: "sats" },
+  { id: "btc", label: "BTC", flag: "₿", symbol: "BTC" },
+];
 
 export default function Converter() {
-  const router = useRouter();
   const rate = useRate();
-  const [unit, setUnit] = useState<Unit>("kes");
+  const [unit, setUnit] = useState<SourceUnit>("kes");
   const [raw, setRaw] = useState("1,000");
   const [quickOpen, setQuickOpen] = useState(false);
-  const [googleRates, setGoogleRates] = useState<{ kesEtb: number; kesUsd: number } | null>(null);
-
-  useEffect(() => {
-    fetch("https://open.er-api.com/v6/latest/KES")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data?.rates?.ETB && data?.rates?.USD) {
-          setGoogleRates({
-            kesEtb: data.rates.ETB,
-            kesUsd: data.rates.USD,
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   const value = parseFloat(raw.replace(/[^0-9.]/g, "")) || 0;
-  let sats: number;
-  if (unit === "kes") sats = value * rate.satsPerKes;
-  else if (unit === "sats") sats = value;
-  else sats = value * 1e8;
-  const btc = sats / 1e8;
 
-  // Google Finance Benchmark and Fee Calculation (1% Fee)
-  const kesEquivalent = unit === "kes" ? value : sats * rate.kesPerSat;
-  
-  const benchmarkKesEtb = googleRates?.kesEtb || 1.26174;
-  const etbBenchmark = Math.round(kesEquivalent * benchmarkKesEtb); 
-  const etbFee = Math.round(etbBenchmark * 0.01);
-  const etbPayout = etbBenchmark - etbFee;
-  
-  const benchmarkKesUsd = googleRates?.kesUsd || (1 / 129.5);
-  const zaadUsdBenchmark = parseFloat((kesEquivalent * benchmarkKesUsd).toFixed(2));
-  const zaadUsdFee = parseFloat((zaadUsdBenchmark * 0.01).toFixed(2));
-  const zaadUsdPayout = (zaadUsdBenchmark - zaadUsdFee).toFixed(2);
+  // Derive satoshis from chosen input unit
+  let sats = 0;
+  if (unit === "kes") sats = value * rate.satsPerKes;
+  else if (unit === "etb") sats = value * rate.satsPerEtb;
+  else if (unit === "sos") sats = (value / rate.kesSos) * rate.satsPerKes;
+  else if (unit === "sats") sats = value;
+  else if (unit === "btc") sats = value * 1e8;
+
+  // Derive all target currency values
+  const kesVal = sats * rate.kesPerSat;
+  const etbVal = sats * rate.etbPerSat;
+  const sosVal = kesVal * rate.kesSos;
+  const satsVal = Math.round(sats);
 
   return (
-    <section className="sec" id="convert">
-      <div className="wrap conv-wrap">
-        <div className="reveal" style={{ textAlign: "center" }}>
-          <h2 className="hero-verb-h" style={{ marginBottom: "1rem" }}>
-            <span className="hero-verb-word gold">Convert.</span>
+    <section className="sec converter-section" id="convert">
+      <div className="wrap converter-wrap">
+        <div className="reveal converter-header">
+          <h2 className="converter-title">
+            Instant <span className="gold">Exchange.</span>
           </h2>
-          <p className="hero-verb-sub" style={{ margin: "0 auto", maxWidth: 640 }}>
-            Live fair-market purchasing power across East African corridors — see exactly what arrives before you send, backed by a transparent 1% routing fee.
+          <p className="converter-sub">
+            Real-time conversion rates across Kenya, Ethiopia, Somalia, and Bitcoin.
           </p>
         </div>
 
-        <div className="calc reveal d1">
-          <div className="field">
-            <input
-              type="text"
-              inputMode="decimal"
-              value={raw}
-              onChange={(e) => setRaw(e.target.value)}
-              aria-label="Amount to convert"
-            />
-            <div className="unit" role="tablist" aria-label="Input unit">
-              {(["kes", "sats", "btc"] as Unit[]).map((u) => (
-                <button key={u} className={unit === u ? "on" : ""} onClick={() => setUnit(u)}>
-                  {u.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="out">
-            <div className="ocard gold"><div className="ok">In sats</div><div className="ov">{num(Math.round(sats))} sats</div></div>
-            <div className="ocard grn"><div className="ok">In shillings</div><div className="ov">KES {num(sats * rate.kesPerSat, 2)}</div></div>
-          </div>
-
-          {/* ── Real-Time Pre-Conversion Regional Purchasing Power Comparison ── */}
-          <div className="corridor-power-box" style={{ marginTop: 20 }}>
-            <div className="cpb-header">
-              <span className="cpb-tag">Live Regional Purchasing Power</span>
+        <div className="converter-card reveal d1">
+          {/* Input Row */}
+          <div className="converter-input-box">
+            <div className="converter-input-label">
+              <span>You Convert</span>
+              <span style={{ fontSize: 11, color: "var(--emerald-deep)", fontWeight: 700 }}>
+                Live Market Rate
+              </span>
             </div>
 
-            <div className="cpb-grid">
-              {/* Ethiopia Corridor */}
-              <div className="cpb-item">
-                <div className="cpb-dest">
-                  <span className="cpb-flag">🇪🇹</span>
-                  <div>
-                    <b>Ethiopia (Telebirr / CBE)</b>
-                    <small>Direct Mobile Money Payout</small>
-                  </div>
-                </div>
-                <div className="cpb-rates">
-                  <div className="cpb-broker-val" style={{ opacity: 0.8 }}>
-                    <span>Google Finance Benchmark:</span>
-                    <span>ETB {num(etbBenchmark)}</span>
-                  </div>
-                  <div className="cpb-broker-val" style={{ color: "var(--gold)", opacity: 0.9 }}>
-                    <span>YeboBank Fee (1%):</span>
-                    <span>-ETB {num(etbFee)}</span>
-                  </div>
-                  <div className="cpb-live-val" style={{ marginTop: 4, paddingTop: 4, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-                    <span>You Receive:</span>
-                    <strong>ETB {num(etbPayout)}</strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* Somalia Corridor */}
-              <div className="cpb-item">
-                <div className="cpb-dest">
-                  <span className="cpb-flag">🇸🇴</span>
-                  <div>
-                    <b>Somalia (Zaad / Waaafi)</b>
-                    <small>1:1 USD-backed Mobile Money</small>
-                  </div>
-                </div>
-                <div className="cpb-rates">
-                  <div className="cpb-broker-val" style={{ opacity: 0.8 }}>
-                    <span>Google Finance Benchmark:</span>
-                    <span>${zaadUsdBenchmark.toFixed(2)} USD</span>
-                  </div>
-                  <div className="cpb-broker-val" style={{ color: "var(--gold)", opacity: 0.9 }}>
-                    <span>YeboBank Fee (1%):</span>
-                    <span>-${zaadUsdFee.toFixed(2)} USD</span>
-                  </div>
-                  <div className="cpb-live-val" style={{ marginTop: 4, paddingTop: 4, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-                    <span>You Receive:</span>
-                    <strong>${zaadUsdPayout} USD</strong>
-                  </div>
-                </div>
+            <div className="converter-input-wrap">
+              <input
+                type="text"
+                inputMode="decimal"
+                className="converter-input"
+                value={raw}
+                onChange={(e) => setRaw(e.target.value)}
+                placeholder="1,000"
+                aria-label="Amount to convert"
+              />
+              <div className="converter-unit-select" role="tablist" aria-label="Input currency">
+                {UNITS.map((u) => {
+                  const isSelected = unit === u.id;
+                  return (
+                    <button
+                      key={u.id}
+                      type="button"
+                      className={`converter-unit-btn ${isSelected ? "active" : ""}`}
+                      onClick={() => setUnit(u.id)}
+                    >
+                      <span>{u.flag}</span>
+                      <span>{u.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          <div className="rate-note" style={{ marginTop: 14 }}>
-            1 BTC = ${num(rate.btcUsd)} · KES {num(rate.btcKes)} · ETB {num(rate.btcEtb)} ({rate.source})
+          {/* 4 Clean Result Cards */}
+          <div className="converter-grid">
+            {/* Kenya */}
+            <div className={`converter-result-card ${unit === "kes" ? "active-source" : ""}`}>
+              <div className="converter-result-hd">
+                <span className="converter-result-flag">
+                  <span>🇰🇪</span> Kenya
+                </span>
+                <span className="converter-result-prov">M-Pesa</span>
+              </div>
+              <div className="converter-result-val">
+                KES {num(kesVal, kesVal >= 100 ? 0 : 2)}
+              </div>
+            </div>
+
+            {/* Ethiopia */}
+            <div className={`converter-result-card ${unit === "etb" ? "active-source" : ""}`}>
+              <div className="converter-result-hd">
+                <span className="converter-result-flag">
+                  <span>🇪🇹</span> Ethiopia
+                </span>
+                <span className="converter-result-prov">Telebirr</span>
+              </div>
+              <div className="converter-result-val">
+                {num(etbVal, etbVal >= 100 ? 0 : 2)} ETB
+              </div>
+            </div>
+
+            {/* Somalia */}
+            <div className={`converter-result-card ${unit === "sos" ? "active-source" : ""}`}>
+              <div className="converter-result-hd">
+                <span className="converter-result-flag">
+                  <span>🇸🇴</span> Somalia
+                </span>
+                <span className="converter-result-prov">EVC Plus</span>
+              </div>
+              <div className="converter-result-val">
+                {num(Math.round(sosVal))} SOS
+              </div>
+            </div>
+
+            {/* Bitcoin Sats */}
+            <div className={`converter-result-card highlight ${unit === "sats" ? "active-source" : ""}`}>
+              <div className="converter-result-hd">
+                <span className="converter-result-flag">
+                  <span>⚡</span> Bitcoin
+                </span>
+                <span className="converter-result-prov">Lightning</span>
+              </div>
+              <div className="converter-result-val">
+                {num(satsVal)} sats
+              </div>
+            </div>
           </div>
 
-          <div style={{ marginTop: 22, display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
-            <Button variant="gold" onClick={() => setQuickOpen(true)}>
-              Deposit
-            </Button>
-            <Button variant="ghost" onClick={() => router.push("/login?redirect=/dashboard")}>
-              Transfer
-            </Button>
+          {/* Minimalist Footnote Note */}
+          <div className="converter-footer-note">
+            <span className="converter-zero-fee">
+              <i className="ti ti-bolt" /> 0% fee cross-border exchange
+            </span>
+            <span>1 BTC = ${num(rate.btcUsd)} · KES {num(rate.btcKes)}</span>
           </div>
+
+          {/* Action CTA Button */}
+          <button
+            type="button"
+            className="btn btn-gold converter-cta-btn"
+            onClick={() => setQuickOpen(true)}
+          >
+            <span>Send Money with This Rate</span>
+            <i className="ti ti-arrow-right" />
+          </button>
         </div>
       </div>
 
       <QuickProductModal
         isOpen={quickOpen}
         onClose={() => setQuickOpen(false)}
-        initialProduct="savings"
-        initialAmount={String(Math.round(sats * rate.kesPerSat))}
+        initialProduct="send"
+        initialAmount={String(Math.round(kesVal || 1000))}
       />
     </section>
   );
 }
+
