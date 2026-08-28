@@ -221,17 +221,14 @@ export default function QuickProductModal({
                       />
                     </div>
                     {numKes > 0 && (
-                      <div
-                        className="qa-hint"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                          color: "var(--emerald-deep)",
-                          fontWeight: 600,
-                        }}
-                      >
-                        <i className="ti ti-lock" /> ≈ {num(sats)} sats · 5.2% APY real yield
+                      <div className="qa-hint">
+                        <span className="qa-hint-icon">
+                          <i className="ti ti-lock" />
+                        </span>
+                        <div className="qa-hint-content">
+                          <span className="qa-hint-value">≈ {num(sats)} sats</span>
+                          <span className="qa-hint-sub">· 5.2% APY real yield</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -303,8 +300,14 @@ export default function QuickProductModal({
                       />
                     </div>
                     {numKes > 0 && (
-                      <div className="qa-hint" style={{ color: "var(--emerald-deep)", fontWeight: 600 }}>
-                        <i className="ti ti-bolt" /> Receives ≈ {num(sats)} sats immediately
+                      <div className="qa-hint">
+                        <span className="qa-hint-icon">
+                          <i className="ti ti-bolt" />
+                        </span>
+                        <div className="qa-hint-content">
+                          <span className="qa-hint-value">≈ {num(sats)} sats</span>
+                          <span className="qa-hint-sub">receives immediately</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -353,8 +356,14 @@ export default function QuickProductModal({
                       />
                     </div>
                     {numKes > 0 && (
-                      <div className="qa-hint" style={{ color: "var(--emerald-deep)", fontWeight: 600 }}>
-                        <i className="ti ti-users" /> ≈ {num(sats)} sats per cycle
+                      <div className="qa-hint">
+                        <span className="qa-hint-icon">
+                          <i className="ti ti-users" />
+                        </span>
+                        <div className="qa-hint-content">
+                          <span className="qa-hint-value">≈ {num(sats)} sats</span>
+                          <span className="qa-hint-sub">per cycle</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -388,6 +397,17 @@ export default function QuickProductModal({
                         required
                       />
                     </div>
+                    {Number(satsAmount) > 0 && (
+                      <div className="qa-hint">
+                        <span className="qa-hint-icon">
+                          <i className="ti ti-arrows-exchange" />
+                        </span>
+                        <div className="qa-hint-content">
+                          <span className="qa-hint-value">≈ KES {num(Math.round(Number(satsAmount) * rate.kesPerSat), 2)}</span>
+                          <span className="qa-hint-sub">at market rate</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -410,6 +430,17 @@ export default function QuickProductModal({
                         autoFocus
                       />
                     </div>
+                    {numKes > 0 && (
+                      <div className="qa-hint">
+                        <span className="qa-hint-icon">
+                          <i className="ti ti-cash" />
+                        </span>
+                        <div className="qa-hint-content">
+                          <span className="qa-hint-value">≈ {num(sats)} sats</span>
+                          <span className="qa-hint-sub">cash deposit voucher</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="qa-field">
                     <label className="qa-lbl">Your Phone Number</label>
@@ -444,8 +475,14 @@ export default function QuickProductModal({
                       />
                     </div>
                     {numKes > 0 && (
-                      <div className="qa-hint" style={{ color: "var(--emerald-deep)", fontWeight: 600 }}>
-                        <i className="ti ti-trending-up" /> ≈ {num(sats)} sats into productive real assets
+                      <div className="qa-hint">
+                        <span className="qa-hint-icon">
+                          <i className="ti ti-trending-up" />
+                        </span>
+                        <div className="qa-hint-content">
+                          <span className="qa-hint-value">≈ {num(sats)} sats</span>
+                          <span className="qa-hint-sub">into productive real assets</span>
+                        </div>
                       </div>
                     )}
                   </div>

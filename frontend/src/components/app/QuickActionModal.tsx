@@ -247,7 +247,13 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
                   </div>
                   {sendSatsNum > 0 && (
                     <div className="qa-hint">
-                      <i className="ti ti-arrows-exchange" /> ≈ KES {num(kesFromSend, 2)} at today&apos;s rate
+                      <span className="qa-hint-icon">
+                        <i className="ti ti-arrows-exchange" />
+                      </span>
+                      <div className="qa-hint-content">
+                        <span className="qa-hint-value">≈ KES {num(kesFromSend, 2)}</span>
+                        <span className="qa-hint-sub">at today&apos;s rate</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -268,7 +274,13 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
                     </div>
                     {lockSatsNum > 0 && (
                       <div className="qa-hint">
-                        <i className="ti ti-arrows-exchange" /> ≈ KES {num(kesFromLock, 2)} · Yield: ~5.2% p.a.
+                        <span className="qa-hint-icon">
+                          <i className="ti ti-lock" />
+                        </span>
+                        <div className="qa-hint-content">
+                          <span className="qa-hint-value">≈ KES {num(kesFromLock, 2)}</span>
+                          <span className="qa-hint-sub">· Yield: ~5.2% p.a.</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -337,6 +349,17 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
                       onChange={(e) => setKes(e.target.value)}
                     />
                   </div>
+                  {kesNum > 0 && (
+                    <div className="qa-hint">
+                      <span className="qa-hint-icon">
+                        <i className={kind === "withdraw" ? "ti ti-arrow-up-right" : "ti ti-arrow-down-left"} />
+                      </span>
+                      <div className="qa-hint-content">
+                        <span className="qa-hint-value">≈ {num(satsFromKes)} sats</span>
+                        <span className="qa-hint-sub">{kind === "withdraw" ? "deducted from balance" : "credited instantly"}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

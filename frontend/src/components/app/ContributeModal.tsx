@@ -125,21 +125,20 @@ export default function ContributeModal({ lock, onConfirm, onCancel, loading }: 
         </div>
 
         {amount !== "" && (
-          <div
-            className="qa-hint"
-            style={{
-              marginBottom: 16,
-              color: "var(--emerald-deep)",
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <i className="ti ti-arrows-exchange" />
-            {unit === "KES"
-              ? `≈ ${num(sats)} sats at market rate`
-              : `≈ KES ${num(Math.round(sats * rate.kesPerSat))}`}
+          <div className="qa-hint" style={{ marginBottom: 16 }}>
+            <span className="qa-hint-icon">
+              <i className="ti ti-arrows-exchange" />
+            </span>
+            <div className="qa-hint-content">
+              <span className="qa-hint-value">
+                {unit === "KES"
+                  ? `≈ ${num(sats)} sats`
+                  : `≈ KES ${num(Math.round(sats * rate.kesPerSat))}`}
+              </span>
+              <span className="qa-hint-sub">
+                {unit === "KES" ? "at market rate" : "equivalent value"}
+              </span>
+            </div>
           </div>
         )}
 

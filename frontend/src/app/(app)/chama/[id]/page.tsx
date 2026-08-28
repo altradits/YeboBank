@@ -520,9 +520,17 @@ function ContributeModal({
             onChange={(e) => setKes(e.target.value)}
           />
         </div>
-        <p className="note" style={{ marginBottom: 16 }}>
-          ≈ {num(sats)} sats at current rate
-        </p>
+        {sats > 0 && (
+          <div className="qa-hint" style={{ marginBottom: 16 }}>
+            <span className="qa-hint-icon">
+              <i className="ti ti-arrows-exchange" />
+            </span>
+            <div className="qa-hint-content">
+              <span className="qa-hint-value">≈ {num(sats)} sats</span>
+              <span className="qa-hint-sub">at current rate</span>
+            </div>
+          </div>
+        )}
 
         <div className="modal-actions">
           <Button onClick={() => onConfirm(sats)} disabled={loading || sats <= 0}>
