@@ -360,15 +360,13 @@ export default function QuickProductModal({
                     />
 
                     {numKes > 0 && (
-                      <div className="qa-hint" style={{ marginTop: 6, padding: "8px 10px" }}>
-                        <span className="qa-hint-icon" style={{ width: 22, height: 22, fontSize: 11 }}>
-                          <i className="ti ti-arrows-exchange" />
-                        </span>
+                      <div className="qa-hint" style={{ marginTop: 6 }}>
                         <div className="qa-hint-content">
-                          <span className="qa-hint-value" style={{ fontSize: 12.5 }}>
-                            ≈ {sendCountry === "ET" ? `${num(Math.round(numKes * rate.kesEtb))} ETB` : sendCountry === "SO" ? `${num(Math.round(numKes * rate.kesSos))} SOS` : `KES ${num(numKes)}`} ({recipientProvider})
+                          <span className="qa-hint-label">Recipient receives:</span>
+                          <span className="qa-hint-value">
+                            {sendCountry === "ET" ? `${num(Math.round(numKes * rate.kesEtb))} ETB` : sendCountry === "SO" ? `${num(Math.round(numKes * rate.kesSos))} SOS` : `KES ${num(numKes)}`} ({recipientProvider})
                           </span>
-                          <span className="qa-hint-sub" style={{ fontSize: 11 }}>· 0% fee via YeboBank</span>
+                          <span className="qa-hint-sub">· 0% fee via YeboBank</span>
                         </div>
                       </div>
                     )}
@@ -414,11 +412,9 @@ export default function QuickProductModal({
                     </div>
                     {numKes > 0 && (
                       <div className="qa-hint">
-                        <span className="qa-hint-icon">
-                          <i className="ti ti-lock" />
-                        </span>
                         <div className="qa-hint-content">
-                          <span className="qa-hint-value">≈ {num(sats)} sats</span>
+                          <span className="qa-hint-label">You lock:</span>
+                          <span className="qa-hint-value">{num(sats)} sats</span>
                           <span className="qa-hint-sub">· 5.2% APY real yield</span>
                         </div>
                       </div>
@@ -493,12 +489,10 @@ export default function QuickProductModal({
                     </div>
                     {numKes > 0 && (
                       <div className="qa-hint">
-                        <span className="qa-hint-icon">
-                          <i className="ti ti-bolt" />
-                        </span>
                         <div className="qa-hint-content">
-                          <span className="qa-hint-value">≈ {num(sats)} sats</span>
-                          <span className="qa-hint-sub">receives immediately</span>
+                          <span className="qa-hint-label">You receive:</span>
+                          <span className="qa-hint-value">{num(sats)} sats</span>
+                          <span className="qa-hint-sub">credited instantly</span>
                         </div>
                       </div>
                     )}
@@ -549,11 +543,9 @@ export default function QuickProductModal({
                     </div>
                     {numKes > 0 && (
                       <div className="qa-hint">
-                        <span className="qa-hint-icon">
-                          <i className="ti ti-users" />
-                        </span>
                         <div className="qa-hint-content">
-                          <span className="qa-hint-value">≈ {num(sats)} sats</span>
+                          <span className="qa-hint-label">Monthly share:</span>
+                          <span className="qa-hint-value">{num(sats)} sats</span>
                           <span className="qa-hint-sub">per cycle</span>
                         </div>
                       </div>
@@ -591,12 +583,10 @@ export default function QuickProductModal({
                     </div>
                     {Number(satsAmount) > 0 && (
                       <div className="qa-hint">
-                        <span className="qa-hint-icon">
-                          <i className="ti ti-arrows-exchange" />
-                        </span>
                         <div className="qa-hint-content">
-                          <span className="qa-hint-value">≈ KES {num(Math.round(Number(satsAmount) * rate.kesPerSat), 2)}</span>
-                          <span className="qa-hint-sub">at market rate</span>
+                          <span className="qa-hint-label">Recipient receives:</span>
+                          <span className="qa-hint-value">KES {num(Math.round(Number(satsAmount) * rate.kesPerSat), 2)}</span>
+                          <span className="qa-hint-sub">equivalent at market rate</span>
                         </div>
                       </div>
                     )}
@@ -624,12 +614,10 @@ export default function QuickProductModal({
                     </div>
                     {numKes > 0 && (
                       <div className="qa-hint">
-                        <span className="qa-hint-icon">
-                          <i className="ti ti-cash" />
-                        </span>
                         <div className="qa-hint-content">
-                          <span className="qa-hint-value">≈ {num(sats)} sats</span>
-                          <span className="qa-hint-sub">cash deposit voucher</span>
+                          <span className="qa-hint-label">Deposit voucher:</span>
+                          <span className="qa-hint-value">{num(sats)} sats</span>
+                          <span className="qa-hint-sub">credited to account</span>
                         </div>
                       </div>
                     )}
@@ -668,11 +656,9 @@ export default function QuickProductModal({
                     </div>
                     {numKes > 0 && (
                       <div className="qa-hint">
-                        <span className="qa-hint-icon">
-                          <i className="ti ti-trending-up" />
-                        </span>
                         <div className="qa-hint-content">
-                          <span className="qa-hint-value">≈ {num(sats)} sats</span>
+                          <span className="qa-hint-label">Allocation:</span>
+                          <span className="qa-hint-value">{num(sats)} sats</span>
                           <span className="qa-hint-sub">into productive real assets</span>
                         </div>
                       </div>

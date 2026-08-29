@@ -126,17 +126,15 @@ export default function ContributeModal({ lock, onConfirm, onCancel, loading }: 
 
         {amount !== "" && (
           <div className="qa-hint" style={{ marginBottom: 16 }}>
-            <span className="qa-hint-icon">
-              <i className="ti ti-arrows-exchange" />
-            </span>
             <div className="qa-hint-content">
+              <span className="qa-hint-label">Group pot receives:</span>
               <span className="qa-hint-value">
                 {unit === "KES"
-                  ? `≈ ${num(sats)} sats`
-                  : `≈ KES ${num(Math.round(sats * rate.kesPerSat))}`}
+                  ? `${num(sats)} sats`
+                  : `KES ${num(Math.round(sats * rate.kesPerSat))}`}
               </span>
               <span className="qa-hint-sub">
-                {unit === "KES" ? "at market rate" : "equivalent value"}
+                {unit === "KES" ? "at market rate" : "equivalent"}
               </span>
             </div>
           </div>
