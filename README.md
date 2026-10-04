@@ -1,5 +1,9 @@
 # YeboBank
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-yebobank.vercel.app-11A65B?style=for-the-badge&logo=vercel&logoColor=white)](https://yebobank.vercel.app)
+
+**Live App:** [https://yebobank.vercel.app](https://yebobank.vercel.app)
+
 YeboBank is a custodial Bitcoin bank, not a wallet or exchange. It targets low-income earners in Kenya who already use M-Pesa and want a savings account that earns interest in Bitcoin.
 
 ## Frontend dashboards
