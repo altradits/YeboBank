@@ -584,7 +584,7 @@ export default function CardPage() {
                     {c.status === "frozen" ? "Card is frozen — tap to unfreeze" : "Freeze card"}
                   </p>
                   <p className="note" style={{ marginTop: 3 }}>
-                    A frozen card is instantly declined everywhere. Unfreeze when you're ready to deploy.
+                    A frozen card is instantly declined everywhere. Unfreeze when you&apos;re ready to deploy.
                   </p>
                 </div>
                 <button className="btn btn-ghost" disabled={busy} onClick={handleFreeze}
