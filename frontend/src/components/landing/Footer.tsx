@@ -104,7 +104,7 @@ export function SiteFooter() {
               <LogoMark size={34} /> YeboBank
             </div>
             <p className="foot-tagline">
-              An open-source Bitcoin savings bank built for the hard-working many.
+              An open-source demo of a Bitcoin savings concept. Test sats only, no real money.
               Karibu.
             </p>
             <div className="foot-socials" role="list" aria-label="Social media">

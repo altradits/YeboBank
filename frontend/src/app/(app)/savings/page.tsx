@@ -74,7 +74,7 @@ export default function SavingsPage() {
         stats={[
           { label: "Total locked", value: `${num(totalPrincipal)} sats`, sub: `≈ KES ${num(Math.round(totalPrincipal * rate.kesPerSat))}` },
           { label: "Interest accrued", value: `+${num(totalAccrued)} sats`, color: "var(--lime)", sub: "Paid monthly" },
-          { label: "Target APY", value: "~5.2%", sub: "From real yield" },
+          { label: "Target APY", value: "~5.2%", sub: "Simulated" },
         ]}
         actions={[
           { icon: "ti-plus",       label: "New Lock",  path: "/savings/lock" },
