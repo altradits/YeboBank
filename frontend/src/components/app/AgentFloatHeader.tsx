@@ -24,7 +24,7 @@ export default function AgentFloatHeader({
       <div className="agent-float-header__inner">
         {/* Float + commission */}
         <div className="afh-primary">
-          <p className="afh-section-label">Float &amp; Commission</p>
+          <p className="afh-section-label">Float &amp; Commission (simulated)</p>
           <div className="afh-row">
             <div className="afh-metric">
               <span className="afh-big">{display(floatSats)}</span>

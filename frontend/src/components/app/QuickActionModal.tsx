@@ -11,10 +11,10 @@ import SecurityTransactionGuard from "@/components/ui/SecurityTransactionGuard";
 export type QuickActionKind = "deposit" | "withdraw" | "send" | "lock";
 
 const META: Record<QuickActionKind, { title: string; icon: string; subtitle: string }> = {
-  deposit:  { title: "Deposit",        icon: "ti-arrow-down", subtitle: "Top up your wallet via M-Pesa or Lightning" },
-  withdraw: { title: "Withdraw",       icon: "ti-arrow-up",   subtitle: "Withdraw sats directly to M-Pesa cash" },
-  send:     { title: "Send",           icon: "ti-send",       subtitle: "Send instant Bitcoin sats globally" },
-  lock:     { title: "Lock Savings",   icon: "ti-lock",       subtitle: "Earn ~5.2% APY real yield in Bitcoin" },
+  deposit:  { title: "Deposit",        icon: "ti-arrow-down", subtitle: "Top up with test sats via simulated M-Pesa or testnet Lightning" },
+  withdraw: { title: "Withdraw",       icon: "ti-arrow-up",   subtitle: "Withdraw test sats to simulated M-Pesa" },
+  send:     { title: "Send",           icon: "ti-send",       subtitle: "Send testnet sats (test sats only)" },
+  lock:     { title: "Lock Savings",   icon: "ti-lock",       subtitle: "Lock test sats (interest simulated)" },
 };
 
 interface Props {
@@ -85,7 +85,7 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
         if (method === "mpesa") {
           const res = await depositMpesa(kesNum);
           setResultAmt(`KES ${num(kesNum)}`);
-          setResultMsg(`STK Push initiated (ref: ${res.checkoutRequestId || "pending"}). Check your phone to enter your M-Pesa PIN.`);
+          setResultMsg(`Simulated STK Push (ref: ${res.checkoutRequestId || "pending"}). No real money moves.`);
         } else {
           const res = await depositLightning(satsFromKes);
           setResultAmt(`${num(satsFromKes)} sats`);
@@ -96,7 +96,7 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
         if (kesNum <= 0) throw new Error("Enter an amount to withdraw");
         await withdrawMpesa(satsFromKes);
         setResultAmt(`KES ${num(kesNum)}`);
-        setResultMsg(`Withdrawal initiated. Funds will arrive on your M-Pesa shortly.`);
+        setResultMsg(`Simulated withdrawal. No real funds move.`);
       } else if (kind === "send") {
         if (!dest.trim()) throw new Error("Enter a recipient address or invoice");
         if (sendSatsNum <= 0) throw new Error("Enter sats to send");
@@ -431,7 +431,7 @@ export default function QuickActionModal({ kind, onClose, onDone }: Props) {
               {kind === "deposit" && method === "mpesa" && (
                 <div className="qa-stk-notice">
                   <i className="ti ti-device-mobile" />
-                  <span>A prompt has been sent to your phone. Open it and enter your M-Pesa PIN to confirm.</span>
+                  <span>Simulated STK prompt — no real phone prompt is sent in this demo.</span>
                 </div>
               )}
 
