@@ -4,11 +4,12 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/jetbrains-mono";
 import "./globals.css";
 import { RateProvider } from "@/lib/rate-context";
+import DemoBanner from "@/components/DemoBanner";
 
 export const metadata: Metadata = {
-  title: "YeboBank — Save in Bitcoin. Spend in shillings.",
+  title: "YeboBank — Demo (test sats only, no real money)",
   description:
-    "An open-source Bitcoin savings bank for Kenya. Earn interest in sats, top up and cash out with M-Pesa, and watch your money stop shrinking to inflation.",
+    "Open-source demo of a Bitcoin savings concept for Kenya on test networks. Simulated interest, test sats only, no real money.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <DemoBanner />
         <RateProvider>{children}</RateProvider>
       </body>
     </html>

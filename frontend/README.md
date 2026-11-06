@@ -1,6 +1,8 @@
-# YeboBank — Frontend
+# YeboBank — Frontend (demo, test networks only)
 
-Open-source Bitcoin savings bank for Kenya. Save in sats, spend in shillings — top up via M-Pesa, earn yield, save with your chama, and cash out at a local agent.
+> **Demo: test sats only, no real money.** Open-source demo of a Bitcoin
+> savings concept for Kenya. Interest, Mlinzi returns and agent float are
+> simulated. See `../docs/DEMO_BOUNDARY.md`.
 
 ## Quick start
 
@@ -10,7 +12,9 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
-All pages run against mock data — no backend or environment variables required.
+All pages run against mock data by default — no backend or secrets required.
+Set `YEBO_BACKEND=on` in `.env.local` (see `.env.example`) to use the
+built-in demo backend instead of mocks.
 
 ---
 
@@ -70,25 +74,24 @@ All pages run against mock data — no backend or environment variables required
 
 ### Agent console
 
-Requires `mockUser.isAgent === true`.
+Requires the agent persona (log in with the agent phone number).
 
 | Route | Description |
 |-------|-------------|
-| `/agent` | Float header (KES/Sats toggle + bento stats), customer lookup, cash-in/out, reserve management, transaction ledger, panic button |
-| `/agent/settings` | Profile, till number, emergency contacts, commission rate (read-only), security |
+| `/agent` | Float header (KES/Sats toggle + stats), customer lookup, cash-in/out, reserve management, transaction ledger, panic button (float simulated) |
 
 ### Investor portal
 
-Requires `mockUser.accessStatus === "accepted"` (or Mlinzi role).
+Requires `accessStatus === "accepted"` (or Mlinzi role). All figures simulated.
 
 | Route | Description |
 |-------|-------------|
 | `/invest` | Position card (principal + current value + return %), monthly statements, FI Calculator, withdrawal request |
-| `/invest/settings` | Profile, FI preferences, security, notifications |
 
 ### Mlinzi dashboard
 
-Requires `mockUser.role === "mlinzi"`. Routes isolated via middleware — all other users are redirected.
+Requires `role === "mlinzi"`. Routes are gated client-side via `RouteGuard`
+plus server-side session checks on the API. All figures simulated.
 
 | Route | Description |
 |-------|-------------|
@@ -104,21 +107,14 @@ Requires `mockUser.role === "mlinzi"`. Routes isolated via middleware — all ot
 
 ## Role switching (mock data)
 
-Edit `src/lib/mock.ts` and change `mockUser`:
+Log in with the matching phone number (any password) to switch persona:
 
-```ts
-// Customer (default)
-role: "customer", isAgent: false, accessStatus: "none"
-
-// Customer who is also an agent
-role: "customer", isAgent: true
-
-// Approved investor
-role: "customer", accessStatus: "accepted"
-
-// Mlinzi (fund steward)
-role: "mlinzi"
-```
+| Phone | Persona | Routes |
+|-------|---------|--------|
+| `+254700000001` | Mlinzi (Stanley) | `/mlinzi` |
+| `+254700000002` | Agent (Otieno) | `/agent` |
+| `+254700000003` | Investor (Prudence) | `/invest` |
+| any other | Member (Wanjiku) | `/dashboard`, `/savings`, `/chama` |
 
 ---
 
@@ -149,7 +145,12 @@ All money actions (deposit, withdraw, send, lock) are **modals** — no core act
 
 ## API layer
 
-All API calls go through `src/lib/api.ts`. Every function currently returns mock data from `src/lib/mock.ts`. To connect a real backend: replace the mock implementations in `api.ts`. The rest of the frontend requires no changes.
+All API calls go through `src/lib/api.ts`. Every function uses mock data
+from `src/lib/mock.ts` unless `YEBO_BACKEND=on` is set, in which case it
+calls the built-in demo backend (`src/app/api/*`, test sats only, local/CI).
+Lightning operations go through the Altradits Developer API adapter
+(`src/lib/altradits.ts`) or its local fake. The rest of the frontend
+requires no changes.
 
 ---
 
