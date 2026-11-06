@@ -94,7 +94,7 @@ export default function DepositPage() {
         </div>
         <h1 className="page-title">Deposit Bitcoin</h1>
         <p className="page-sub">
-          Top up your YeboBank wallet with Bitcoin Sats instantly via M-Pesa or Lightning with 0% network markup.
+          Top up your demo wallet with test sats via simulated M-Pesa or testnet Lightning.
         </p>
       </div>
 
@@ -118,7 +118,7 @@ export default function DepositPage() {
           onClick={() => { setMethod("mpesa"); setStatus("idle"); }}
         >
           <i className="ti ti-device-mobile" />
-          <span>M-Pesa STK (KES ➔ Sats)</span>
+          <span>M-Pesa STK (simulated)</span>
         </button>
 
         <button
@@ -212,7 +212,7 @@ export default function DepositPage() {
                 <div className="df-success-icon"><i className="ti ti-circle-check" /></div>
                 <h3>Deposit Confirmed!</h3>
                 <p className="df-big-gain">+{num(creditedSats)} Sats</p>
-                <p className="df-sub">Successfully credited to your wallet from M-Pesa (KES {num(kesNum)}).</p>
+                <p className="df-sub">Successfully credited (simulated) to your wallet from M-Pesa (KES {num(kesNum)}).</p>
                 <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 18 }}>
                   <Button variant="primary" onClick={() => router.push("/dashboard")}>
                     Go to Dashboard
