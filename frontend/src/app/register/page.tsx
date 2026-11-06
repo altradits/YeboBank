@@ -13,13 +13,14 @@ function RegisterForm() {
   const redirect = searchParams.get("redirect") ?? "";
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState("");
+  const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      await register(phone, fullName); // mock — sends an OTP
+      await register(phone, fullName, pin || undefined);
       router.push(redirect ? `/verify?redirect=${encodeURIComponent(redirect)}` : "/verify");
     } finally {
       setLoading(false);
@@ -41,6 +42,12 @@ function RegisterForm() {
           <label htmlFor="phone">Phone number</label>
           <input id="phone" className="input" type="tel" placeholder="07XX XXX XXX"
             value={phone} onChange={(e) => setPhone(e.target.value)} required />
+        </div>
+        <div className="field-group">
+          <label htmlFor="pin">Transaction PIN (6 digits)</label>
+          <input id="pin" className="input" type="password" inputMode="numeric" pattern="[0-9]{6}"
+            maxLength={6} placeholder="6 digits" autoComplete="new-password"
+            value={pin} onChange={(e) => setPin(e.target.value)} />
         </div>
         <Button type="submit" variant="gold" block disabled={loading}>
           {loading ? "Sending code…" : "Continue"}

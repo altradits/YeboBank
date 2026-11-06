@@ -30,18 +30,33 @@ import {
 } from "@/lib/mock";
 import type { AccountSetup, PersonaKey } from "@/lib/mock";
 
-const USE_MOCKS = true; // flip to false once the backend endpoints exist
+// Mock-data demo by default (Vercel). Set NEXT_PUBLIC_YEBO_BACKEND=on to use
+// the built-in demo backend (/api/*, test sats only, local/CI).
+const USE_MOCKS = process.env.NEXT_PUBLIC_YEBO_BACKEND !== "on";
 
 function delay<T>(value: T, ms = 350): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
 }
 
-// Helper for the real implementation later. Cookies carry the session.
+// Backend fetch. Cookies carry the session; state-changing requests also
+// send the per-session CSRF token from the readable yebo_csrf cookie.
+function csrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const hit = document.cookie.split(";").map((p) => p.trim()).find((p) => p.startsWith("yebo_csrf="));
+  return hit ? hit.slice("yebo_csrf=".length) : null;
+}
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method || "GET").toUpperCase();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (method !== "GET" && method !== "HEAD") {
+    const csrf = csrfToken();
+    if (csrf) headers["X-CSRF-Token"] = csrf;
+  }
   const res = await fetch(`/api${path}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
     ...init,
+    headers: { ...headers, ...(init?.headers as Record<string, string> | undefined) },
   });
   if (!res.ok) throw new Error(`API ${path} failed: ${res.status}`);
   return res.json() as Promise<T>;
@@ -55,12 +70,12 @@ export async function login(phone: string, password: string): Promise<User> {
     setActivePersonaKey(key);
     return delay({ ...activeUser() });
   }
-  return req<User>("/login", { method: "POST", body: JSON.stringify({ phone, password }) });
+  return req<User>("/login", { method: "POST", body: JSON.stringify({ phone, pin: password }) });
 }
 
-export async function register(phone: string, fullName: string): Promise<{ otpSent: boolean }> {
+export async function register(phone: string, fullName: string, pin?: string): Promise<{ otpSent: boolean }> {
   if (USE_MOCKS) return delay({ otpSent: true });
-  return req("/register", { method: "POST", body: JSON.stringify({ phone, fullName }) });
+  return req("/register", { method: "POST", body: JSON.stringify({ phone, fullName, pin }) });
 }
 
 export async function verifyOtp(code: string): Promise<User> {
