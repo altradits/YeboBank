@@ -55,7 +55,7 @@ const META: Record<ProductType, { title: string; icon: string; buttonLabel: stri
     title: "Lock Savings in Sats",
     icon: "ti-lock",
     buttonLabel: "Save",
-    hint: "Earns ~5.2% APY real yield in Bitcoin.",
+    hint: "Locks test sats (interest simulated).",
   },
   mpesa: {
     title: "M-Pesa Deposit",
@@ -415,7 +415,7 @@ export default function QuickProductModal({
                         <div className="qa-hint-content">
                           <span className="qa-hint-label">You lock:</span>
                           <span className="qa-hint-value">{num(sats)} sats</span>
-                          <span className="qa-hint-sub">· 5.2% APY real yield</span>
+                          <span className="qa-hint-sub">· interest simulated</span>
                         </div>
                       </div>
                     )}

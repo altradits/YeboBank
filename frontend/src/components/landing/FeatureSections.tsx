@@ -413,7 +413,7 @@ function SavingsMpesaPair({
                       </div>
                       <div className="mp-row">
                         <span>Target APY</span>
-                        <b className="mp-sats-val">5.2% Real Yield</b>
+                        <b className="mp-sats-val">5.2% Simulated</b>
                       </div>
                       <div className="mp-row">
                         <span>Monthly Distribution</span>
@@ -477,7 +477,7 @@ function SavingsMpesaPair({
                 <span className="gold-accent">Idle money loses value.</span>
               </h2>
               <p className="lead">
-                Put your savings to work with 5.2% real yield paid out every month directly into your wallet.
+                See how locked test sats would grow with simulated interest in this demo. No real money.
               </p>
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 24 }}>
                 <Button variant="gold" onClick={onLockSavings}>

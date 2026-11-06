@@ -143,6 +143,18 @@ All money actions (deposit, withdraw, send, lock) are **modals** — no core act
 
 ---
 
+## Testing
+
+```bash
+npm test          # unit suite (vitest): ledger, locks, chama votes, PIN lockout, Lightning fake
+npm run test:e2e  # headless browser journeys (Playwright, never the Chrome app)
+npm run lint      # ESLint (Next core-web-vitals)
+npm run build     # production build
+```
+
+The regtest Lightning test runs only when `LND_REGTEST_*` is set (see
+`../docs/LIGHTNING_REGTEST.md`); otherwise it reports skipped.
+
 ## API layer
 
 All API calls go through `src/lib/api.ts`. Every function uses mock data

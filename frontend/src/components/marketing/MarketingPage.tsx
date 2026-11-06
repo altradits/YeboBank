@@ -95,8 +95,8 @@ function HeroSection() {
             Spend in <span className="h-green">shillings.</span>
           </h1>
           <p className="mkt-hero-sub">
-            Your money stops shrinking to inflation. Earn interest in sats, top
-            up and cash out with M-Pesa — the open-source bank built for the
+            A demo of how savings could hold value in Bitcoin. Test sats only,
+            simulated interest — the open-source concept built for the
             hard-working many.
           </p>
           <button className="mkt-hero-cta" onClick={() => router.push("/login")}>
@@ -172,9 +172,9 @@ function PainSection() {
         </div>
         <div className="mkt-pain-stat reveal d1">−7%</div>
         <p className="lead reveal d2" style={{ margin: "14px auto 0", maxWidth: "44ch" }}>
-          Money sitting in mobile money loses 7% of its value to inflation
-          every year. Park the same amount in YeboBank and it earns interest
-          in Bitcoin — designed to hold value across decades, not melt away.
+          Money sitting in mobile money loses value to inflation every year.
+          This demo shows how the same amount could grow with simulated
+          interest in Bitcoin — test sats only, no real money.
         </p>
         <div className="reveal d3" style={{ marginTop: 28 }}>
           <Button variant="gold" onClick={() => router.push("/login")}>

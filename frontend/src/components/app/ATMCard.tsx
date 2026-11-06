@@ -170,8 +170,8 @@ export function ATMCard({
   if (variant === "dashboard") {
     const defaultStats: StatItem[] = [
       { label: "Locked in savings", value: `${num(lockedSats)} sats`, sub: `≈ KES ${num(lockedSats * rate.kesPerSat)}` },
-      { label: "Interest earned (12 mo)", value: `+${num(earnedSats)} sats`, sub: "Paid monthly", color: "var(--lime)" },
-      { label: "Target APY", value: "~5.2%", sub: "From real yield" },
+      { label: "Interest earned (12 mo, simulated)", value: `+${num(earnedSats)} sats`, sub: "Demo figure", color: "var(--lime)" },
+      { label: "Target APY", value: "~5.2%", sub: "Simulated" },
     ];
     const defaultActions: ActionItem[] = [
       { icon: "ti-arrow-down", label: "Add money", action: "deposit" },
