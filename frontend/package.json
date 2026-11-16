@@ -2,7 +2,7 @@
   "name": "yebobank-frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "YeboBank — open-source Bitcoin savings bank for Kenya. Frontend (Next.js App Router). Backend to be implemented behind src/lib/api.ts.",
+  "description": "YeboBank demo (test networks only, no real money). Frontend plus demo backend (Next.js App Router) behind src/lib/api.ts.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

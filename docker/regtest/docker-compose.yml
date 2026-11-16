@@ -1,0 +1,44 @@
+# Regtest Lightning for the YeboBank demo (test sats only, never mainnet).
+# Usage: cd docker/regtest && docker compose up -d
+# See docs/LIGHTNING_REGTEST.md for the LND_REGTEST_* wiring.
+services:
+  bitcoind:
+    image: lncm/bitcoind:v28.0
+    command:
+      -regtest
+      -server=1
+      -rpcuser=regtest
+      -rpcpassword=regtest
+      -rpcallowip=0.0.0.0/0
+      -rpcbind=0.0.0.0
+      -txindex=1
+      -fallbackfee=0.00001
+      -zmqpubrawblock=tcp://0.0.0.0:28332
+      -zmqpubrawtx=tcp://0.0.0.0:28333
+    ports:
+      - "18443:18443"
+      - "19444:19444"
+    volumes:
+      - ./data/bitcoind:/data/.bitcoin
+
+  lnd:
+    image: lightninglabs/lnd:v0.18.5-beta
+    command:
+      - --bitcoin.active
+      - --bitcoin.regtest
+      - --bitcoin.node=bitcoind
+      - --bitcoind.rpcuser=regtest
+      - --bitcoind.rpcpass=regtest
+      - --bitcoind.rpchost=bitcoind:18443
+      - --bitcoind.zmqpubrawblock=tcp://bitcoind:28332
+      - --bitcoind.zmqpubrawtx=tcp://bitcoind:28333
+      - --restlisten=0.0.0.0:10029
+      - --listen=0.0.0.0:19735
+      - --tlsextraip=127.0.0.1
+    ports:
+      - "10029:10029"
+      - "19735:19735"
+    volumes:
+      - ./data/lnd:/root/.lnd
+    depends_on:
+      - bitcoind

@@ -12,3 +12,5 @@ next-env.d.ts.tmp
 .env*
 # ...except the checked-in template (no secrets in it by construction)
 !.env.example
+# JSON file store for the built-in demo backend (DATABASE_PATH).
+.data/
