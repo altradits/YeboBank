@@ -1,24 +1,41 @@
 // POST /api/agent/pay — agent pays a customer's Lightning invoice/address
 // (guest Lightning→cash / Lightning→M-Pesa, member withdrawals).
-// Body: { invoiceOrAddress: string, amountSats: number }
+// Auth + CSRF required. Body: { invoiceOrAddress: string, amountSats: number }
 
 export const runtime = "nodejs";
 
+import { NextRequest, NextResponse } from "next/server";
 import { getBitcoinProvider } from "@/server/bitcoin";
+import { requireUser, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
 import { assertLightningAmount, classifyDestination } from "@/server/bitcoin/validate";
-import { err, idempotencyKey, ok, rateLimit, rateLimited, readJson, toErrorResponse } from "../../bitcoin/_lib";
+import { BitcoinError } from "@/server/bitcoin/types";
 
-export async function POST(req: Request): Promise<Response> {
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  const limited = throttle(req, "agent-pay", 20, 60_000);
+  if (limited) return limited;
+  const user = await requireUser(req);
+  if (user instanceof NextResponse) return user;
+  const csrf = requireCsrf(req);
+  if (csrf) return csrf;
+  // TODO(agent): require user.isAgent once agent onboarding writes isAgent.
+  void user;
+  const body = await readJson(req);
+
+  let amountSats: number;
+  let dest: { kind: "bolt11" | "lightning_address"; value: string };
   try {
-    if (!rateLimit(req, "agent-pay", 20)) return rateLimited();
-    const body = await readJson(req);
-    const amountSats = assertLightningAmount(body.amountSats as number, "amountSats");
-    const { kind, value } = classifyDestination(body.invoiceOrAddress);
+    amountSats = assertLightningAmount(body?.amountSats as number, "amountSats");
+    dest = classifyDestination(body?.invoiceOrAddress);
+  } catch (e) {
+    return fail(400, e instanceof Error ? e.message : "Invalid payment request");
+  }
+  const idempotencyKey = req.headers.get("idempotency-key")?.trim().slice(0, 128) || undefined;
+  try {
     const result = await getBitcoinProvider().payInvoice({
-      ...(kind === "bolt11" ? { paymentRequest: value } : { lightningAddress: value }),
+      ...(dest.kind === "bolt11" ? { paymentRequest: dest.value } : { lightningAddress: dest.value }),
       amountSats,
       memo: "YeboBank agent payout",
-      idempotencyKey: idempotencyKey(req, body),
+      idempotencyKey,
     });
     return ok({
       ok: result.status !== "failed",
@@ -28,7 +45,7 @@ export async function POST(req: Request): Promise<Response> {
       failureReason: result.failureReason,
     });
   } catch (e) {
-    if (e instanceof Error && e.name === "ValidationError") return err("VALIDATION_ERROR", e.message, 400);
-    return toErrorResponse(e);
+    const status = e instanceof BitcoinError ? e.status : 502;
+    return fail(status, e instanceof Error ? e.message : "Payment failed");
   }
 }

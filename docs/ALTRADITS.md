@@ -1,87 +1,67 @@
-# Altradits API integration
+# Altradits provider (adapter)
 
-[Altradits](https://altradits.com) ("Bitcoin in. M-Pesa out.") bridges Lightning
-sats and M-Pesa shillings in Kenya. It is YeboBank's **default live rail**:
-with one API key the bank creates Lightning invoices, pays invoices/addresses,
-and prices KES ↔ sats — no node to operate.
+YeboBank runs its Lightning operations through the Altradits Developer API
+the same way any outside developer would. The wire contract is defined once,
+in [ALTRADITS_CONTRACT.md](ALTRADITS_CONTRACT.md) — this file only describes
+how the bitcoin rail plugs into it. If the contract moves, the port
+(`frontend/src/server/altradits.ts`) moves with it; the adapter below it does
+not need to change.
 
-## What it does for YeboBank
+## Where each piece lives
 
-| Flow | Altradits role |
-|------|---------------|
-| Customer deposit (Lightning) | Issues the invoice the payer pays |
-| Customer send / agent payout / pool deployment | Pays the destination invoice / address |
-| KES ↔ sats pricing | FX desk (`/v1/quotes`) — LND has none, so quotes always resolve here |
-| Settlement | Webhook → YeboBank credits the custodial ledger (see below) |
+| Piece | File |
+|-------|------|
+| Wire contract (endpoints, webhook signing, fees) | `docs/ALTRADITS_CONTRACT.md` |
+| Port: sandbox HTTP client + fake/mode selection | `frontend/src/server/altradits.ts` |
+| In-repo fake (+ optional regtest internals) | `frontend/src/server/altradits-fake.ts` |
+| Shared types + webhook sign/verify | `frontend/src/lib/altradits.ts` |
+| **Adapter: port → `BitcoinProvider`** | `frontend/src/server/bitcoin/altradits.ts` |
+| Settlement path (verifies + credits ledger) | `frontend/src/app/api/webhooks/altradits/route.ts` |
 
-Fee model: the payout partner charges **1%** (visible on every quote as
-`feePct`/`feeAmount`); the shop/user receives the quoted net amount.
+## Mode selection (the port's rule)
 
-## Configure
+- `ALTRADITS_MODE=fake` (default) or no `ALTRADITS_API_KEY` → in-repo fake.
+  Sandbox: same interface, simulated settlement, `lntbs…` test invoices.
+- A key plus any other `ALTRADITS_MODE` → live sandbox server at
+  `ALTRADITS_API_BASE`.
 
-```bash
-BITCOIN_PROVIDER=altradits        # the default — may be omitted
-ALTRADITS_API_URL=https://api.altradits.com
-ALTRADITS_API_KEY=<key from the Altradits dashboard>
-ALTRADITS_WEBHOOK_SECRET=<secret for webhook HMAC verification>
-```
+`/api/bitcoin/status` reports which one is active (`mode: live|sandbox`) so
+nobody mistakes fake money for real money.
 
-Without `ALTRADITS_API_KEY` the provider runs in **sandbox mode**: same
-interface, simulated settlement, clearly-fake data — the UI works end to end
-and `/api/bitcoin/status` reports `mode: "sandbox"` so nobody mistakes it for
-real money.
+## What the adapter adds over the port
+
+The port speaks invoices, statuses, payments, and fee balance. The adapter
+maps those onto the rail interface (`createInvoice`, `lookupInvoice`,
+`payInvoice` with idempotency keys, `getNodeInfo`) so routes can switch
+between Altradits, LND, and mock via `BITCOIN_PROVIDER` with no code changes.
+
+Deliberate gaps (the contract is Lightning-only):
+
+- **Quotes** (`/api/bitcoin/quote`) use the shared fixed-rate fallback at the
+  contract's 0.5% fee until a live FX feed lands in the contract.
+- **On-chain addresses** and **invoice decode** are unsupported on Altradits
+  (`501`) — use `BITCOIN_PROVIDER=lnd` for those.
 
 ## Webhooks
 
 Point the Altradits dashboard callback at:
 
 ```
-POST {APP_BASE_URL}/api/bitcoin/webhook
+POST {APP_BASE_URL}/api/webhooks/altradits
 ```
 
-Each request must carry `X-Altradits-Signature: <HMAC-SHA256 hex of raw body>`
-computed with `ALTRADITS_WEBHOOK_SECRET`. Events:
+Signed per the contract (`x-altradits-timestamp` + `x-altradits-signature`
+over `${timestamp}.${rawBody}`). The handler verifies (constant-time, 5-minute
+replay window), drops unknown invoices and amount mismatches, and credits the
+double-entry ledger idempotently by payment hash.
 
-```jsonc
-{ "type": "invoice.settled", "invoice_id": "…", "payment_hash": "…" }
-{ "type": "payment.settled", "payment_id": "…" }
-{ "type": "payment.failed",  "payment_id": "…", "failure_reason": "…" }
-```
-
-On `invoice.settled` the bank must credit the custodial ledger (user id is in
-the invoice metadata). That step is a recorded `TODO(ledger)` until the ledger
-DB lands — settlements are logged and pollable via
-`/api/bitcoin/invoices/[hash]` meanwhile.
-
-## Endpoint contract used by the client
-
-Altradits has not published a versioned REST spec, so
-`frontend/src/server/bitcoin/altradits.ts` targets this conventional shape:
-
-| Operation | Call |
-|-----------|------|
-| Health | `GET /v1/status` |
-| Create invoice | `POST /v1/lightning/invoices` `{amount_sats, memo, expires_in, metadata}` |
-| Lookup invoice | `GET /v1/lightning/invoices/{id}` |
-| Decode invoice | `GET /v1/lightning/decode?invoice={bolt11}` |
-| Pay | `POST /v1/lightning/payments` `{invoice \| lightning_address, amount_sats, memo?, fee_limit_sats?}` + `Idempotency-Key` |
-| Lookup payment | `GET /v1/lightning/payments/{id}` |
-| New address | `POST /v1/bitcoin/addresses` |
-| Quote | `GET /v1/quotes?from=KES&to=SATS&amount=1000` |
-
-Every field is mapped in exactly one place (the private `call` + response
-interfaces at the top of `altradits.ts`). When the published spec differs,
-adapting is a contained edit — the provider interface and all routes stay
-unchanged.
+The separate `/api/bitcoin/webhook` is only for the bank's own LND invoice
+poller (internal token, no Altradits signature) — see
+[BITCOIN.md](BITCOIN.md).
 
 ## Verify
 
 ```bash
-# sandbox (no key)
-curl -s http://localhost:3000/api/bitcoin/status | jq .
-curl -s 'http://localhost:3000/api/bitcoin/quote?from=KES&to=SATS&amount=1000' | jq .
-
-# live (with key)
-curl -s -X POST http://localhost:3000/api/deposit/lightning \
-  -H 'Content-Type: application/json' -d '{"sats":1000}' | jq .
+# sandbox fake (no key): invoice → lookup → signed webhook → wallet credit
+BITCOIN_PROVIDER=altradits npm run bitcoin:smoke
 ```

@@ -16,10 +16,44 @@ import { getStore } from "./store";
 
 export const MOCK_BTC_USD = 98500;
 export const MOCK_USD_KES = 129.5;
-const MOCK_FEE_PCT = 1; // mirrors the Altradits payout-partner fee
+// 0.5% per the canonical Developer API contract (docs/ALTRADITS_CONTRACT.md).
+export const MOCK_FEE_PCT = 0.5;
 
 function satsPerKes(): number {
   return 1e8 / (MOCK_BTC_USD * MOCK_USD_KES);
+}
+
+/** Shared fixed-rate FX math for offline/sandbox quotes (no network). */
+export function fixedRateQuote(
+  params: QuoteParams,
+  feePct: number,
+  source: string,
+): Quote {
+  if (params.amount <= 0 || !Number.isFinite(params.amount)) {
+    throw new BitcoinError("VALIDATION_ERROR", "amount must be a positive number", 400, false);
+  }
+  const toSats = (amount: number, cur: QuoteParams["from"]): number => {
+    if (cur === "SATS") return amount;
+    if (cur === "BTC") return Math.round(amount * 1e8);
+    return Math.round(amount * satsPerKes());
+  };
+  const fromSats = (sats: number, cur: QuoteParams["to"]): number => {
+    if (cur === "SATS") return Math.round(sats);
+    if (cur === "BTC") return sats / 1e8;
+    return sats / satsPerKes();
+  };
+  const grossSats = toSats(params.amount, params.from);
+  const feeSats = Math.round(grossSats * (feePct / 100));
+  const netSats = grossSats - feeSats;
+  const result = fromSats(netSats, params.to);
+  return {
+    from: params.from, to: params.to, amount: params.amount, result,
+    rate: params.amount > 0 ? result / params.amount : 0,
+    feePct,
+    feeAmount: fromSats(feeSats, params.to),
+    source,
+    expiresAt: new Date(Date.now() + 60_000).toISOString(),
+  };
 }
 
 function fakePaymentHash(): string {
@@ -117,31 +151,7 @@ export class MockProvider implements BitcoinProvider {
   }
 
   async getQuote(params: QuoteParams): Promise<Quote> {
-    if (params.amount <= 0 || !Number.isFinite(params.amount)) {
-      throw new BitcoinError("VALIDATION_ERROR", "amount must be a positive number", 400, false);
-    }
-    const toSats = (amount: number, cur: QuoteParams["from"]): number => {
-      if (cur === "SATS") return amount;
-      if (cur === "BTC") return Math.round(amount * 1e8);
-      return Math.round(amount * satsPerKes());
-    };
-    const fromSats = (sats: number, cur: QuoteParams["to"]): number => {
-      if (cur === "SATS") return Math.round(sats);
-      if (cur === "BTC") return sats / 1e8;
-      return sats / satsPerKes();
-    };
-    const grossSats = toSats(params.amount, params.from);
-    const feeSats = Math.round(grossSats * (MOCK_FEE_PCT / 100));
-    const netSats = grossSats - feeSats;
-    const result = fromSats(netSats, params.to);
-    return {
-      from: params.from, to: params.to, amount: params.amount, result,
-      rate: params.amount > 0 ? result / params.amount : 0,
-      feePct: MOCK_FEE_PCT,
-      feeAmount: fromSats(feeSats, params.to),
-      source: "mock-fixed-rate",
-      expiresAt: new Date(Date.now() + 60_000).toISOString(),
-    };
+    return fixedRateQuote(params, MOCK_FEE_PCT, "mock-fixed-rate");
   }
 
   /** Test/dev helper: mark a mock invoice settled (simulates the payer). */

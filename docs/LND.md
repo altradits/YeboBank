@@ -9,6 +9,9 @@ Any LND 0.17+ node with REST enabled works:
 
 - **Managed (fastest):** Voltage, LNbits (LND backend), or Greenlight with a REST proxy.
 - **Self-hosted:** `lnd` + `bitcoind` (or Neutrino for testnet), REST on `:8080`.
+- **Local regtest (demo):** `docker/regtest/docker-compose.yml` in this repo
+  (see [LIGHTNING_REGTEST.md](LIGHTNING_REGTEST.md)) — point `LND_REST_URL` at
+  it to drive the provider with valueless regtest sats.
 
 Fund it and open at least one well-capitalised channel before going live —
 deposit invoices need **inbound** liquidity, payouts need **outbound**.

@@ -1,70 +1,68 @@
-// POST /api/bitcoin/webhook — settlement callbacks from the rail.
+// POST /api/bitcoin/webhook — settlement callbacks from the bank's own
+// invoice poller (LND pushes no webhooks — a worker polls invoice status and
+// POSTs settlements here).
 //
-// Altradits: configure this URL in the Altradits dashboard with the same
-// ALTRADITS_WEBHOOK_SECRET. The request must carry X-Altradits-Signature
-// (HMAC-SHA256 hex of the raw body). Expected event shape:
-//   { type: "invoice.settled" | "payment.settled" | "payment.failed",
-//     invoice_id?: string, payment_id?: string, payment_hash?: string }
-// LND: LND pushes no webhooks — this endpoint also accepts the bank's own
-// invoice-poller callbacks in the same shape (auth via WEBHOOK_INTERNAL_TOKEN).
-//
-// On invoice.settled the bank credits the user's ledger — TODAY that step is
-// a recorded TODO because the custodial ledger DB does not exist yet; the
-// settlement is durably logged and visible via the invoice status endpoint.
+// This is NOT the Altradits webhook: Altradits-signed events go to the
+// canonical /api/webhooks/altradits (see docs/ALTRADITS_CONTRACT.md), which
+// verifies the Altradits signature and credits the ledger. This endpoint
+// accepts ONLY the bank's internal token and the same event shape:
+//   { type: "invoice.settled", payment_hash, amountSats? }
+//   { type: "payment.settled" | "payment.failed", payment_id?, failure_reason? }
+// Invoice settlements credit the custodial ledger idempotently by payment
+// hash (ref ln:<hash>) when the invoice row names a user.
 
 export const runtime = "nodejs";
 
-import { verifyAltraditsWebhook } from "@/server/bitcoin/altradits";
-import { getBitcoinConfig } from "@/server/bitcoin/config";
+import { NextRequest, NextResponse } from "next/server";
+import { mutate, read } from "@/server/store";
+import { creditLightningDeposit } from "@/server/lightning-credit";
 import { getStore } from "@/server/bitcoin/store";
-import { err, ok } from "../_lib";
+import { ok, fail, throttle } from "@/server/http";
 
-type WebhookEvent =
-  | { type: "invoice.settled"; invoice_id?: string; payment_hash?: string }
-  | { type: "payment.settled" | "payment.failed"; payment_id?: string; failure_reason?: string };
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  const limited = throttle(req, "bitcoin-webhook", 120, 60_000);
+  if (limited) return limited;
 
-export async function POST(req: Request): Promise<Response> {
-  const raw = await req.text().catch(() => "");
-  if (!raw) return err("VALIDATION_ERROR", "empty body", 400);
-
-  const cfg = getBitcoinConfig();
-  const sig = req.headers.get("x-altradits-signature");
-  const internal = req.headers.get("x-internal-token");
   const internalToken = process.env.WEBHOOK_INTERNAL_TOKEN?.trim();
-
-  const altraditsOk = verifyAltraditsWebhook(raw, sig, cfg.altradits.webhookSecret);
-  const internalOk = Boolean(internalToken && internal && internal === internalToken);
-  if (!altraditsOk && !internalOk) {
-    return err("UNAUTHORIZED", "invalid webhook signature", 401);
+  const sent = req.headers.get("x-internal-token")?.trim();
+  if (!internalToken || !sent || sent !== internalToken) {
+    return fail(401, "Invalid internal token");
   }
 
-  let event: WebhookEvent;
+  let event: { type?: string; payment_hash?: string; invoice_id?: string; payment_id?: string; failure_reason?: string };
   try {
-    event = JSON.parse(raw) as WebhookEvent;
+    event = (await req.json()) as typeof event;
   } catch {
-    return err("VALIDATION_ERROR", "body must be JSON", 400);
+    return fail(400, "Body must be JSON");
   }
 
   const store = getStore();
   const now = new Date().toISOString();
   if (event.type === "invoice.settled") {
-    const id = event.invoice_id ?? event.payment_hash;
-    if (!id) return err("VALIDATION_ERROR", "invoice_id or payment_hash is required", 400);
-    const updated = store.setInvoiceStatus(id, "settled", now);
-    // TODO(ledger): credit the custodial ledger for this invoice (user id is in
-    // invoice metadata) inside a DB transaction keyed by payment_hash.
-    console.log(`[webhook] invoice settled: ${id} (ledger credit pending: ${updated ? "tracked" : "unknown invoice"})`);
+    const hash = event.payment_hash ?? event.invoice_id;
+    if (!hash) return fail(400, "payment_hash or invoice_id is required");
+    store.setInvoiceStatus(hash, "settled", now);
+    // Credit the owner's ledger account (idempotent by ln:<hash>).
+    const row = read((db) => {
+      const rows = (db.docs.invoices || []) as unknown as Array<{
+        hash: string; userId: string; amountSats: number;
+      }>;
+      return rows.find((r) => r.hash === hash) ?? null;
+    });
+    if (row) {
+      await mutate((db) => creditLightningDeposit(db, row.userId, hash, row.amountSats));
+    }
+    console.log(`[webhook] internal invoice settled: ${hash} (${row ? `credited user ${row.userId}` : "no invoice row, nothing credited"})`);
     return ok({ received: true });
   }
   if (event.type === "payment.settled" || event.type === "payment.failed") {
-    if (!event.payment_id) return err("VALIDATION_ERROR", "payment_id is required", 400);
+    if (!event.payment_id) return fail(400, "payment_id is required");
     store.setPaymentStatus(
       event.payment_id,
       event.type === "payment.settled" ? "settled" : "failed",
       event.failure_reason,
     );
-    console.log(`[webhook] payment ${event.type}: ${event.payment_id}`);
     return ok({ received: true });
   }
-  return err("VALIDATION_ERROR", `unknown event type ${(event as { type?: string }).type}`, 400);
+  return fail(400, `Unknown event type ${event.type}`);
 }

@@ -12,10 +12,12 @@ export interface LndConfig {
 }
 
 export interface AltraditsConfig {
+  /** Canonical: ALTRADITS_API_BASE (docs/ALTRADITS_CONTRACT.md). */
   baseUrl: string;
   apiKey: string | null;
+  /** ALTRADITS_MODE: "fake" (default) or anything else for live sandbox. */
+  mode: string;
   webhookSecret: string | null;
-  feePct: number;
   timeoutMs: number;
 }
 
@@ -48,10 +50,10 @@ export function getBitcoinConfig(): BitcoinConfig {
       timeoutMs: Number(env("LND_TIMEOUT_MS") ?? 15000),
     },
     altradits: {
-      baseUrl: (env("ALTRADITS_API_URL") ?? "https://api.altradits.com").replace(/\/$/, ""),
+      baseUrl: (env("ALTRADITS_API_BASE") ?? "http://127.0.0.1:8787/api/dev/v1").replace(/\/$/, ""),
       apiKey: env("ALTRADITS_API_KEY") ?? null,
+      mode: (env("ALTRADITS_MODE") ?? "fake").trim().toLowerCase(),
       webhookSecret: env("ALTRADITS_WEBHOOK_SECRET") ?? null,
-      feePct: Number(env("ALTRADITS_FEE_PCT") ?? 1),
       timeoutMs: Number(env("ALTRADITS_TIMEOUT_MS") ?? 15000),
     },
     appBaseUrl: (env("APP_BASE_URL") ?? env("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3000").replace(/\/$/, ""),
@@ -64,7 +66,8 @@ export function isLndConfigured(cfg: BitcoinConfig = getBitcoinConfig()): boolea
 }
 
 export function isAltraditsConfigured(cfg: BitcoinConfig = getBitcoinConfig()): boolean {
-  return Boolean(cfg.altradits.apiKey);
+  // Live needs BOTH a key and a non-fake mode (their port's rule).
+  return Boolean(cfg.altradits.apiKey) && cfg.altradits.mode !== "fake";
 }
 
 /** Safe subset for the /api/bitcoin/status endpoint — never includes secrets. */

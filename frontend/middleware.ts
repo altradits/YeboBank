@@ -9,7 +9,8 @@ const CSP = [
   "style-src 'self' https://cdn.jsdelivr.net",
   "font-src 'self' https://cdn.jsdelivr.net data:",
   "img-src 'self' data: https:",
-  "connect-src 'self'",
+  // Live FX feeds used by lib/rate-context (read-only price APIs).
+  "connect-src 'self' https://api.coingecko.com https://mempool.space https://api.yadio.io",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
