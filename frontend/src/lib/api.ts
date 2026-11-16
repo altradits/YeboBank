@@ -30,7 +30,14 @@ import {
 } from "@/lib/mock";
 import type { AccountSetup, PersonaKey } from "@/lib/mock";
 
-const USE_MOCKS = true; // flip to false once the backend endpoints exist
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false"; // flip to false once the backend endpoints exist
+// Bitcoin rail goes live independently of the rest of the backend: set
+// NEXT_PUBLIC_BITCOIN_LIVE=true and the Lightning functions below call the
+// real /api routes (Altradits by default, LND when BITCOIN_PROVIDER=lnd)
+// while everything else keeps using mocks.
+const BITCOIN_LIVE =
+  typeof process !== "undefined" && process.env.NEXT_PUBLIC_BITCOIN_LIVE === "true";
+const useMockForBitcoin = (): boolean => USE_MOCKS && !BITCOIN_LIVE;
 
 function delay<T>(value: T, ms = 350): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
@@ -127,8 +134,10 @@ export async function withdrawMpesa(sats: number): Promise<{ ok: boolean }> {
   return req("/withdraw/mpesa", { method: "POST", body: JSON.stringify({ sats }) });
 }
 
-export async function depositLightning(sats: number): Promise<{ invoice: string; satsCredited: number }> {
-  if (USE_MOCKS) {
+export async function depositLightning(
+  sats: number,
+): Promise<{ invoice: string; satsCredited: number; paymentHash?: string; expiresAt?: string }> {
+  if (useMockForBitcoin()) {
     const inv = "lnbc" + sats + "0n1p3" + Math.random().toString(36).substring(2, 12) + "yebobank";
     mockWallet.balanceSats += sats;
     mockLedger.unshift({
@@ -147,9 +156,67 @@ export async function depositLightning(sats: number): Promise<{ invoice: string;
 }
 
 
-export async function sendLightning(invoiceOrAddress: string, sats: number): Promise<{ ok: boolean }> {
-  if (USE_MOCKS) return delay({ ok: true });
+export async function sendLightning(
+  invoiceOrAddress: string,
+  sats: number,
+): Promise<{ ok: boolean; paymentId?: string; status?: string; feeSats?: number }> {
+  if (useMockForBitcoin()) return delay({ ok: true });
   return req("/withdraw/lightning", { method: "POST", body: JSON.stringify({ invoiceOrAddress, sats }) });
+}
+
+// ---- bitcoin rail status / quotes / addresses (live backend only) ---------------
+export interface BitcoinStatus {
+  provider: "lnd" | "altradits" | "mock";
+  lndConfigured: boolean;
+  altraditsConfigured: boolean;
+  lightningDomain: string;
+  node: { alias: string; blockHeight: number; synced: boolean; mode: "live" | "sandbox"; provider: string };
+}
+
+export async function getBitcoinStatus(): Promise<BitcoinStatus> {
+  return req<BitcoinStatus>("/bitcoin/status");
+}
+
+export interface BitcoinQuote {
+  from: "KES" | "SATS" | "BTC";
+  to: "KES" | "SATS" | "BTC";
+  amount: number;
+  result: number;
+  rate: number;
+  feePct: number;
+  feeAmount: number;
+  source: string;
+  expiresAt: string;
+}
+
+export async function getBitcoinQuote(
+  from: BitcoinQuote["from"],
+  to: BitcoinQuote["to"],
+  amount: number,
+): Promise<BitcoinQuote> {
+  const qs = new URLSearchParams({ from, to, amount: String(amount) });
+  const res = await fetch(`/api/bitcoin/quote?${qs.toString()}`, { credentials: "include" });
+  if (!res.ok) throw new Error(`API /bitcoin/quote failed: ${res.status}`);
+  return res.json() as Promise<BitcoinQuote>;
+}
+
+export async function getOnchainAddress(): Promise<{ address: string; provider: string }> {
+  const res = await fetch("/api/bitcoin/onchain-address", { credentials: "include" });
+  if (!res.ok) throw new Error(`API /bitcoin/onchain-address failed: ${res.status}`);
+  return res.json() as Promise<{ address: string; provider: string }>;
+}
+
+export async function getInvoiceStatus(
+  hash: string,
+): Promise<{ id: string; status: "open" | "settled" | "expired" | "failed"; amountSats: number; settledAt?: string }> {
+  const res = await fetch(`/api/bitcoin/invoices/${encodeURIComponent(hash)}`, { credentials: "include" });
+  if (!res.ok) throw new Error(`API /bitcoin/invoices failed: ${res.status}`);
+  return res.json();
+}
+
+/** True when the Lightning functions above hit the real backend. */
+export function isBitcoinLive(): boolean {
+  return BITCOIN_LIVE;
 }
 
 // ---- savings -----------------------------------------------------------------
@@ -423,17 +490,17 @@ export async function agentAssistService(
 }
 
 // ── Agent-side Lightning facilitation ────────────────────────────────────────
-// TODO(backend): POST /agent/invoice → lnd.AddInvoice({ value: amountSats }), return payment_request
+// Live: POST /agent/invoice → provider.createInvoice
 export async function agentGenerateInvoice(amountSats: number): Promise<{ invoice: string }> {
-  if (USE_MOCKS) {
+  if (useMockForBitcoin()) {
     return delay({ invoice: `lnbc${amountSats}n1p` + Math.random().toString(36).slice(2, 12) + "agentinvoice" });
   }
   return req("/agent/invoice", { method: "POST", body: JSON.stringify({ amountSats }) });
 }
 
-// TODO(backend): POST /agent/pay → lnd.SendPaymentV2({ payment_request | dest })
+// Live: POST /agent/pay → provider.payInvoice
 export async function agentPayInvoice(invoiceOrAddress: string, amountSats: number): Promise<{ ok: boolean }> {
-  if (USE_MOCKS) return delay({ ok: true });
+  if (useMockForBitcoin()) return delay({ ok: true });
   return req("/agent/pay", { method: "POST", body: JSON.stringify({ invoiceOrAddress, amountSats }) });
 }
 
@@ -464,9 +531,9 @@ export async function agentFiatSwap(
 }
 
 // Agent tops up their own sats float by paying a Lightning invoice they generate here.
-// TODO(backend): POST /agent/float/topup → lnd.AddInvoice, return bolt11
+// Live: POST /agent/float/topup → provider.createInvoice
 export async function agentTopUpFloat(amountSats: number): Promise<{ invoice: string }> {
-  if (USE_MOCKS) {
+  if (useMockForBitcoin()) {
     return delay({ invoice: `lnbc${amountSats}n1p` + Math.random().toString(36).slice(2, 12) + "floattopup" });
   }
   return req("/agent/float/topup", { method: "POST", body: JSON.stringify({ amountSats }) });

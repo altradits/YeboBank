@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useRate } from "@/lib/rate-context";
 import { num } from "@/lib/format";
-import { getWallet, getUser, depositMpesa, depositLightning } from "@/lib/api";
+import { getWallet, getUser, depositMpesa, depositLightning, getOnchainAddress, getBitcoinStatus, isBitcoinLive } from "@/lib/api";
 import type { Wallet, User } from "@/types";
 import LogoMark from "@/components/ui/LogoMark";
 import Button from "@/components/ui/Button";
@@ -28,6 +28,8 @@ export default function DepositPage() {
   const [invoice, setInvoice] = useState<string>("");
   const [copied, setCopied] = useState<boolean>(false);
   const [creditedSats, setCreditedSats] = useState<number>(0);
+  const [onChainAddress, setOnChainAddress] = useState<string>("bc1q9yebo8bank24crossborder7satsliquidity777x");
+  const [railLabel, setRailLabel] = useState<string | null>(null);
 
   useEffect(() => {
     getWallet().then(setWallet);
@@ -35,6 +37,18 @@ export default function DepositPage() {
       setUser(u);
       if (u?.phone) setPhone(u.phone);
     });
+    // When the bitcoin rail is live, the on-chain address comes from the real
+    // backend (LND/Altradits) instead of the placeholder above.
+    if (isBitcoinLive()) {
+      getBitcoinStatus().then(
+        (s) => setRailLabel(`Live via ${s.provider} · ${s.node.mode}`),
+        () => setRailLabel("Live rail unreachable — showing placeholders"),
+      );
+      getOnchainAddress().then(
+        (a) => setOnChainAddress(a.address),
+        () => undefined,
+      );
+    }
   }, []);
 
   const kesNum = parseFloat(kesAmount.replace(/[^0-9.]/g, "")) || 0;
@@ -82,7 +96,6 @@ export default function DepositPage() {
   };
 
   const lightningAddress = user?.phone ? `${user.phone.replace("+", "")}@yebobank.com` : "yourwallet@yebobank.com";
-  const onChainAddress = "bc1q9yebo8bank24crossborder7satsliquidity777x";
 
   return (
     <div className="deposit-page-wrap">
@@ -96,6 +109,11 @@ export default function DepositPage() {
         <p className="page-sub">
           Top up your YeboBank wallet with Bitcoin Sats instantly via M-Pesa or Lightning with 0% network markup.
         </p>
+        {railLabel && (
+          <p className="page-sub" style={{ marginTop: 6, fontSize: 12, opacity: 0.85 }}>
+            Bitcoin rail: {railLabel}
+          </p>
+        )}
       </div>
 
       {/* ── Balance Preview Card ── */}

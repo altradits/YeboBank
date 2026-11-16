@@ -10,3 +10,5 @@ npm-debug.log*
 next-env.d.ts.tmp
 *.tsbuildinfo
 .env*
+# ...except the checked-in template (no secrets in it by construction)
+!.env.example
