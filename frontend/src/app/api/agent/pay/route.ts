@@ -1,23 +1,22 @@
 // POST /api/agent/pay — agent pays a customer's Lightning invoice/address
 // (guest Lightning→cash / Lightning→M-Pesa, member withdrawals).
-// Auth + CSRF required. Body: { invoiceOrAddress: string, amountSats: number }
+// Agents only + CSRF required. Body: { invoiceOrAddress: string, amountSats: number }
 
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { getBitcoinProvider } from "@/server/bitcoin";
-import { requireUser, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
+import { requireAgent, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
 import { assertLightningAmount, classifyDestination } from "@/server/bitcoin/validate";
 import { isBitcoinError } from "@/server/bitcoin/types";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const limited = throttle(req, "agent-pay", 20, 60_000);
+  const limited = throttle(req, "agent", 20, 60_000);
   if (limited) return limited;
-  const user = await requireUser(req);
+  const user = await requireAgent(req);
   if (user instanceof NextResponse) return user;
   const csrf = requireCsrf(req);
   if (csrf) return csrf;
-  // TODO(agent): require user.isAgent once agent onboarding writes isAgent.
   void user;
   const body = await readJson(req);
 

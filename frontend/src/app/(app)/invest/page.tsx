@@ -68,7 +68,7 @@ export default function InvestPage() {
   if (user.accessStatus === "none" || user.accessStatus === "requested") {
     return (
       <>
-        <div className="section-head"><div><h1 className="page-title">Invest with Mlinzi</h1></div></div>
+        <div className="section-head"><div><h1 className="page-title">Invest with Mlinzi <span className="sim-tag">(simulated)</span></h1></div></div>
         <ATMCard variant="compact" />
         <div className="notif-banner"><i className="ti ti-shield-lock" /><span>{PILOT_BANNER}</span></div>
         <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
@@ -92,7 +92,7 @@ export default function InvestPage() {
   if (user.accessStatus === "declined") {
     return (
       <>
-        <div className="section-head"><div><h1 className="page-title">Invest with Mlinzi</h1></div></div>
+        <div className="section-head"><div><h1 className="page-title">Invest with Mlinzi <span className="sim-tag">(simulated)</span></h1></div></div>
         <ATMCard variant="compact" />
         <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
           <i className="ti ti-building-bank" style={{ fontSize: 30, color: "var(--terra-text)" }} />
@@ -112,7 +112,7 @@ export default function InvestPage() {
   if (!isVerifiedFF) {
     return (
       <>
-        <div className="section-head"><div><h1 className="page-title">Invest with Mlinzi</h1></div></div>
+        <div className="section-head"><div><h1 className="page-title">Invest with Mlinzi <span className="sim-tag">(simulated)</span></h1></div></div>
         <ATMCard variant="compact" />
         <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
           <i className="ti ti-id-badge-2" style={{ fontSize: 30, color: "var(--gold-text)" }} />

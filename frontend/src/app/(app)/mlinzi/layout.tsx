@@ -6,5 +6,10 @@ import { useRoleGate, roleOf } from "@/lib/useRoleGate";
 export default function MlinziLayout({ children }: { children: React.ReactNode }) {
   const allowed = useRoleGate((u) => roleOf(u) === "mlinzi");
   if (!allowed) return null;
-  return <>{children}</>;
+  return (
+    <>
+      <p className="sim-strip" role="note">Mlinzi figures on this screen are simulated — no real investors, no real money.</p>
+      {children}
+    </>
+  );
 }

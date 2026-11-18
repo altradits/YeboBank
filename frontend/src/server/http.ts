@@ -56,6 +56,20 @@ export function publicUser(u: StoredUser): PublicUser {
   return toPublic(u);
 }
 
+export async function requireMlinzi(req: NextRequest): Promise<StoredUser | NextResponse> {
+  const user = await requireUser(req);
+  if (user instanceof NextResponse) return user;
+  if (user.role !== "mlinzi") return fail(403, "Mlinzi only");
+  return user;
+}
+
+export async function requireAgent(req: NextRequest): Promise<StoredUser | NextResponse> {
+  const user = await requireUser(req);
+  if (user instanceof NextResponse) return user;
+  if (!user.isAgent) return fail(403, "Agents only");
+  return user;
+}
+
 export async function readJson(req: NextRequest): Promise<Record<string, unknown> | null> {
   try {
     const body = (await req.json()) as unknown;

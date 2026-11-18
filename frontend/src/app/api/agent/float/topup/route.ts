@@ -1,23 +1,22 @@
 // POST /api/agent/float/topup — agent tops up their own sats float by paying
 // a self-generated invoice from a personal wallet.
-// Auth + CSRF required. Body: { amountSats: number }
+// Agents only + CSRF required. Body: { amountSats: number }
 
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { getBitcoinProvider } from "@/server/bitcoin";
-import { requireUser, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
+import { requireAgent, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
 import { assertLightningAmount } from "@/server/bitcoin/validate";
 import { isBitcoinError } from "@/server/bitcoin/types";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const limited = throttle(req, "agent-topup", 30, 60_000);
+  const limited = throttle(req, "agent", 20, 60_000);
   if (limited) return limited;
-  const user = await requireUser(req);
+  const user = await requireAgent(req);
   if (user instanceof NextResponse) return user;
   const csrf = requireCsrf(req);
   if (csrf) return csrf;
-  // TODO(agent): require user.isAgent once agent onboarding writes isAgent.
   void user;
   const body = await readJson(req);
 

@@ -61,7 +61,7 @@ export default function SavingsPage() {
       <div className="section-head">
         <div>
           <h1 className="page-title">Savings</h1>
-          <p className="page-sub">Locked sats earning interest from real yield.</p>
+          <p className="page-sub">Locked test sats earning simulated interest.</p>
         </div>
         <Link href="/savings/lock"><Button variant="gold"><i className="ti ti-plus" /> New lock</Button></Link>
       </div>

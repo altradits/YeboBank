@@ -1,24 +1,22 @@
 // POST /api/agent/invoice — agent generates an invoice for the customer in front
 // of the counter (guest cash-in or member Lightning deposit).
-// Auth + CSRF required. Body: { amountSats: number }
+// Agents only + CSRF required. Body: { amountSats: number }
 
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { getBitcoinProvider } from "@/server/bitcoin";
-import { requireUser, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
+import { requireAgent, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
 import { assertLightningAmount } from "@/server/bitcoin/validate";
 import { isBitcoinError } from "@/server/bitcoin/types";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const limited = throttle(req, "agent-invoice", 30, 60_000);
+  const limited = throttle(req, "agent", 20, 60_000);
   if (limited) return limited;
-  const user = await requireUser(req);
+  const user = await requireAgent(req);
   if (user instanceof NextResponse) return user;
   const csrf = requireCsrf(req);
   if (csrf) return csrf;
-  // TODO(agent): require user.isAgent (or a teller role) once agent onboarding
-  // writes isAgent; today any signed-in user may operate the counter in demo.
   void user;
   const body = await readJson(req);
 
