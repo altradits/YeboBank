@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mutate } from "@/server/store";
 import { withdraw } from "@/server/chamas";
-import { requireUser, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
+import { requireUser, requirePin, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
 import { isSats } from "@/server/validate";
 
 export async function POST(
@@ -16,6 +16,8 @@ export async function POST(
   if (csrf) return csrf;
   const body = await readJson(req);
   if (!isSats(body?.sats)) return fail(400, "Sats required");
+  const pinCheck = await requirePin(user, body?.pin);
+  if (pinCheck) return pinCheck;
   const u = user as { id: string; handle: string; fullName: string };
   try {
     await mutate((db) => withdraw(db, { id: u.id, handle: u.handle, name: u.fullName }, params.id, body.sats as number));

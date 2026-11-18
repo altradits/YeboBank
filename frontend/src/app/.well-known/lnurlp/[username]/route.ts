@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 
 import { getBitcoinConfig } from "@/server/bitcoin/config";
 import { MAX_LIGHTNING_SATS, MIN_LIGHTNING_SATS } from "@/server/bitcoin/validate";
+import { read } from "@/server/store";
+import { ensureSeeded } from "@/server/auth";
 import { err, ok } from "@/app/api/bitcoin/_lib";
 
 export async function GET(_req: Request, ctx: { params: { username: string } }): Promise<Response> {
@@ -15,8 +17,13 @@ export async function GET(_req: Request, ctx: { params: { username: string } }):
   if (!username || !/^[a-z0-9._-]{2,64}$/.test(username)) {
     return err("VALIDATION_ERROR", "unknown lightning address", 404);
   }
-  // TODO(users): look the username up in the user DB and 404 when it has no
-  // wallet. Today every well-formed name resolves (mock-user phase).
+  await ensureSeeded();
+  const known = read((db) =>
+    db.users.some(
+      (u) => !u.archivedAt && u.lightningAddress.toLowerCase() === `${username}@${cfg.lightningDomain.toLowerCase()}`,
+    ),
+  );
+  if (!known) return err("UNKNOWN_USER", "unknown lightning address", 404);
   const callback = `${cfg.appBaseUrl}/api/lnurlp/callback?username=${encodeURIComponent(username)}`;
   return ok({
     tag: "payRequest",

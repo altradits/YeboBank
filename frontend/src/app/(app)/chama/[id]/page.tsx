@@ -361,8 +361,7 @@ function PinModal({
 
   function handleConfirm() {
     if (pin.length < 6) { setError("Enter your full 6-digit PIN."); return; }
-    // TODO(backend): verify PIN — currently accepts any 6 digits
-    onConfirm(pin);
+    onConfirm(pin); // verified server-side by requirePin; wrong PINs get 401
   }
 
   return (
@@ -568,8 +567,7 @@ function WithdrawModal({
 
   function handleConfirm() {
     if (pin.length < 6) { setPinError("Enter your full 6-digit PIN."); return; }
-    // TODO(backend): verify PIN — currently accepts any 6 digits
-    onConfirm(sats, pin);
+    onConfirm(sats, pin); // verified server-side by requirePin; wrong PINs get 401
   }
 
   return (
@@ -726,9 +724,9 @@ export default function ChamaDashboard() {
     const displayBody = `${CURRENT_NAME} sent ${fmtKES(sats, rate, 0)} (~${num(sats)} sats) to ${recipient?.name ?? toHandle}.`;
     setPinModal({
       label: displayBody,
-      action: async () => {
+      action: async (pin: string) => {
         setSending(true);
-        await chamaTransfer(id, toHandle, sats);
+        await chamaTransfer(id, toHandle, sats, pin);
         const msg = await postChamaMessage(id, {
           kind: "transfer",
           authorHandle: CURRENT_HANDLE,
@@ -792,9 +790,9 @@ export default function ChamaDashboard() {
     setVoteModal(false);
   }
 
-  async function handleWithdraw(sats: number) {
+  async function handleWithdraw(sats: number, pin: string) {
     setWithdrawing(true);
-    await withdrawFromChama(id, sats);
+    await withdrawFromChama(id, sats, pin);
     // Post a withdrawal message — mirrors the deposit flow exactly
     const msg = await postChamaMessage(id, {
       kind: "withdrawal",
@@ -1110,7 +1108,7 @@ export default function ChamaDashboard() {
         <WithdrawModal
           stake={stake}
           rate={rate}
-          onConfirm={(sats) => handleWithdraw(sats)}
+          onConfirm={(sats, pin) => handleWithdraw(sats, pin)}
           onCancel={() => setWithdrawModal(false)}
           loading={withdrawing}
         />

@@ -89,6 +89,6 @@ payments accept `Idempotency-Key`. Errors from backend-integrated routes use
 ## What is still TODO before real custody
 
 - **Durable store.** `src/server/store.ts` is a JSON file (single-instance demo); replace with Postgres for multi-instance prod.
-- **Agent role check.** Agent routes accept any signed-in user; require `isAgent` once onboarding writes it.
-- **User lookup for LNURL.** `lnurlp/[username]` resolves every well-formed name; bind it to the user DB.
 - **Error-shape unification** (see above) and per-route audit logging.
+- **Chama action PIN for other rails.** `requirePin` currently gates chama
+  transfer/withdraw; Lightning/agent payouts rely on session + CSRF only.

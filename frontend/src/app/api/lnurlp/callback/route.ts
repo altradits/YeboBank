@@ -5,6 +5,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { getBitcoinProvider } from "@/server/bitcoin";
+import { getBitcoinConfig } from "@/server/bitcoin/config";
+import { read } from "@/server/store";
+import { ensureSeeded } from "@/server/auth";
 import { err, ok, rateLimit, rateLimited, toErrorResponse } from "../../bitcoin/_lib";
 
 export async function GET(req: Request): Promise<Response> {
@@ -17,6 +20,12 @@ export async function GET(req: Request): Promise<Response> {
     if (!username || !/^[a-z0-9._-]{2,64}$/.test(username)) {
       return err("VALIDATION_ERROR", "unknown lightning address", 404);
     }
+    await ensureSeeded();
+    const domain = getBitcoinConfig().lightningDomain.toLowerCase();
+    const known = read((db) =>
+      db.users.some((u) => !u.archivedAt && u.lightningAddress.toLowerCase() === `${username}@${domain}`),
+    );
+    if (!known) return err("UNKNOWN_USER", "unknown lightning address", 404);
     if (!Number.isFinite(msats) || msats <= 0) {
       return err("VALIDATION_ERROR", "amount (msats) must be positive", 400);
     }
@@ -24,7 +33,7 @@ export async function GET(req: Request): Promise<Response> {
     if (sats < 10) return err("VALIDATION_ERROR", "amount below minimum (10 sats)", 400);
     const inv = await getBitcoinProvider().createInvoice({
       amountSats: sats,
-      memo: comment ? `To ${username}: ${comment}` : `Pay to ${username}@yebobank`,
+      memo: comment ? `To ${username}: ${comment}` : `Pay to ${username}@${domain}`,
       metadata: { lnurl_user: username },
     });
     return ok({ pr: inv.paymentRequest, routes: [] });

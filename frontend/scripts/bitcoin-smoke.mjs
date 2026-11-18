@@ -232,6 +232,10 @@ async function main() {
     const cb = (await api("GET", "/api/lnurlp/callback?username=wanjiku&amount=5000000")).json;
     check("lnurlp callback returns invoice", typeof cb.pr === "string" && cb.pr.startsWith(fakePrefix),
       JSON.stringify(cb).slice(0, 120));
+    const noUser = await api("GET", "/.well-known/lnurlp/nouser00");
+    check("lnurlp unknown user → 404", noUser.status === 404, `got ${noUser.status}`);
+    const noUserCb = await api("GET", "/api/lnurlp/callback?username=nouser00&amount=5000000");
+    check("lnurlp callback unknown user → 404", noUserCb.status === 404, `got ${noUserCb.status}`);
 
     // 15. internal poller webhook
     const noTok = await fetch(`${BASE}/api/bitcoin/webhook`, {
@@ -266,6 +270,31 @@ async function main() {
     const wAfter = (await api("GET", "/api/wallet", undefined, A)).json.balanceSats;
     check("simulated mpesa deposit credits", mpesa.status === 200 && wAfter > wBefore,
       `status=${mpesa.status} ${wBefore}->${wAfter}`);
+
+    // 17. chama action PIN is verified server-side (seed PIN 284649)
+    const CHAMA = "c_demo_mboga";
+    const tNoPin = await api("POST", `/api/chama/${CHAMA}/transfer`,
+      { toHandle: "@wanjiku", sats: 500 }, A);
+    check("transfer without PIN → 400", tNoPin.status === 400, `got ${tNoPin.status}`);
+    const tBadPin = await api("POST", `/api/chama/${CHAMA}/transfer`,
+      { toHandle: "@wanjiku", sats: 500, pin: "000000" }, A);
+    check("transfer wrong PIN → 401", tBadPin.status === 401, `got ${tBadPin.status}`);
+    const wPre = (await api("GET", "/api/wallet", undefined, A)).json.balanceSats;
+    const dep = await api("POST", `/api/chama/${CHAMA}/deposit`, { sats: 3000 }, A);
+    const wPostDep = (await api("GET", "/api/wallet", undefined, A)).json.balanceSats;
+    check("chama deposit debits wallet", dep.status === 200 && wPostDep === wPre - 3000,
+      `status=${dep.status} ${wPre}->${wPostDep}`);
+    const tOk = await api("POST", `/api/chama/${CHAMA}/transfer`,
+      { toHandle: "@wanjiku", sats: 500, pin: "284649" }, A);
+    check("transfer correct PIN passes", tOk.status === 200, `got ${tOk.status} ${JSON.stringify(tOk.json)}`);
+    const wBadPin = await api("POST", `/api/chama/${CHAMA}/withdraw`, { sats: 500, pin: "000000" }, A);
+    check("withdraw wrong PIN → 401", wBadPin.status === 401, `got ${wBadPin.status}`);
+    const wBefore2 = (await api("GET", "/api/wallet", undefined, A)).json.balanceSats;
+    const wOk = await api("POST", `/api/chama/${CHAMA}/withdraw`, { sats: 500, pin: "284649" }, A);
+    const wAfter2 = (await api("GET", "/api/wallet", undefined, A)).json.balanceSats;
+    check("withdraw correct PIN credits wallet",
+      wOk.status === 200 && wAfter2 === wBefore2 + 500,
+      `status=${wOk.status} ${wBefore2}->${wAfter2}`);
 
     console.log(failures === 0 ? "[smoke] ALL CHECKS PASSED" : `[smoke] ${failures} CHECK(S) FAILED`);
     process.exitCode = failures === 0 ? 0 : 1;

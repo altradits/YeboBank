@@ -240,13 +240,13 @@ export async function getLocks(): Promise<SavingsLock[]> {
   return req<SavingsLock[]>("/savings");
 }
 
-// TODO(backend): GET /savings/growth — from interest_distributions + savings_locks accrual
+// Live: GET /savings/growth — from interest_distributions + savings_locks accrual
 export async function getSavingsGrowth(): Promise<SavingsGrowthPoint[]> {
   if (USE_MOCKS) return delay([...mockSavingsGrowth]);
   return req<SavingsGrowthPoint[]>("/savings/growth");
 }
 
-// TODO(backend): GET /savings/deposits — from ledger_entries where type='deposit_*'
+// Live: GET /savings/deposits — from ledger_entries where type='deposit_*'
 export async function getSavingsDeposits(): Promise<SavingsDeposit[]> {
   if (USE_MOCKS) return delay([...mockSavingsDeposits]);
   return req<SavingsDeposit[]>("/savings/deposits");
@@ -263,7 +263,7 @@ export async function createLock(sats: number, years: number): Promise<SavingsLo
   return req<SavingsLock>("/savings/lock", { method: "POST", body: JSON.stringify({ sats, years }) });
 }
 
-// TODO(backend): GET /savings/{id}
+// Live: GET /savings/{id}
 export async function getLock(id: string): Promise<SavingsLock> {
   if (USE_MOCKS) {
     const lock = mockLocks.find((l) => l.id === id);
@@ -290,7 +290,7 @@ export async function addToLock(lockId: string, sats: number): Promise<SavingsLo
   return req<SavingsLock>(`/savings/${lockId}/contribute`, { method: "POST", body: JSON.stringify({ sats }) });
 }
 
-// TODO(backend): POST /savings/lock/group — creates shared lock, pushes invites to handles
+// Live: POST /savings/lock/group — creates shared lock, pushes invites to handles
 export async function createGroupLock(sats: number, years: number, title: string, handles: string[]): Promise<SavingsLock> {
   if (USE_MOCKS) {
     const newLock: SavingsLock = {
@@ -309,7 +309,7 @@ export async function createGroupLock(sats: number, years: number, title: string
   return req<SavingsLock>("/savings/lock/group", { method: "POST", body: JSON.stringify({ sats, years, title, handles }) });
 }
 
-// TODO(backend): POST /savings/lock/chama — creates chama-shared lock tied to chamaId
+// Live: POST /savings/lock/chama — creates chama-shared lock tied to chamaId
 export async function createChamaLock(chamaId: string, sats: number, years: number): Promise<SavingsLock> {
   if (USE_MOCKS) {
     const chama = mockAllChamas.find((c) => c.id === chamaId);
@@ -326,13 +326,13 @@ export async function createChamaLock(chamaId: string, sats: number, years: numb
   return req<SavingsLock>("/savings/lock/chama", { method: "POST", body: JSON.stringify({ chamaId, sats, years }) });
 }
 
-// TODO(backend): GET /savings/invites — pending lock invites for current user
+// Live: GET /savings/invites — pending lock invites for current user
 export async function getMyPendingInvites(): Promise<PendingInvite[]> {
   if (USE_MOCKS) return delay([...mockPendingInvites]);
   return req<PendingInvite[]>("/savings/invites");
 }
 
-// TODO(backend): POST /savings/invites/{id}/accept — accept a lock invite, join the target
+// Live: POST /savings/invites/{id}/accept — accept a lock invite, join the target
 export async function acceptInvite(inviteId: string): Promise<void> {
   if (USE_MOCKS) {
     const idx = mockPendingInvites.findIndex((i) => i.id === inviteId);
@@ -374,7 +374,7 @@ export async function createChama(name: string, contributionSats: number): Promi
 
 // Invite friends to a chama you belong to. Invitees get a pending invite they
 // must accept — access is never granted to anyone who hasn't been accepted.
-// TODO(backend): POST /chama/{id}/invite
+// Live: POST /chama/{id}/invite
 export async function inviteToChama(chamaId: string, contacts: string[]): Promise<{ invited: number }> {
   if (USE_MOCKS) {
     const chama = mockAllChamas.find((c) => c.id === chamaId);
@@ -394,13 +394,13 @@ export async function inviteToChama(chamaId: string, contacts: string[]): Promis
 }
 
 // ---- account setup (unique per dashboard/role) --------------------------------
-// TODO(backend): GET /me/setup
+// Live: GET /me/setup
 export async function getAccountSetup(): Promise<AccountSetup> {
   if (USE_MOCKS) return delay(loadAccountSetup(), 150);
   return req<AccountSetup>("/me/setup");
 }
 
-// TODO(backend): PATCH /me/setup
+// Live: PATCH /me/setup
 export async function saveAccountSetup(patch: AccountSetup): Promise<AccountSetup> {
   if (USE_MOCKS) return delay(persistAccountSetup(patch), 250);
   return req<AccountSetup>("/me/setup", { method: "PATCH", body: JSON.stringify(patch) });
@@ -444,7 +444,7 @@ export async function getAgentHistory(): Promise<LedgerEntry[]> {
 // Looks up whoever is in front of the agent's counter — member or not.
 // Anyone with or without a YeboBank wallet can be served; only members go
 // through the access-verification step below.
-// TODO(backend): GET /agent/customer/{phone}
+// Live: GET /agent/customer/{phone}
 export async function lookupAgentCustomer(
   phone: string,
 ): Promise<{ phone: string; name: string | null; isMember: boolean }> {
@@ -481,7 +481,7 @@ const AGENT_SERVICE_LABELS: Record<AgentServiceKind, string> = {
 
 // Lets a verified, in-person customer use any YeboBank service through the
 // agent without needing their own device.
-// TODO(backend): POST /agent/service — route to matching service endpoint
+// Live: POST /agent/service — route to matching service endpoint
 // (savings/{lockId}/contribute, chama/{id}/deposit, invest/withdraw, etc.)
 // after re-checking the access verification server-side.
 export async function agentAssistService(
@@ -520,7 +520,7 @@ export async function agentPayInvoice(invoiceOrAddress: string, amountSats: numb
 }
 
 // Cash ↔ M-Pesa swap — no YeboBank account required; agent earns commission.
-// TODO(backend): POST /agent/swap — logs the exchange, credits commission to agent
+// Live: POST /agent/swap — logs the exchange, credits commission to agent
 export async function agentFiatSwap(
   from: "cash" | "mpesa", to: "cash" | "mpesa",
   amountKes: number, mpesaNumber?: string,
@@ -581,7 +581,7 @@ export async function requestReserveRelease(pin: string): Promise<{ ok: boolean;
   return req("/agent/reserve/release", { method: "POST", body: JSON.stringify({ pin }) });
 }
 
-// TODO(backend): POST /agent/reserve/claim — moves reserve into working float
+// Live: POST /agent/reserve/claim — moves reserve into working float
 export async function claimReserve(): Promise<Agent> {
   if (USE_MOCKS) {
     if (!mockAgent.reserveUnlockAt || new Date(mockAgent.reserveUnlockAt) > new Date()) {
@@ -596,7 +596,7 @@ export async function claimReserve(): Promise<Agent> {
 }
 
 // Move sats from working float into reserve (agent voluntarily locks excess).
-// TODO(backend): POST /agent/reserve/add
+// Live: POST /agent/reserve/add
 export async function moveToReserve(sats: number): Promise<Agent> {
   if (USE_MOCKS) {
     const amount = Math.min(sats, mockAgent.workingFloatSats);
@@ -658,7 +658,7 @@ export async function submitReactivationCode(
   return req("/agent/reactivate", { method: "POST", body: JSON.stringify({ contactId, code }) });
 }
 
-// TODO(backend): PUT /agent/security/contacts
+// Live: PUT /agent/security/contacts
 export async function saveEmergencyContacts(contacts: EmergencyContact[]): Promise<Agent> {
   if (USE_MOCKS) {
     mockAgent.emergencyContacts = contacts;
@@ -672,14 +672,14 @@ export async function saveEmergencyContacts(contacts: EmergencyContact[]): Promi
 // Backend derives these from the session cookie.
 
 // Returns all YeboBank chamas with isMember/pendingJoin flags.
-// TODO(backend): GET /chama/all
+// Live: GET /chama/all
 export async function getAllChamas(): Promise<Chama[]> {
   if (USE_MOCKS) return delay([...mockAllChamas]);
   return req<Chama[]>("/chama/all");
 }
 
 // Returns a single chama including full member list.
-// TODO(backend): GET /chama/{id}
+// Live: GET /chama/{id}
 export async function getChama(id: string): Promise<Chama> {
   if (USE_MOCKS) {
     const chama = mockAllChamas.find((c) => c.id === id);
@@ -689,7 +689,7 @@ export async function getChama(id: string): Promise<Chama> {
   return req<Chama>(`/chama/${id}`);
 }
 
-// TODO(backend): GET /chama/{id}/messages
+// Live: GET /chama/{id}/messages
 export async function getChamaMessages(id: string): Promise<ChamaMessage[]> {
   if (USE_MOCKS) return delay([...(mockChamaMessages[id] ?? [])]);
   return req<ChamaMessage[]>(`/chama/${id}/messages`);
@@ -697,7 +697,7 @@ export async function getChamaMessages(id: string): Promise<ChamaMessage[]> {
 
 // Posts a plain-text message. Command parsing happens in the UI; each command
 // calls the appropriate action endpoint then calls this to record the message.
-// TODO(backend): POST /chama/{id}/messages
+// Live: POST /chama/{id}/messages
 export async function postChamaMessage(id: string, msg: Omit<ChamaMessage, "id" | "chamaId" | "createdAt">): Promise<ChamaMessage> {
   if (USE_MOCKS) {
     const newMsg: ChamaMessage = {
@@ -710,19 +710,19 @@ export async function postChamaMessage(id: string, msg: Omit<ChamaMessage, "id" 
   return req<ChamaMessage>(`/chama/${id}/messages`, { method: "POST", body: JSON.stringify(msg) });
 }
 
-// TODO(backend): GET /chama/{id}/votes
+// Live: GET /chama/{id}/votes
 export async function getChamaVotes(id: string): Promise<ChamaVote[]> {
   if (USE_MOCKS) return delay([...(mockChamaVotes[id] ?? [])]);
   return req<ChamaVote[]>(`/chama/${id}/votes`);
 }
 
-// TODO(backend): GET /chama/{id}/join
+// Live: GET /chama/{id}/join
 export async function getChamaJoinRequests(id: string): Promise<JoinRequest[]> {
   if (USE_MOCKS) return delay(mockJoinRequests.filter((r) => r.chamaId === id));
   return req<JoinRequest[]>(`/chama/${id}/join`);
 }
 
-// TODO(backend): POST /chama/{id}/join
+// Live: POST /chama/{id}/join
 export async function requestJoinChama(id: string): Promise<JoinRequest> {
   if (USE_MOCKS) {
     const existing = mockJoinRequests.find((r) => r.chamaId === id && r.requesterHandle === activeHandle());
@@ -784,7 +784,7 @@ export async function voteOnJoin(chamaId: string, requestId: string, approve: bo
   });
 }
 
-// TODO(backend): POST /chama/{id}/votes
+// Live: POST /chama/{id}/votes
 export async function createChamaVote(id: string, question: string, options: string[]): Promise<ChamaVote> {
   if (USE_MOCKS) {
     const tallies: Record<string, string[]> = {};
@@ -862,7 +862,7 @@ export async function castVote(chamaId: string, voteId: string, option: string):
 }
 
 // Deducts from member's personal wallet, adds to chama pool, posts deposit message.
-// TODO(backend): POST /chama/{id}/deposit
+// Live: POST /chama/{id}/deposit
 export async function chamaDeposit(id: string, sats: number): Promise<{ ok: boolean }> {
   if (USE_MOCKS) {
     const chama = mockAllChamas.find((c) => c.id === id);
@@ -874,19 +874,18 @@ export async function chamaDeposit(id: string, sats: number): Promise<{ ok: bool
 }
 
 // Transfers sats from current member's chama balance to another member's chama balance.
-// Requires PIN verification (enforced by UI before calling; backend must re-verify).
-// TODO(backend): POST /chama/{id}/transfer  PIN verification on server side
-export async function chamaTransfer(id: string, toHandle: string, sats: number): Promise<{ ok: boolean }> {
+// Live: POST /chama/{id}/transfer — PIN verified server-side (requirePin).
+export async function chamaTransfer(id: string, toHandle: string, sats: number, pin: string): Promise<{ ok: boolean }> {
   if (USE_MOCKS) return delay({ ok: true });
   return req<{ ok: boolean }>(`/chama/${id}/transfer`, {
-    method: "POST", body: JSON.stringify({ toHandle, sats }),
+    method: "POST", body: JSON.stringify({ toHandle, sats, pin }),
   });
 }
 
 // ── Stake & portfolio ────────────────────────────────────────────────────────
 
 // Returns my proportional stake summary for a single chama, derived from pool data.
-// TODO(backend): GET /chama/{id}/stake — server computes from ledger snapshots
+// Live: GET /chama/{id}/stake — server computes from ledger snapshots
 export async function getMyStake(chamaId: string): Promise<MyChamaStake> {
   if (USE_MOCKS) {
     const chama = mockAllChamas.find((c) => c.id === chamaId) ?? mockChamas.find((c) => c.id === chamaId);
@@ -912,14 +911,14 @@ export async function getMyStake(chamaId: string): Promise<MyChamaStake> {
 }
 
 // Returns 12 monthly growth points (my cumulative contributed vs my value).
-// TODO(backend): GET /chama/{id}/growth — from interest_distributions + ledger snapshots
+// Live: GET /chama/{id}/growth — from interest_distributions + ledger snapshots
 export async function getChamaGrowth(chamaId: string): Promise<ChamaGrowthPoint[]> {
   if (USE_MOCKS) return delay([...(mockGrowthData[chamaId] ?? [])]);
   return req<ChamaGrowthPoint[]>(`/chama/${chamaId}/growth`);
 }
 
 // Returns aggregated portfolio across all chamas the user is a member of.
-// TODO(backend): GET /chama/portfolio — aggregate stakes from all member chamas
+// Live: GET /chama/portfolio — aggregate stakes from all member chamas
 export async function getChamaPortfolio(): Promise<ChamaPortfolio> {
   if (USE_MOCKS) {
     const memberChamas = mockAllChamas.filter((c) => c.isMember);
@@ -950,9 +949,9 @@ export async function getChamaPortfolio(): Promise<ChamaPortfolio> {
 }
 
 // Withdraws from the user's proportional share of a chama pool.
-// PIN must be verified server-side even though the UI collects it.
-// TODO(backend): POST /chama/{id}/withdraw — verify PIN + chama withdrawal rules
-export async function withdrawFromChama(chamaId: string, sats: number): Promise<{ ok: boolean }> {
+// Live: POST /chama/{id}/withdraw — PIN verified server-side (requirePin);
+// membership, share, and pool rules enforced in server/chamas.
+export async function withdrawFromChama(chamaId: string, sats: number, pin: string): Promise<{ ok: boolean }> {
   if (USE_MOCKS) {
     const chama = mockAllChamas.find((c) => c.id === chamaId);
     if (chama) {
@@ -964,7 +963,7 @@ export async function withdrawFromChama(chamaId: string, sats: number): Promise<
     return delay({ ok: true });
   }
   return req<{ ok: boolean }>(`/chama/${chamaId}/withdraw`, {
-    method: "POST", body: JSON.stringify({ sats }),
+    method: "POST", body: JSON.stringify({ sats, pin }),
   });
 }
 
@@ -1012,13 +1011,13 @@ function pushNotification(toHandle: string, kind: AppNotification["kind"], body:
 }
 
 // ---- income sources (Mlinzi) --------------------------------------------------
-// TODO(backend): GET /mlinzi/income
+// Live: GET /mlinzi/income
 export async function getIncomeSources(): Promise<IncomeSource[]> {
   if (USE_MOCKS) return delay([...mockIncomeSources]);
   return req<IncomeSource[]>("/mlinzi/income");
 }
 
-// TODO(backend): POST /mlinzi/income (create or update)
+// Live: POST /mlinzi/income (create or update)
 export async function upsertIncomeSource(source: IncomeSource): Promise<IncomeSource> {
   if (USE_MOCKS) {
     const idx = mockIncomeSources.findIndex((s) => s.id === source.id);
@@ -1029,7 +1028,7 @@ export async function upsertIncomeSource(source: IncomeSource): Promise<IncomeSo
   return req<IncomeSource>("/mlinzi/income", { method: "POST", body: JSON.stringify(source) });
 }
 
-// TODO(backend): DELETE /mlinzi/income/{id}
+// Live: DELETE /mlinzi/income/{id}
 export async function removeIncomeSource(id: string): Promise<{ ok: boolean }> {
   if (USE_MOCKS) {
     const idx = mockIncomeSources.findIndex((s) => s.id === id);
@@ -1040,13 +1039,13 @@ export async function removeIncomeSource(id: string): Promise<{ ok: boolean }> {
 }
 
 // ---- investor positions (Mlinzi) -----------------------------------------------
-// TODO(backend): GET /mlinzi/investors
+// Live: GET /mlinzi/investors
 export async function getInvestorPositions(): Promise<InvestorPosition[]> {
   if (USE_MOCKS) return delay([...mockInvestorPositions]);
   return req<InvestorPosition[]>("/mlinzi/investors");
 }
 
-// TODO(backend): POST /mlinzi/investors
+// Live: POST /mlinzi/investors
 export async function addInvestorPosition(pos: Omit<InvestorPosition, "id" | "monthlyStatements">): Promise<InvestorPosition> {
   if (USE_MOCKS) {
     const created: InvestorPosition = { ...pos, id: `ip_${Date.now()}`, monthlyStatements: [] };
@@ -1076,13 +1075,13 @@ export async function postMonthlyStatement(positionId: string, returnKes: number
 }
 
 // ---- access requests (Mlinzi review) -------------------------------------------
-// TODO(backend): GET /mlinzi/access
+// Live: GET /mlinzi/access
 export async function getAccessRequests(): Promise<AccessRequest[]> {
   if (USE_MOCKS) return delay([...mockAccessRequests]);
   return req<AccessRequest[]>("/mlinzi/access");
 }
 
-// TODO(backend): POST /mlinzi/access/{handle}/accept
+// Live: POST /mlinzi/access/{handle}/accept
 export async function acceptAccess(handle: string, relationship: "family" | "friend" | "investor"): Promise<AccessRequest> {
   if (USE_MOCKS) {
     const r = mockAccessRequests.find((a) => a.handle === handle);
@@ -1108,7 +1107,7 @@ export async function acceptAccess(handle: string, relationship: "family" | "fri
   return req<AccessRequest>(`/mlinzi/access/${encodeURIComponent(handle)}/accept`, { method: "POST", body: JSON.stringify({ relationship }) });
 }
 
-// TODO(backend): POST /mlinzi/access/{handle}/decline
+// Live: POST /mlinzi/access/{handle}/decline
 export async function declineAccess(handle: string): Promise<AccessRequest> {
   if (USE_MOCKS) {
     const r = mockAccessRequests.find((a) => a.handle === handle);
@@ -1123,13 +1122,13 @@ export async function declineAccess(handle: string): Promise<AccessRequest> {
 }
 
 // ---- withdrawals (Mlinzi review) -----------------------------------------------
-// TODO(backend): GET /mlinzi/withdrawals
+// Live: GET /mlinzi/withdrawals
 export async function getWithdrawalRequests(): Promise<WithdrawalRequest[]> {
   if (USE_MOCKS) return delay([...mockWithdrawalRequests]);
   return req<WithdrawalRequest[]>("/mlinzi/withdrawals");
 }
 
-// TODO(backend): POST /mlinzi/withdrawals/{id}/approve
+// Live: POST /mlinzi/withdrawals/{id}/approve
 export async function approveWithdrawal(id: string, expectedDeliveryDate: string, note?: string): Promise<WithdrawalRequest> {
   if (USE_MOCKS) {
     const wr = mockWithdrawalRequests.find((w) => w.id === id);
@@ -1143,7 +1142,7 @@ export async function approveWithdrawal(id: string, expectedDeliveryDate: string
   return req<WithdrawalRequest>(`/mlinzi/withdrawals/${id}/approve`, { method: "POST", body: JSON.stringify({ expectedDeliveryDate, note }) });
 }
 
-// TODO(backend): POST /mlinzi/withdrawals/{id}/decline
+// Live: POST /mlinzi/withdrawals/{id}/decline
 export async function declineWithdrawal(id: string, note?: string): Promise<WithdrawalRequest> {
   if (USE_MOCKS) {
     const wr = mockWithdrawalRequests.find((w) => w.id === id);
@@ -1157,7 +1156,7 @@ export async function declineWithdrawal(id: string, note?: string): Promise<With
 }
 
 // ---- member/investor side ------------------------------------------------------
-// TODO(backend): POST /invest/request
+// Live: POST /invest/request
 export async function requestAccess(): Promise<{ ok: boolean }> {
   if (USE_MOCKS) {
     activeUser().accessStatus = "requested";
@@ -1169,7 +1168,7 @@ export async function requestAccess(): Promise<{ ok: boolean }> {
   return req<{ ok: boolean }>("/invest/request", { method: "POST" });
 }
 
-// TODO(backend): GET /invest/me
+// Live: GET /invest/me
 export async function getMyPosition(): Promise<InvestorPosition | null> {
   if (USE_MOCKS) {
     const pos = mockInvestorPositions.find((p) => p.investorHandle === activeHandle());
@@ -1178,7 +1177,7 @@ export async function getMyPosition(): Promise<InvestorPosition | null> {
   return req<InvestorPosition | null>("/invest/me");
 }
 
-// TODO(backend): GET /invest/fi
+// Live: GET /invest/fi
 export async function getFIProfile(): Promise<FIProfile> {
   if (USE_MOCKS) {
     const existing = mockFIProfiles[activeHandle()];
@@ -1190,7 +1189,7 @@ export async function getFIProfile(): Promise<FIProfile> {
   return req<FIProfile>("/invest/fi");
 }
 
-// TODO(backend): POST /invest/fi
+// Live: POST /invest/fi
 export async function setFIProfile(profile: FIProfile): Promise<FIProfile> {
   if (USE_MOCKS) {
     mockFIProfiles[profile.handle] = profile;
@@ -1200,7 +1199,7 @@ export async function setFIProfile(profile: FIProfile): Promise<FIProfile> {
 }
 
 // No self-service payout — Mlinzi must approve. Capital may be deployed/illiquid.
-// TODO(backend): POST /invest/withdraw
+// Live: POST /invest/withdraw
 export async function requestWithdrawal(sats: number): Promise<WithdrawalRequest> {
   if (USE_MOCKS) {
     const wr: WithdrawalRequest = { id: `wr_${Date.now()}`, investorHandle: activeHandle(), amountSats: sats, requestedAt: new Date().toISOString(), status: "requested" };
@@ -1210,13 +1209,13 @@ export async function requestWithdrawal(sats: number): Promise<WithdrawalRequest
   return req<WithdrawalRequest>("/invest/withdraw", { method: "POST", body: JSON.stringify({ sats }) });
 }
 
-// TODO(backend): GET /invest/notifications
+// Live: GET /invest/notifications
 export async function getMyNotifications(): Promise<AppNotification[]> {
   if (USE_MOCKS) return delay(mockNotifications.filter((n) => n.toHandle === activeHandle()));
   return req<AppNotification[]>("/invest/notifications");
 }
 
-// TODO(backend): POST /invest/notifications/{id}/read
+// Live: POST /invest/notifications/{id}/read
 export async function markRead(id: string): Promise<{ ok: boolean }> {
   if (USE_MOCKS) {
     const n = mockNotifications.find((x) => x.id === id);
@@ -1228,7 +1227,7 @@ export async function markRead(id: string): Promise<{ ok: boolean }> {
 
 // ── Pool capital deployment (Mlinzi) ─────────────────────────────────────────
 
-// TODO(backend): GET /mlinzi/pool/deployments
+// Live: GET /mlinzi/pool/deployments
 export async function getPoolDeployments(): Promise<PoolDeployment[]> {
   if (USE_MOCKS) return delay([...mockPoolDeployments].reverse());
   return req<PoolDeployment[]>("/mlinzi/pool/deployments");
@@ -1263,7 +1262,7 @@ export async function deployPoolCapital(
 // One-time-CVV card for deploying capital to platforms that only accept cards.
 // CVV rotates on a timer — prevents subscriptions and auto-renewals.
 
-// TODO(backend): GET /mlinzi/card
+// Live: GET /mlinzi/card
 export async function getVirtualCard(): Promise<VirtualCard | null> {
   if (USE_MOCKS) {
     if (!mockVirtualCard) return delay(null);
@@ -1273,7 +1272,7 @@ export async function getVirtualCard(): Promise<VirtualCard | null> {
   return req<VirtualCard | null>("/mlinzi/card");
 }
 
-// TODO(backend): POST /mlinzi/card — creates or replaces the card
+// Live: POST /mlinzi/card — creates or replaces the card
 export async function generateVirtualCard(
   rotationPeriodSecs = 900,
   limitSats: number | null = null,
@@ -1289,7 +1288,7 @@ export async function generateVirtualCard(
   });
 }
 
-// TODO(backend): POST /mlinzi/card/cvv — rotate CVV immediately on demand
+// Live: POST /mlinzi/card/cvv — rotate CVV immediately on demand
 export async function rotateCvvNow(): Promise<VirtualCard> {
   if (USE_MOCKS) {
     if (!mockVirtualCard) throw new Error("No card");
@@ -1302,7 +1301,7 @@ export async function rotateCvvNow(): Promise<VirtualCard> {
   return req<VirtualCard>("/mlinzi/card/cvv", { method: "POST" });
 }
 
-// TODO(backend): PATCH /mlinzi/card
+// Live: PATCH /mlinzi/card
 export async function updateVirtualCard(
   patch: Partial<Pick<VirtualCard, "status" | "limitSats" | "cvvRotationPeriodSecs">>,
 ): Promise<VirtualCard> {
@@ -1314,7 +1313,7 @@ export async function updateVirtualCard(
   return req<VirtualCard>("/mlinzi/card", { method: "PATCH", body: JSON.stringify(patch) });
 }
 
-// TODO(backend): DELETE /mlinzi/card
+// Live: DELETE /mlinzi/card
 export async function deleteVirtualCard(): Promise<{ deleted: boolean }> {
   if (USE_MOCKS) {
     clearMockVirtualCard();
@@ -1325,7 +1324,7 @@ export async function deleteVirtualCard(): Promise<{ deleted: boolean }> {
 
 // ── Lock messages (activity / chat) ──────────────────────────────────────────
 
-// TODO(backend): GET /savings/{id}/messages — fetch activity/chat for a lock
+// Live: GET /savings/{id}/messages — fetch activity/chat for a lock
 export async function getLockMessages(lockId: string): Promise<LockMessage[]> {
   if (USE_MOCKS) return delay([...(mockLockMessages[lockId] ?? [])]);
   return req<LockMessage[]>(`/savings/${lockId}/messages`);

@@ -6,7 +6,9 @@ import {
   SESSION_COOKIE, getSessionUser, getSessionCsrf, ensureSeeded, type PublicUser, toPublic,
 } from "./auth";
 import { allow } from "./rate";
-import type { StoredUser } from "./store";
+import { mutate, type StoredUser } from "./store";
+import { verifyPin, lockoutMs } from "./pin";
+import { isPin } from "./validate";
 
 export function ok<T>(data: T, headers?: HeadersInit): NextResponse<T> {
   return NextResponse.json(data, { headers });
@@ -41,6 +43,33 @@ export async function requireUser(req: NextRequest): Promise<StoredUser | NextRe
   const user = await currentUser(req);
   if (!user) return fail(401, "Not signed in");
   return user;
+}
+
+/** Per-action PIN check for money-moving routes (chama transfer/withdraw).
+ * Same strike/lockout accounting as login. */
+export async function requirePin(user: StoredUser, pin: unknown): Promise<NextResponse | null> {
+  if (!isPin(pin)) return fail(400, "6-digit PIN required");
+  if (user.pinLockedUntil && new Date(user.pinLockedUntil) > new Date()) {
+    return fail(423, "PIN locked, try later");
+  }
+  if (!verifyPin(pin, user.pinHash)) {
+    await mutate((db) => {
+      const u = db.users.find((x) => x.id === user.id);
+      if (!u) return;
+      u.pinStrikes += 1;
+      const ms = lockoutMs(u.pinStrikes);
+      u.pinLockedUntil = ms > 0 ? new Date(Date.now() + ms).toISOString() : u.pinLockedUntil;
+    });
+    return fail(401, "Wrong PIN");
+  }
+  await mutate((db) => {
+    const u = db.users.find((x) => x.id === user.id);
+    if (u) {
+      u.pinStrikes = 0;
+      u.pinLockedUntil = null;
+    }
+  });
+  return null;
 }
 
 /** CSRF double-check for state-changing routes. */

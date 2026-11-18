@@ -30,6 +30,7 @@ export default function DepositPage() {
   const [creditedSats, setCreditedSats] = useState<number>(0);
   const [onChainAddress, setOnChainAddress] = useState<string>("bc1q9yebo8bank24crossborder7satsliquidity777x");
   const [railLabel, setRailLabel] = useState<string | null>(null);
+  const [onchainReady, setOnchainReady] = useState<boolean>(false);
 
   useEffect(() => {
     getWallet().then(setWallet);
@@ -38,15 +39,16 @@ export default function DepositPage() {
       if (u?.phone) setPhone(u.phone);
     });
     // When the bitcoin rail is live, the on-chain address comes from the real
-    // backend (LND/Altradits) instead of the placeholder above.
+    // backend instead of the placeholder above. Rails without on-chain
+    // support (Altradits is Lightning-only) leave the tab honestly disabled.
     if (isBitcoinLive()) {
       getBitcoinStatus().then(
         (s) => setRailLabel(`Live via ${s.provider} · ${s.node.mode}`),
         () => setRailLabel("Live rail unreachable — showing placeholders"),
       );
       getOnchainAddress().then(
-        (a) => setOnChainAddress(a.address),
-        () => undefined,
+        (a) => { setOnChainAddress(a.address); setOnchainReady(true); },
+        () => setOnchainReady(false),
       );
     }
   }, []);
@@ -353,6 +355,12 @@ export default function DepositPage() {
 
         {/* ================= METHOD 3: ON-CHAIN ================= */}
         {method === "onchain" && (
+          isBitcoinLive() && !onchainReady ? (
+            <div className="df-state-box">
+              <h3>On-chain deposits need the LND rail</h3>
+              <p className="df-sub">The active rail is Lightning-only. Switch BITCOIN_PROVIDER to lnd (or mock for demo) to get a fresh on-chain address — or deposit via Lightning instead.</p>
+            </div>
+          ) : (
           <div className="df-state-box">
             <div className="df-qr-placeholder">
               <svg width="180" height="180" viewBox="0 0 180 180" fill="none">
@@ -388,6 +396,7 @@ export default function DepositPage() {
               Minimum deposit: 5,000 sats · Network confirmation time: ~10 minutes
             </p>
           </div>
+          )
         )}
       </div>
     </div>
