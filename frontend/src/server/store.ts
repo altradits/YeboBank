@@ -98,12 +98,24 @@ function dbPath(): string {
   return resolve(process.cwd(), raw);
 }
 
-let cache: DbShape | null = null;
-let cachePath = "";
+// Shared across ALL routes via globalThis: Next.js dev evaluates each route's
+// modules separately, so a module-level cache/queue would diverge between
+// routes (stale reads) and interleave concurrent writes across routes.
+interface StoreShared {
+  cache: DbShape | null;
+  cachePath: string;
+  queue: Promise<void>;
+}
+function storeShared(): StoreShared {
+  const g = globalThis as unknown as { __yeboStore?: StoreShared };
+  if (!g.__yeboStore) g.__yeboStore = { cache: null, cachePath: "", queue: Promise.resolve() };
+  return g.__yeboStore;
+}
 
 function load(): DbShape {
   const path = dbPath();
-  if (cache && cachePath === path) return cache;
+  const shared = storeShared();
+  if (shared.cache && shared.cachePath === path) return shared.cache;
   let db = emptyDb();
   try {
     if (existsSync(path)) {
@@ -115,8 +127,8 @@ function load(): DbShape {
   } catch {
     db = emptyDb();
   }
-  cache = db;
-  cachePath = path;
+  shared.cache = db;
+  shared.cachePath = path;
   return db;
 }
 
@@ -131,21 +143,21 @@ function save(db: DbShape): void {
   } catch {
     /* best effort */
   }
-  cache = db;
-  cachePath = path;
+  const shared = storeShared();
+  shared.cache = db;
+  shared.cachePath = path;
 }
 
 // Serialised write queue: fn runs against the loaded db, then persists.
-let queue: Promise<void> = Promise.resolve();
-
 export function mutate<T>(fn: (db: DbShape) => T): Promise<T> {
-  const run = queue.then(() => {
+  const shared = storeShared();
+  const run = shared.queue.then(() => {
     const db = load();
     const out = fn(db);
     save(db);
     return out;
   });
-  queue = run.then(
+  shared.queue = run.then(
     () => undefined,
     () => undefined,
   );
@@ -164,6 +176,7 @@ export function nextId(db: DbShape, prefix: string): string {
 
 /** Test hook: drop the in-memory cache so the next read hits disk. */
 export function resetCacheForTests(): void {
-  cache = null;
-  cachePath = "";
+  const shared = storeShared();
+  shared.cache = null;
+  shared.cachePath = "";
 }

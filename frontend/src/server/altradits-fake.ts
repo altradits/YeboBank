@@ -20,8 +20,19 @@ interface FakeInvoice {
   settledAt: string | null;
 }
 
-const invoices = new Map<string, FakeInvoice>();
-let feeBalanceSats = 1_000_000; // prepaid demo fee balance
+// Shared across ALL routes via globalThis: Next.js dev evaluates each route's
+// modules separately, so a module-level Map would strand invoices in the
+// route that created them (deposit's invoice invisible to the status route).
+interface FakeShared {
+  invoices: Map<string, FakeInvoice>;
+  feeBalanceSats: number; // prepaid demo fee balance
+}
+function fakeShared(): FakeShared {
+  const g = globalThis as unknown as { __yeboFake?: FakeShared };
+  if (!g.__yeboFake) g.__yeboFake = { invoices: new Map(), feeBalanceSats: 1_000_000 };
+  return g.__yeboFake;
+}
+const invoices = fakeShared().invoices;
 export const FEE_BPS = 50; // 0.5%
 
 function fakeBolt11(hash: string, sats: number): string {
@@ -60,24 +71,26 @@ export function fakeSettleInvoice(paymentHash: string): boolean {
   if (!inv || inv.status !== "pending") return false;
   inv.status = "settled";
   inv.settledAt = new Date().toISOString();
-  feeBalanceSats = Math.max(0, feeBalanceSats - fakeFeeFor(inv.amountSats));
+  const shared = fakeShared();
+  shared.feeBalanceSats = Math.max(0, shared.feeBalanceSats - fakeFeeFor(inv.amountSats));
   return true;
 }
 
 export async function fakePay(_invoiceOrAddress: string, amountSats: number): Promise<PayResult> {
   void _invoiceOrAddress;
   const hash = randomBytes(32).toString("hex");
-  feeBalanceSats = Math.max(0, feeBalanceSats - fakeFeeFor(amountSats));
+  const shared = fakeShared();
+  shared.feeBalanceSats = Math.max(0, shared.feeBalanceSats - fakeFeeFor(amountSats));
   return { paymentHash: hash, status: "settled" };
 }
 
 export function fakeFeeBalance(): number {
-  return feeBalanceSats;
+  return fakeShared().feeBalanceSats;
 }
 
 export function resetFakeForTests(): void {
   invoices.clear();
-  feeBalanceSats = 1_000_000;
+  fakeShared().feeBalanceSats = 1_000_000;
 }
 
 // --- Optional regtest LND passthrough (fake internals only) -----------------

@@ -5,7 +5,13 @@ interface Bucket {
   hits: number[];
 }
 
-const buckets = new Map<string, Bucket>();
+// Shared across ALL routes via globalThis (per-route module copies would let
+// each route run its own limit). See store.ts for why.
+const buckets: Map<string, Bucket> = (() => {
+  const g = globalThis as unknown as { __yeboRateBuckets?: Map<string, Bucket> };
+  if (!g.__yeboRateBuckets) g.__yeboRateBuckets = new Map();
+  return g.__yeboRateBuckets;
+})();
 
 function prune(now: number, windowMs: number, bucket: Bucket): void {
   bucket.hits = bucket.hits.filter((t) => now - t < windowMs);

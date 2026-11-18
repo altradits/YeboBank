@@ -2,7 +2,7 @@
 // and a tiny in-memory rate limiter for money-moving endpoints.
 
 import { NextResponse } from "next/server";
-import { BitcoinError } from "@/server/bitcoin/types";
+import { isBitcoinError } from "@/server/bitcoin/types";
 
 export function err(code: string, message: string, status = 400): NextResponse {
   return NextResponse.json({ error: { code, message } }, { status });
@@ -13,7 +13,7 @@ export function ok<T>(data: T, status = 200): NextResponse {
 }
 
 export function toErrorResponse(e: unknown): NextResponse {
-  if (e instanceof BitcoinError) return err(e.code, e.message, e.status);
+  if (isBitcoinError(e)) return err(e.code, e.message, e.status);
   const message = e instanceof Error ? e.message : "Unexpected error";
   console.error("[bitcoin-api]", message);
   return err("INTERNAL_ERROR", "Bitcoin service temporarily unavailable", 500);
@@ -30,7 +30,13 @@ export async function readJson(req: Request): Promise<Record<string, unknown>> {
 }
 
 // --- Minimal per-IP rate limiter (in-memory; use Redis in multi-instance prod) ---
-const hits = new Map<string, { count: number; resetAt: number }>();
+// Shared across ALL routes via globalThis (per-route module copies would let
+// each route run its own limit). See server/store.ts for why.
+const hits: Map<string, { count: number; resetAt: number }> = (() => {
+  const g = globalThis as unknown as { __yeboBtcHits?: Map<string, { count: number; resetAt: number }> };
+  if (!g.__yeboBtcHits) g.__yeboBtcHits = new Map();
+  return g.__yeboBtcHits;
+})();
 
 export function rateLimit(req: Request, key: string, max = 30, windowMs = 60_000): boolean {
   const ip =

@@ -126,6 +126,10 @@ export class BitcoinError extends Error {
   code: string;
   status: number;
   retryable: boolean;
+  /** Brand: Next.js dev evaluates each route's modules separately, so an
+   * error built in one route fails `instanceof` in another. The brand
+   * survives across module copies where the prototype chain does not. */
+  readonly __yeboBitcoinError = true as const;
   constructor(code: string, message: string, status = 502, retryable = false) {
     super(message);
     this.name = "BitcoinError";
@@ -133,6 +137,16 @@ export class BitcoinError extends Error {
     this.status = status;
     this.retryable = retryable;
   }
+}
+
+/** instanceof-equivalent that also works across Next.js per-route module copies. */
+export function isBitcoinError(e: unknown): e is BitcoinError {
+  return (
+    e instanceof BitcoinError ||
+    (typeof e === "object" &&
+      e !== null &&
+      (e as Record<string, unknown>).__yeboBitcoinError === true)
+  );
 }
 
 export class QuoteUnsupportedError extends BitcoinError {

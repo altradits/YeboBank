@@ -17,7 +17,7 @@ import type {
   InvoiceLookup, NodeInfo, OnchainAddress, PaymentResult, PayInvoiceParams,
   Quote, QuoteParams,
 } from "./types";
-import { BitcoinError } from "./types";
+import { BitcoinError, isBitcoinError } from "./types";
 import {
   assertExpirySecs, assertLightningAmount, assertMemo, classifyDestination,
 } from "./validate";
@@ -54,7 +54,7 @@ export class AltraditsProvider implements BitcoinProvider {
   }
 
   private translateError(e: unknown, op: string): never {
-    if (e instanceof BitcoinError) throw e;
+    if (isBitcoinError(e)) throw e;
     throw new BitcoinError("ALTRADITS_REQUEST_FAILED", `Altradits ${op} failed: ${e instanceof Error ? e.message : String(e)}`, 502, true);
   }
 

@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBitcoinProvider } from "@/server/bitcoin";
 import { requireUser, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
 import { assertLightningAmount, classifyDestination } from "@/server/bitcoin/validate";
-import { BitcoinError } from "@/server/bitcoin/types";
+import { isBitcoinError } from "@/server/bitcoin/types";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const limited = throttle(req, "agent-pay", 20, 60_000);
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       failureReason: result.failureReason,
     });
   } catch (e) {
-    const status = e instanceof BitcoinError ? e.status : 502;
+    const status = isBitcoinError(e) ? e.status : 502;
     return fail(status, e instanceof Error ? e.message : "Payment failed");
   }
 }

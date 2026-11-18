@@ -11,7 +11,7 @@ import { balanceOf, postTx } from "@/server/ledger";
 import { getBitcoinProvider } from "@/server/bitcoin";
 import { requireUser, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
 import { assertLightningAmount, assertMemo, classifyDestination } from "@/server/bitcoin/validate";
-import { BitcoinError } from "@/server/bitcoin/types";
+import { isBitcoinError } from "@/server/bitcoin/types";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const limited = throttle(req, "ln-withdraw", 20, 60_000);
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       idempotencyKey,
     });
   } catch (e) {
-    const status = e instanceof BitcoinError ? e.status : 502;
+    const status = isBitcoinError(e) ? e.status : 502;
     return fail(status, e instanceof Error ? e.message : "Payment failed");
   }
   if (pay.status !== "settled") return fail(502, pay.failureReason || "Testnet payment failed");

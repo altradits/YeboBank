@@ -16,7 +16,7 @@ import type {
   InvoiceLookup, NodeInfo, OnchainAddress, PaymentResult, PayInvoiceParams,
   Quote, QuoteParams,
 } from "./types";
-import { BitcoinError, QuoteUnsupportedError } from "./types";
+import { BitcoinError, isBitcoinError, QuoteUnsupportedError } from "./types";
 import {
   assertBolt11, assertExpirySecs, assertLightningAmount, assertMemo, classifyDestination,
 } from "./validate";
@@ -113,7 +113,7 @@ export class LndProvider implements BitcoinProvider {
       }
       return (await res.json()) as T;
     } catch (err) {
-      if (err instanceof BitcoinError) throw err;
+      if (isBitcoinError(err)) throw err;
       const msg = err instanceof Error ? err.message : String(err);
       throw new BitcoinError("LND_UNREACHABLE", `Cannot reach LND at ${this.cfg.restUrl}: ${msg}`, 502, true);
     } finally {

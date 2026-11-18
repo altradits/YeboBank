@@ -11,7 +11,7 @@ import { mutate } from "@/server/store";
 import { getBitcoinProvider } from "@/server/bitcoin";
 import { requireUser, requireCsrf, ok, fail, throttle, readJson } from "@/server/http";
 import { assertLightningAmount, assertMemo } from "@/server/bitcoin/validate";
-import { BitcoinError } from "@/server/bitcoin/types";
+import { isBitcoinError } from "@/server/bitcoin/types";
 
 interface InvoiceRow {
   hash: string;
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       metadata: { userId: user.id },
     });
   } catch (e) {
-    const status = e instanceof BitcoinError ? e.status : 502;
+    const status = isBitcoinError(e) ? e.status : 502;
     return fail(status, e instanceof Error ? e.message : "Invoice failed");
   }
   await mutate((db) => {
