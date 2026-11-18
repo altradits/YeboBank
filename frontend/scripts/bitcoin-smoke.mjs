@@ -26,30 +26,31 @@ function check(name, cond, detail = "") {
   }
 }
 
-// --- cookie jar + CSRF ---
-let cookieHeader = "";
-let csrf = "";
-function storeCookies(res) {
+// --- cookie jars + CSRF (one session per persona) ---
+function newJar() { return { cookie: "", csrf: "" }; }
+const jars = { member: newJar(), agent: newJar(), mlinzi: newJar() };
+function storeCookies(res, jar) {
   const set = typeof res.headers.getSetCookie === "function" ? res.headers.getSetCookie() : [];
   const pairs = [];
   for (const c of set) {
     const [pair] = c.split(";");
     pairs.push(pair);
     const m = /^yebo_csrf=([^;]+)/.exec(pair.trim());
-    if (m) csrf = m[1];
+    if (m) jar.csrf = m[1];
   }
-  if (pairs.length) cookieHeader = pairs.join("; ");
+  if (pairs.length) jar.cookie = pairs.join("; ");
 }
-async function api(method, path, body, { auth = false } = {}) {
+async function api(method, path, body, { as = null } = {}) {
   const headers = { "Content-Type": "application/json" };
+  const auth = as !== null;
   if (auth) {
-    headers.Cookie = cookieHeader;
-    if (method !== "GET" && method !== "HEAD") headers["x-csrf-token"] = csrf;
+    headers.Cookie = jars[as].cookie;
+    if (method !== "GET" && method !== "HEAD") headers["x-csrf-token"] = jars[as].csrf;
   }
   const res = await fetch(`${BASE}${path}`, {
     method, headers, body: body === undefined ? undefined : JSON.stringify(body),
   });
-  storeCookies(res);
+  if (as) storeCookies(res, jars[as]);
   const text = await res.text();
   let json = null;
   try { json = JSON.parse(text); } catch { /* non-JSON */ }
@@ -100,10 +101,16 @@ async function main() {
     const anon = await api("POST", "/api/deposit/lightning", { sats: 5000 });
     check("deposit rejects anonymous", anon.status === 401, `got ${anon.status}`);
 
-    // 3. login as seeded demo user (PIN documented in server/auth.ts)
-    const login = await api("POST", "/api/login", { phone: "+254712345678", pin: "284649" });
-    check("login works", login.status === 200 && !!csrf, `got ${login.status}`);
-    const A = { auth: true };
+    // 3. login as seeded demo users (PIN documented in server/auth.ts)
+    const login = await api("POST", "/api/login", { phone: "+254712345678", pin: "284649" }, { as: "member" });
+    check("login works", login.status === 200 && !!jars.member.csrf, `got ${login.status}`);
+    const loginAgent = await api("POST", "/api/login", { phone: "+254700000002", pin: "284649" }, { as: "agent" });
+    check("agent login works", loginAgent.status === 200 && !!jars.agent.csrf, `got ${loginAgent.status}`);
+    const loginMlinzi = await api("POST", "/api/login", { phone: "+254700000001", pin: "284649" }, { as: "mlinzi" });
+    check("mlinzi login works", loginMlinzi.status === 200 && !!jars.mlinzi.csrf, `got ${loginMlinzi.status}`);
+    const A = { as: "member" };
+    const AG = { as: "agent" };
+    const ML = { as: "mlinzi" };
 
     // 4. fresh wallet is empty
     const w0 = await api("GET", "/api/wallet", undefined, A);
@@ -180,7 +187,7 @@ async function main() {
     const key = { "Idempotency-Key": "smoke-key-1" };
     const mkPay = () => fetch(`${BASE}/api/withdraw/lightning`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Cookie: cookieHeader, "x-csrf-token": csrf, ...key },
+      headers: { "Content-Type": "application/json", Cookie: jars.member.cookie, "x-csrf-token": jars.member.csrf, ...key },
       body: JSON.stringify({ invoiceOrAddress: inv2.invoice, sats: 1000 }),
     }).then(async (r) => ({ status: r.status, json: await r.json() }));
     const p1 = await mkPay();
@@ -196,16 +203,20 @@ async function main() {
     const badPay = await api("POST", "/api/withdraw/lightning", { invoiceOrAddress: "not-an-invoice", sats: 100 }, A);
     check("rejects bad destination", badPay.status === 400);
 
-    // 12. agent flows (authed)
-    const agentInv = (await api("POST", "/api/agent/invoice", { amountSats: 2500 }, A)).json;
+    // 12. agent flows (agent session; members are forbidden)
+    const agentInv = (await api("POST", "/api/agent/invoice", { amountSats: 2500 }, AG)).json;
     check("agent invoice", typeof agentInv.invoice === "string" && agentInv.invoice.startsWith(fakePrefix));
-    const topup = (await api("POST", "/api/agent/float/topup", { amountSats: 10000 }, A)).json;
+    const topup = (await api("POST", "/api/agent/float/topup", { amountSats: 10000 }, AG)).json;
     check("agent float topup", typeof topup.invoice === "string" && topup.invoice.startsWith(fakePrefix));
     const agentPay = (await api("POST", "/api/agent/pay",
-      { invoiceOrAddress: agentInv.invoice, amountSats: 2500 }, A)).json;
+      { invoiceOrAddress: agentInv.invoice, amountSats: 2500 }, AG)).json;
     check("agent pay", agentPay.ok === true, JSON.stringify(agentPay));
     const agentAnon = await api("POST", "/api/agent/invoice", { amountSats: 10 });
     check("agent routes reject anonymous", agentAnon.status === 401);
+    const agentMember = await api("POST", "/api/agent/invoice", { amountSats: 10 }, A);
+    check("agent routes reject non-agent member", agentMember.status === 403, `got ${agentMember.status}`);
+    const agentState = await api("GET", "/api/agent", undefined, AG);
+    check("agent state loads", agentState.status === 200, `got ${agentState.status}`);
 
     // 13. on-chain: mock serves, altradits 501s per contract
     const addrRes = await api("GET", "/api/bitcoin/onchain-address");
@@ -234,6 +245,27 @@ async function main() {
       body: JSON.stringify({ type: "invoice.settled", payment_hash: "cd".repeat(32) }),
     });
     check("internal webhook accepts token", withTok.status === 200, `got ${withTok.status}`);
+
+    // 16. merged backend groups mount with the same auth model
+    const chamaAnon = await api("GET", "/api/chama");
+    check("chamas reject anonymous", chamaAnon.status === 401, `got ${chamaAnon.status}`);
+    const chamas = await api("GET", "/api/chama", undefined, A);
+    check("chamas list loads", chamas.status === 200 && Array.isArray(chamas.json), `got ${chamas.status}`);
+    const savingsAnon = await api("GET", "/api/savings");
+    check("savings reject anonymous", savingsAnon.status === 401, `got ${savingsAnon.status}`);
+    const savings = await api("GET", "/api/savings", undefined, A);
+    check("savings list loads", savings.status === 200 && Array.isArray(savings.json), `got ${savings.status}`);
+    const mlinziMember = await api("GET", "/api/mlinzi/access", undefined, A);
+    check("mlinzi routes reject member", mlinziMember.status === 403, `got ${mlinziMember.status}`);
+    const mlinziOk = await api("GET", "/api/mlinzi/access", undefined, ML);
+    check("mlinzi routes load for mlinzi", mlinziOk.status === 200, `got ${mlinziOk.status}`);
+    const mpesaAnon = await api("POST", "/api/deposit/mpesa", { kes: 1000 });
+    check("mpesa deposit rejects anonymous", mpesaAnon.status === 401, `got ${mpesaAnon.status}`);
+    const wBefore = (await api("GET", "/api/wallet", undefined, A)).json.balanceSats;
+    const mpesa = await api("POST", "/api/deposit/mpesa", { kes: 1000 }, A);
+    const wAfter = (await api("GET", "/api/wallet", undefined, A)).json.balanceSats;
+    check("simulated mpesa deposit credits", mpesa.status === 200 && wAfter > wBefore,
+      `status=${mpesa.status} ${wBefore}->${wAfter}`);
 
     console.log(failures === 0 ? "[smoke] ALL CHECKS PASSED" : `[smoke] ${failures} CHECK(S) FAILED`);
     process.exitCode = failures === 0 ? 0 : 1;
